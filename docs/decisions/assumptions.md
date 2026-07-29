@@ -157,9 +157,11 @@ too pessimistic.** More human-annotated evaluation data exists than assumed:
 **A third caveat, and the most serious** `[verified]` 2026-07-29:
 `farefaine/tigrinya-pretraining` — advertised as pretraining text — carries
 TiQuAD's QA schema and a validation split of **exactly 934 rows, matching
-TiQuAD's**. If it contains TiQuAD rows, anyone pretraining on it invalidates
-their own TiQuAD evaluation. Strong signal, not proof (row overlap unverified,
-egress-blocked). → **DEC-008** makes screening mandatory.
+TiQuAD's**. ✅ **CONFIRMED by row-level preview** — identical `article_title`
+and `context` to TiQuAD's own published sample entry, with three answer
+annotations per question (TiQuAD's validation convention). Anyone pretraining on
+it invalidates their own TiQuAD evaluation. → **DEC-008** makes screening
+mandatory, and externally reported Tigrinya QA scores are now suspect.
 
 **Two further caveats** `[verified]`:
 - **TiQuAD's test split is request-gated**, not public — so the canonical

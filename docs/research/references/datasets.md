@@ -20,7 +20,7 @@
 | `SIMBA9657/tigrinya-haddas-dataset` | 10K–100K | — | monolingual | Related to above |
 | `saillab/alpaca_tigrinya_taco` | 10K–100K | NOT STATED | instruction | TaCo paper; translated instructions |
 | `saillab/alpaca-tigrinya-cleaned` | 10K–100K | NOT STATED | instruction | Cleaned variant |
-| `farefaine/tigrinya-pretraining` | 10K–100K | — | monolingual | Aggregated public sources |
+| `farefaine/tigrinya-pretraining` | 52.1K rows | NOT STATED ⚠️ | ⛔ **CONTAMINATED** | **DO NOT USE FOR TRAINING.** Advertised as "pretraining sources" but **verifiably contains TiQuAD validation data** (identical context + title + 3-annotation pattern). See DEC-008 |
 | `michsethowusu/Code-170k-tigrinya` | 176,999 items | **apache-2.0** | code instructions | Marginal — translated code conversations |
 | `badrex/tigrinya-speech` | 10K–100K | — | speech | Out of scope (**N-6**) |
 | `Aregay01/Tigrinya_feature_extracted` | 10K–100K | apache-2.0 | speech features | Out of scope |

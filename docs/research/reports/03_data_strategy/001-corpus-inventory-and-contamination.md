@@ -6,7 +6,7 @@
 | **Domain** | `03_data_strategy` |
 | **Stage** | Scout → Analyst |
 | **Date** | 2026-07-29 |
-| **Status** | Accepted |
+| **Status** | Accepted — contamination **CONFIRMED** same day |
 | **Summary** | `docs/research/summaries/005-corpus-inventory-and-contamination.md` |
 | **Related decisions** | DEC-008; amends DEC-005; updates A-006 |
 
@@ -136,9 +136,53 @@ include `tigrinya-squad` (the silver MT'd set) and others.
 **Falsifiable prediction:** downloading both and comparing `id` or `context`
 fields will show overlap. That check is the top action item.
 
-**Either way, the operational conclusion is the same:** the dataset is unusable
-for us until the overlap question is settled, because using it risks
-invalidating our evaluation anchor.
+**⚠️ SUPERSEDED — see the CONFIRMED section immediately below.** The row-level
+check was subsequently run and the overlap is verified. The hedging above is
+retained to show what was known before the check, not because it still stands.
+
+---
+
+## ✅ CONFIRMED — 2026-07-29, same day
+
+**The contamination is verified. This is no longer a signal.**
+
+`dataset_preview` on `farefaine/tigrinya-pretraining`, config `default`, split
+`validation`, rows 0–2 returned:
+
+- `article_title`: **ሃብቶም ክብረኣብ (ሞጀ)**
+- `context`: a passage beginning *"ሃብቶም ክብረኣብ (ሞጀ) ሞጀ ኣብ 80'ታትን ኣብ ፈለማ 90'ታትን
+  ካብቶም ናይ ክለብ ኣልታሕሪር ንፉዓት ተኸላኸልቲ ነይሩ…"*
+- `context_id`: `17.1`
+- `answers`: **three annotations per question**
+
+**The TiQuAD dataset card publishes its own sample entry as that identical
+passage** — same `title` (ሃብቶም ክብረኣብ (ሞጀ)), same context text, three answer
+annotations. TiQuAD documents that "validation and test samples include up to 3
+answer annotations per question" specifically to enable human-performance
+estimation.
+
+### The evidence chain
+
+| Evidence | Status |
+| --- | --- |
+| Identical schema, field for field | `[verified]` |
+| Validation split exactly 934 rows in both | `[verified]` |
+| **Identical `article_title` and `context` text** | **`[verified]`** |
+| **Three answer annotations per question — TiQuAD's validation convention** | **`[verified]`** |
+
+**Conclusion: `farefaine/tigrinya-pretraining` contains TiQuAD validation data
+and is advertised as "Tigrinya Raw Pretraining Sources".** Anyone who pretrains
+on it and then evaluates on TiQuAD is reporting a contaminated score.
+
+The earlier hedge ("strong signal, not proof") is **withdrawn** — the row-level
+check that was blocked has now been run and it confirms the finding.
+
+**Nothing about the recommendation changes.** DEC-008 was justified by the
+possibility; it is now justified by fact. What changes is urgency: this should
+be reported upstream to the `farefaine` maintainer promptly, and any published
+Tigrinya model that used this corpus has a QA score that cannot be trusted.
+
+---
 
 ## Finding 4 — Licensing is the binding constraint, again
 

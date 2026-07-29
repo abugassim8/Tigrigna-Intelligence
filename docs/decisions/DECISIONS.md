@@ -627,10 +627,19 @@ a number. That asymmetry justifies paying the screening cost on every dataset.
 
 **Evidence:** `../research/summaries/005-corpus-inventory-and-contamination.md`
 
-⚠️ **Confidence note:** the `farefaine`/TiQuAD overlap is a **strong signal, not
-proof** — schema and split size are verified, row-level overlap is not
-(egress-blocked). The decision holds regardless: screening is justified by the
-*possibility*, and by the measured unreliability of dataset metadata.
+✅ **CONFIRMED same day.** The row-level check that was blocked has since been
+run. `dataset_preview` on the validation split returned `article_title`
+**ሃብቶም ክብረኣብ (ሞጀ)** with a context passage **identical to the sample entry
+TiQuAD publishes on its own dataset card**, carrying three answer annotations
+per question — TiQuAD's documented validation-set convention.
+
+**The contamination is verified, not suspected.** The earlier hedge is
+withdrawn. DEC-008 was justified by the possibility; it is now justified by
+fact — and the DEC-005 corollary hardens accordingly: **any published Tigrinya
+model trained on this corpus has a TiQuAD score that cannot be trusted.**
+
+Reporting this upstream to the `farefaine` maintainer is now an action item
+(**G-11**).
 
 ---
 

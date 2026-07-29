@@ -6,12 +6,12 @@
 | **Full report** | `docs/research/reports/03_data_strategy/001-corpus-inventory-and-contamination.md` |
 | **Date** | 2026-07-29 |
 | **Status** | Current |
-| **Confidence** | High on the inventory (measured) · Medium-high on contamination |
+| **Confidence** | High — inventory measured, contamination **CONFIRMED** |
 
 **One-line answer:** The openly-available Tigrinya corpus is small and measured —
 ~67K monolingual rows plus 1.4M parallel pairs — but **~99% of it carries no
-usable licence**, and one dataset advertised for *pretraining* appears to contain
-our *evaluation* anchor's data.
+usable licence**, and one dataset advertised for *pretraining* **verifiably
+contains our evaluation anchor's validation data**.
 
 ---
 
@@ -51,10 +51,14 @@ our *evaluation* anchor's data.
   would silently invalidate their own TiQuAD evaluation. Most likely an honest
   aggregation error — the effect on a downstream user is identical.
 
-  **Confidence: strong signal, not proof.** Schema and split size are
-  `[verified]`; **row-level overlap is not** (huggingface.co download is
-  egress-blocked). Train is 46,700 vs TiQuAD's 4,452, so it contains more than
-  TiQuAD alone. **Falsifiable check specified:** diff the `id`/`context` fields.
+  **✅ CONFIRMED `[verified]`.** A row-level preview of the validation split
+  returned `article_title` **ሃብቶም ክብረኣብ (ሞጀ)** with a context passage
+  **identical to the sample entry TiQuAD publishes on its own dataset card** —
+  and three answer annotations per question, which is TiQuAD's documented
+  validation-set convention. The earlier "signal, not proof" hedge is withdrawn.
+
+  **Consequence:** any published Tigrinya model trained on this corpus has a
+  TiQuAD score that cannot be trusted. Report upstream to the maintainer.
 
 ## Important Decisions
 
@@ -82,12 +86,15 @@ our *evaluation* anchor's data.
 | en–ti parallel pairs | **1,400,000** | `[verified]` |
 | TiRoBERTa training corpus | 40M tokens | `[verified]` |
 | `farefaine` vs TiQuAD validation split | **934 == 934** | `[verified]` |
+| **Contamination** | **CONFIRMED — identical context + title + 3-annotation pattern** | `[verified]` |
 | Total storage | 166 MB parquet | `[verified]` |
 | Size-tag error rate | 2 of 4 datasets sampled | `[verified]` |
 
 ## Recommended Next Steps
 
-1. **Verify the `farefaine`/TiQuAD row overlap** — top action item, needs egress.
+1. ~~Verify the `farefaine`/TiQuAD row overlap~~ ✅ **done — confirmed.**
+   Now: **report it upstream to the `farefaine` maintainer** (G-11), and treat
+   any Tigrinya model trained on this corpus as having an untrustworthy QA score.
 2. **Pursue licence clarification** with `michsethowusu` and `farefaine`. Cheapest
    high-value action available: a few emails could unlock 1.4M parallel sentences.
 3. **Quarantine unlicensed data structurally** — research-only, never shipped.
@@ -104,8 +111,8 @@ our *evaluation* anchor's data.
 
 ---
 
-**Open questions / uncertainty:** Does `farefaine` actually contain TiQuAD rows,
-and what is in the other ~42K train rows? Will the unlicensed datasets be
+**Open questions / uncertainty:** ~~Does `farefaine` contain TiQuAD rows?~~
+**Confirmed yes.** Still open: what is in the other ~42K train rows? Will the unlicensed datasets be
 clarified? **Have published Tigrinya models already trained on contaminated
 data** — which would make their reported QA scores unreliable? All blocked on
 egress or on maintainer response.
