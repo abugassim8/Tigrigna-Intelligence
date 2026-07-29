@@ -9,7 +9,7 @@
 
 | Dataset | Size | Licence | Type | Verdict |
 | --- | --- | --- | --- | --- |
-| `fgaim/tiquad` | 10.6K QA pairs | **cc-by-sa-4.0** | QA, **human-annotated** | **Very useful** — evaluation anchor |
+| `fgaim/tiquad` | 290 articles · 572 paragraphs · **6,508 questions · 10,637 answers** | **cc-by-sa-4.0** ⚠️ see caveat | QA, **human-annotated** | **Very useful** — evaluation anchor. See the four notes below |
 | `fgaim/GLOCR-Tigrinya` | 1M–10M rows | **cc-by-4.0** | OCR / text recognition | Useful if N-7 revisited; large Ge'ez text source |
 | `fgaim/tigrinya-abusive-language-detection` (TiALD) | 13,717 comments | **cc-by-4.0** | classification | Useful — **rare informal-register source** (YouTube) |
 | `fgaim/tigrinya-squad` | 10K–100K | **cc-by-sa-4.0** | QA, **silver** | Partially useful — machine-translated, explicitly silver-standard. **Never use as evaluation data.** |
@@ -29,14 +29,50 @@
 (Zulu, Xhosa, Swahili, Hausa, Wolof, …). Only **English** and **Amharic** pairs
 are plausibly relevant.
 
+### ⚠️ TiQuAD — four verified caveats (2026-07-29)
+
+All `[verified]` from the dataset card:
+
+1. **Test split is NOT public.** Train 4,452 / validation 934 are public; test
+   1,122 is **request-gated** (`fitsum.gaim@kaist.ac.kr`) to prevent
+   contamination from web-crawled training data. Exemplary practice — but our
+   harness must complete the request or evaluate on validation and say so.
+2. **Baselines are lower than widely quoted.** mBERT EM 42.1 / F1 58.6; XLM-R
+   EM 45.8 / F1 62.4 (validation). **Not 81%.** Use 56–62 F1 as the reference
+   range.
+3. **Eritrean-sourced** — Eritrean Ministry of Information (shabait.com) and
+   *Hadas Ertra* newspaper. Under DEC-004, **Ethiopian-variety QA evaluation is
+   therefore an open gap.**
+4. **Upstream copyright is unresolved.** The authors state they *"do not own the
+   copyright to the original news articles… used under fair use principles for
+   academic research purposes only,"* with CC-BY-SA-4.0 applied on top.
+   **Under P-9 this is a real risk for infrastructure use.** Academic evaluation
+   is defensible; redistribution or commercial service use may not be. **Legal
+   review required.**
+
+Good practice worth copying: **article-based** train/val/test partitioning to
+prevent leakage; up to 3 answer annotations per question on val/test to enable
+human-performance estimation; official evaluation script handling article
+normalisation.
+
+### TIGQA — a second, distinct Tigrinya QA dataset
+
+`[verified]` via arXiv 2404.17194 metadata. **2.68K QA pairs · 122 topics · 537
+paragraphs**, from **Tigrinya and Biology textbooks** (educational domain).
+Authors: Teklehaymanot, Fazlija, Ganguly, Patro, Nejdl (L3S Hannover).
+
+**Complements TiQuAD** rather than duplicating it — different domain (textbooks
+vs news) and different provenance. **Candidate for the Ethiopian-variety
+evaluation gap.** Licence and hosting location not yet verified — locate it.
+
 ## Named in the literature but NOT located
 
 **Finding and licence-checking these is a top `03_data_strategy` action.**
 
 | Dataset | Reported detail | Why it matters |
 | --- | --- | --- |
-| **TLMD** (Tigrinya Language Modeling Dataset) | Referenced in `fgaim` model metadata | The corpus behind the primary reuse candidates |
-| **NTC** (Nagaoka Tigrinya Corpus) | Referenced in `fgaim/tiroberta-pos` metadata | POS training data |
+| **TLMD** (Tigrinya Language Modeling Dataset) | Referenced in `fgaim` model metadata. **Scale now known:** TiRoBERTa was pretrained on **40M tokens** `[verified]` | The corpus behind the primary reuse candidates — and the project's data ceiling |
+| **NTC** (Nagaoka Tigrinya Corpus) | Referenced in `fgaim/tiroberta-pos` metadata. **Source identified:** "Tigrinya POS Tagging with Morphological Patterns and the New Nagaoka Tigrinya Corpus" | POS training data |
 | **TiNC24** | 200K+ words NER, 118K POS-annotated, 8 entity classes, 10 domains | Would make NER a reuse rather than build |
 | **FLORES-200** (Tigrinya split) | ~3K eval samples; human-reviewed, 204 languages | **Primary MT evaluation anchor** (DEC-005) |
 | **NLLB en–ti parallel corpus** | ~1.4M sentence pairs | Would be the largest licensed parallel resource |

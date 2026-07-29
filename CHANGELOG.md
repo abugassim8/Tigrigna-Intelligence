@@ -22,6 +22,62 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Phase 2 critical path + Phase 1 verification — 2026-07-29
+
+**Verification pass corrected two published figures.** A follow-up reached
+primary artefact sources through the **Hugging Face filesystem API**
+(`hf://models`, `hf://datasets`, `hf://papers`), which is not subject to the
+egress block on arxiv and publisher domains. Four corrections to the Phase 1
+ecosystem report, recorded in its verification addendum:
+
+- **TiQuAD baselines are F1 56–62, not 81%.** mBERT F1 58.6 / XLM-R F1 62.4
+  (validation). The state of the art for Tigrinya QA is lower than first
+  recorded.
+- **TiQuAD's test split is not public** — request-gated to prevent
+  contamination. DEC-005 amended with the operational consequence.
+- **TiQuAD is Eritrean-sourced** (Eritrean Ministry of Information, *Hadas
+  Ertra*), so under DEC-004 **Ethiopian-variety QA evaluation is an open gap**,
+  not a balanced pair.
+- **TiQuAD's upstream copyright is unresolved** — its authors state they do not
+  own the source-article copyright, which is used under fair use "for academic
+  research purposes only" with CC-BY-SA-4.0 applied on top. **A genuine P-9 risk
+  for infrastructure use.** Legal review required; referred to `11_business`.
+
+**Newly verified facts**
+- **The Tigrinya data ceiling is 40M tokens** — TiRoBERTa, the strongest
+  available encoder, was pretrained on that. This is the number
+  `03_data_strategy` must plan against.
+- **TIGQA** — a *second*, distinct Tigrinya QA dataset (2.68K pairs, 122 topics,
+  537 paragraphs from textbooks). Educational domain; complements TiQuAD's news.
+- arXiv 2509.20209 abstract verified: a custom tokenizer **"substantially
+  outperforms"** zero-shot baselines, Bonferroni-corrected with human
+  validation — independent corroboration of A-007.
+
+**`02_linguistics` complete — the critical path**
+
+`reports/02_linguistics/001-morphology-script-and-tokenization.md` + summary
+`003`. **A-007 confirmed, and its mechanism identified:**
+
+Tigrinya is templatic *and* agglutinative, so triconsonantal roots are
+**discontinuous**. The Ge'ez abugida **fuses consonant and vowel into a single
+character** (26 × 7 ≈ 182 characters). Therefore **a morpheme boundary can fall
+inside one character**, and no subword tokenizer operating on raw Ge'ez can
+represent it — a representational limit, not a tuning problem. Byte-level BPE
+does not help, since UTF-8 bytes carry no consonant/vowel decomposition.
+
+- **DEC-007** — consonant–vowel decomposition as the substrate beneath
+  tokenization, with morpheme-aware vocabulary layered on top and raw-Ge'ez
+  subword retained as a measured baseline.
+- **Transliteration is reclassified as core infrastructure**, not a peripheral
+  user-facing feature, because other services depend on the decomposition.
+- Three further alternatives rejected (R-013 … R-015).
+
+**Honesty note carried into the decision:** evidence on whether morphology-aware
+tokenization improves *downstream accuracy* is mixed — MoVoC found no
+significant MT gain; 2509.20209 found substantial gains from a different
+intervention. DEC-007 claims only the defensible benefits (token efficiency,
+linguistic fidelity) and requires accuracy to be measured.
+
 ### Phase 1 research complete — 2026-07-29
 
 The first two research domains were executed and documented. **This changed the

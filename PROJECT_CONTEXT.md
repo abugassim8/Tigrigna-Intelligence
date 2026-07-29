@@ -174,25 +174,37 @@ scripts/            Operational tooling
 
 ## Current status
 
-**Phase: 1 complete — Foundations researched.**
+**Phase 1 complete; Phase 2 critical path complete.**
 
-The repository structure and research operating system exist, and the first two
-research domains are done:
+Three research domains are done:
 
-- `00_project_definition` → scope, users, and dialect settled (DEC-002, DEC-004,
-  DEC-006)
+- `00_project_definition` → scope, users, dialect (DEC-002, DEC-004, DEC-006)
 - `01_ecosystem` → the Tigrinya NLP landscape mapped (DEC-003, DEC-005)
+- `02_linguistics` → morphology, Ge'ez script, tokenization (DEC-007)
 
 **Read [`docs/research/summaries/`](docs/research/summaries/) before doing
-anything else.** Two summaries, ~2 pages each, and they change the plan.
+anything else.** Three summaries, ~2 pages each, and they change the plan.
 
-### What Phase 1 established
+### What the research established
 
-**Most of the model layer already exists.** A single group (GeezLab / `fgaim`)
-has published a coherent Tigrinya stack including an Apache-2.0 embedding model.
-**Our differentiator is not models** — it is the primitives layer (Ge'ez
-normalisation, tokenization, morphology), the evaluation harness, and the
-integration surface (API, MCP, SDKs). Nobody has built those.
+**1. Most of the model layer already exists.** A single group (GeezLab /
+`fgaim`) has published a coherent Tigrinya stack including an Apache-2.0
+embedding model. **Our differentiator is not models** — it is the primitives
+layer, the evaluation harness, and the integration surface (API, MCP, SDKs).
+Nobody has built those.
+
+**2. The primitives problem has a specific mechanism.** Tigrinya is templatic
+*and* agglutinative, so roots are **discontinuous**; the Ge'ez abugida **fuses
+consonant and vowel into one character**. So **a morpheme boundary can fall
+inside a single character**, and no subword tokenizer on raw Ge'ez can represent
+it. Hence DEC-007: a consonant–vowel decomposition layer beneath tokenization.
+This also makes **transliteration core infrastructure**, not a peripheral
+feature.
+
+**3. The data ceiling is 40M tokens.** `[verified]` TiRoBERTa — the strongest
+available Tigrinya encoder — was pretrained on 40 million tokens. That is small
+enough to favour linguistically-informed methods over data-hungry ones, and it
+is the number `03_data_strategy` must plan against.
 
 ### Blocking items
 
@@ -201,6 +213,11 @@ integration surface (API, MCP, SDKs). Nobody has built those.
 2. **HornMorpho maintenance status** — the only established Tigrinya
    morphological analyser, now on the critical path via DEC-006.
 3. **DEC-002 needs owner confirmation** — the user determination is inferential.
+4. **TiQuAD's copyright position needs legal review** — its authors do not own
+   the source-article copyright; it is fair-use "academic research purposes
+   only" under a CC-BY-SA-4.0 wrapper. Fine for internal evaluation; **not
+   clearly fine for an infrastructure platform.**
+5. **Ethiopian-variety QA evaluation is a gap** — TiQuAD is Eritrean-sourced.
 
 ### Still not done
 

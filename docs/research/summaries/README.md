@@ -63,6 +63,7 @@ Examples: `001-tigrinya-corpus-survey.md`, `007-tokenizer-options.md`
 | --- | --- | --- | --- | --- | --- |
 | [001](001-tigrinya-nlp-ecosystem-scan.md) | Tigrinya NLP Ecosystem Scan | Scout → Analyst | `01_ecosystem` | 2026-07-29 | Current |
 | [002](002-scope-users-and-dialect.md) | Scope, Users, and Dialect Definition | Scout → Analyst | `00_project_definition` | 2026-07-29 | Current |
+| [003](003-morphology-script-and-tokenization.md) | Morphology, Ge'ez Script, and the Tokenization Constraint | Scout → Analyst | `02_linguistics` | 2026-07-29 | Current |
 
 Keep this table current. It is the first thing anyone reads.
 
@@ -85,6 +86,9 @@ tells the next person that the question is harder than it looks.
 
 ## Status
 
-**2 summaries.** Phase 1 research (`00_project_definition`, `01_ecosystem`) is
-complete. Next: `02_linguistics` — Ge'ez normalisation and morphology are the
-critical path per DEC-006.
+**3 summaries.** Phase 1 (`00_project_definition`, `01_ecosystem`) and the
+critical-path half of Phase 2 (`02_linguistics`) are complete.
+
+Next: `03_data_strategy` — a corpus survey is now the blocking dependency for
+the orthographic-variation and normalisation work (DEC-007), and the verified
+40M-token data ceiling is the number to plan against.

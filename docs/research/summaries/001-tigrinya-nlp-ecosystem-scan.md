@@ -45,13 +45,29 @@ API/MCP/SDK surface.
 - **Negative result:** unsupervised segmentation (Morfessor) reportedly performs
   poorly on Tigrinya versus rule-based. Do not start there. `[reported]`
 
-## ⚠️ Evidence caveat
+## ⚠️ Evidence caveat — and four corrections
 
 **Egress policy blocked arxiv, ACL Anthology, publishers, and Semantic Scholar.**
-Every paper-derived number here is `[reported]` from search summaries, not read
-from the source. HF data is `[verified]`. Re-verify before relying on precision —
-especially the NLLB 1.4M pair count, MoVoC 21→6, TiNC24 F1 90.18%, and the CoDET
-COMET figures.
+Paper-derived numbers are `[reported]` from search summaries. HF data is
+`[verified]`.
+
+**A same-day verification pass via the HF filesystem API corrected two figures
+and surfaced two constraints** (full detail in the report's addendum):
+
+- **C-1** TiQuAD baselines are **F1 56–62, not 81%.** The state of the art for
+  Tigrinya QA is lower than this summary first stated.
+- **C-2** TiQuAD's **test split is not public** — request-gated. Affects DEC-005
+  operationally.
+- **C-3** TiQuAD is **Eritrean-sourced**. So Ethiopian-variety QA evaluation is a
+  **gap**, not a balanced pair — sharpens DEC-004.
+- **C-4** TiQuAD's authors **do not own the source-article copyright**; it is
+  fair-use "academic research purposes only" under a CC-BY-SA-4.0 wrapper.
+  **A real P-9 risk for infrastructure use** — legal review needed before use
+  beyond internal evaluation.
+
+Still `[reported]` and unverified: MoVoC's 21→6 fertility example, the survey's
+OOV claims, NLLB's 1.4M pair count, TiNC24's F1 90.18%, and the CoDET COMET
+figures. Neither the survey nor MoVoC is indexed on `hf://papers`.
 
 ## Important Decisions
 
@@ -77,8 +93,11 @@ COMET figures.
 | `tiroberta-base` params | 124.7M — CPU-servable | `[verified]` HF API |
 | `tiroberta-bi-encoder` params / licence | 124.6M / Apache-2.0 | `[verified]` |
 | `tiroberta-base` all-time downloads | 7.5K | `[verified]` |
-| TiQuAD size | 10.6K QA pairs, 6.5K unique Q, CC-BY-SA-4.0, **human-annotated** | `[verified]` size class; `[reported]` detail |
-| TiQuAD baseline / human F1 | 81% / 92% | `[reported]` |
+| **Tigrinya data ceiling** | **TiRoBERTa pretrained on 40M tokens** | `[verified]` — the hard number for data scale |
+| TiQuAD size | 290 articles · 572 paragraphs · 6,508 questions · 10,637 answers; CC-BY-SA-4.0 | `[verified]` |
+| TiQuAD published baselines | **mBERT F1 58.6 · XLM-R F1 62.4 (val)** — ⚠️ **corrected**, was cited as 81% | `[verified]` — see C-1 |
+| TiQuAD test split | **Not public** — request-gated to prevent contamination | `[verified]` — see C-2 |
+| TIGQA (second QA dataset) | 2.68K pairs · 122 topics · 537 paragraphs, from textbooks | `[verified]` — new find |
 | TiALD size | 13,717 YouTube comments, CC-BY-4.0 | `[verified]` |
 | GLOCR-Tigrinya | 1M–10M rows, CC-BY-4.0 | `[verified]` |
 | en–ti parallel (largest found) | 1M–10M pairs, licence unstated | `[verified]` size class |

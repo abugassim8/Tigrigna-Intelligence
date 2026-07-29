@@ -69,6 +69,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-004 | 2026-07-29 | Support both Tigrinya varieties; evaluate and report them separately | Accepted |
 | DEC-005 | 2026-07-29 | FLORES-200 and TiQuAD as initial evaluation anchors | Accepted |
 | DEC-006 | 2026-07-29 | Minimum viable platform is the primitives layer, not translation | Accepted |
+| DEC-007 | 2026-07-29 | Consonant–vowel decomposition as the substrate beneath tokenization | Accepted |
 
 ---
 
@@ -355,6 +356,35 @@ not block all measurement until it is done.
 
 **Evidence:** `../research/summaries/001-tigrinya-nlp-ecosystem-scan.md`
 
+### Amendment — 2026-07-29 (same day, post-verification)
+
+Three findings materially affect this decision's execution. The decision stands;
+its operational detail changes.
+
+1. **TiQuAD's test split is not public.** It is request-gated
+   (`fitsum.gaim@kaist.ac.kr`) to prevent contamination from web-crawled
+   training data. Public splits: train 4,452 / validation 934; test 1,122 held
+   back. **We must complete the request process, or evaluate on validation and
+   say so explicitly.** This is exemplary practice on their part, not a defect.
+2. **Published baselines are lower than first recorded.** mBERT F1 58.6 / XLM-R
+   F1 62.4 (validation) — **not the 81% originally cited.** Use 56–62 F1 as the
+   reference range.
+3. **TiQuAD is Eritrean-sourced** (Eritrean Ministry of Information; *Hadas
+   Ertra*). Under DEC-004 this means our main QA anchor covers the **Eritrean**
+   variety, and **Ethiopian-variety QA evaluation is an open gap** rather than a
+   balanced pair. **TIGQA** (2.68K pairs, educational/textbook domain, arXiv
+   2404.17194) is a candidate complement and should be assessed.
+4. **Adopt TiQuAD's evaluation protocol exactly** — EM + token-level F1, max
+   over references, official script for article normalisation — so our numbers
+   are comparable to published work.
+
+⚠️ **Licensing caveat (P-9):** TiQuAD's authors state they do not own the
+copyright to the source news articles, which are used "under fair use principles
+for academic research purposes only," with CC-BY-SA-4.0 applied on top. Academic
+evaluation use is defensible; redistribution or use inside a commercial service
+may not be. **Legal review required before any use beyond internal evaluation.**
+Referred to `11_business`.
+
 ---
 
 ## DEC-006 — The minimum viable platform is the primitives layer, not translation
@@ -402,6 +432,74 @@ measure against Google Translate before assuming we can improve on it.
   capability priority is re-derived from `12_master_blueprint`.
 
 **Evidence:** `../research/summaries/002-scope-users-and-dialect.md`
+
+---
+
+## DEC-007 — Consonant–vowel decomposition as the substrate beneath tokenization
+
+**Decision ID:** DEC-007 · **Date:** 2026-07-29 · **Status:** Accepted
+
+**Decision:**
+Tokenization and morphological processing operate on an explicit
+**consonant–vowel decomposition** of Ge'ez characters, not on raw Ge'ez
+characters or bytes. A deterministic, losslessly reversible decomposition layer
+sits beneath the tokenizer. Morpheme-aware vocabulary construction layers on top;
+a standard subword tokenizer on raw Ge'ez is retained as a measured baseline.
+
+**Context:**
+Tigrinya morphology is **templatic and agglutinative simultaneously**.
+Triconsonantal roots interleave with vowel patterns, so roots are
+**discontinuous**. The Ge'ez script is an abugida in which each character encodes
+a **consonant–vowel pair** as one indivisible unit (26 consonants × 7 vowel
+orders ≈ 182 characters).
+
+These two facts collide: templatic morphology operates on consonants and vowels
+separately, while the script fuses them. **A morpheme boundary can therefore fall
+inside a single Ge'ez character.** Researchers working on Tigrinya segmentation
+already work around this by transliterating to Latin before segmenting, citing
+character alteration at segmentation boundaries.
+
+DEC-006 places tokenization and morphology in the minimum viable platform, so
+this is the project's critical path.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Standard subword tokenizer on raw Ge'ez | Simplest; what most existing Tigrinya tokenizers do | **Structurally cannot** express discontinuous roots or sub-character boundaries |
+| B | Transliterate to Latin, segment, map back | What researchers actually do; proven in practice | Scheme choice becomes load-bearing; round-trip loss risk |
+| C | **Explicit consonant–vowel decomposition of Ge'ez** | Deterministic and trivially reversible; exploits the regular 26×7 grid; no external dependency; yields transliteration as a by-product | Must be built; assumes the grid is regular in practice |
+| D | Byte-level BPE | No preprocessing | UTF-8 bytes are an encoding artefact carrying no linguistic decomposition — does not solve the problem |
+
+**Chosen:** Option C as the substrate, with morpheme-aware vocabulary above it
+and Option A retained as the baseline.
+
+**Reason:**
+Option A and Option D fail on representational grounds — not performance
+grounds — and no amount of tuning fixes a representation that cannot express the
+target. Option B works and is the empirical precedent, but imports
+transliteration-scheme ambiguity and round-trip loss risk. Option C obtains the
+same benefit deterministically by exploiting Ge'ez's regular structure, and
+produces the transliteration capability our scope needs anyway as a by-product.
+
+**Consequences:**
+- *Positive:* Morpheme boundaries become expressible. Transliteration comes free.
+  Token efficiency gains reduce inference cost (**P-6**) regardless of accuracy.
+- *Negative:* A layer we must build and maintain. Adds a preprocessing stage to
+  every text path.
+- *Accepted tradeoff:* Slightly more complexity than a stock tokenizer, in
+  exchange for a representation that can express the language's morphology.
+- *Newly constrained:* **Transliteration is now core infrastructure**, not a
+  peripheral user-facing feature. Its priority rises accordingly.
+- *Important limit:* **Do not claim downstream accuracy gains from this.**
+  Evidence is mixed — MoVoC found no significant MT gain from morpheme-aware
+  vocabulary, while arXiv 2509.20209 found substantial gains from a custom
+  tokenizer plus embedding initialisation. The reliable, defensible benefits are
+  token efficiency and linguistic fidelity. Accuracy must be measured.
+- *Revisit when:* a corpus survey shows Ge'ez decomposition is messier in
+  practice than the 26×7 grid implies — Option B is the fallback.
+
+**Evidence:** `../research/summaries/003-morphology-script-and-tokenization.md`
 
 ---
 

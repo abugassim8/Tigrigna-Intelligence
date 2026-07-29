@@ -52,4 +52,12 @@ carried in someone's head.
 
 ## Status
 
-**No research conducted.** This directory contains only this scoping document.
+**1 report complete.** `001-morphology-script-and-tokenization.md` (2026-07-29)
+confirmed **A-007** and identified its mechanism: Tigrinya's templatic morphology
+operates on consonants and vowels separately while the Ge'ez abugida fuses them,
+so **morpheme boundaries can fall inside a single character**. Produced DEC-007.
+See `../../summaries/003-morphology-script-and-tokenization.md`.
+
+**Open:** orthographic-variation corpus survey (blocked on `03_data_strategy`),
+HornMorpho verification, whether the two varieties differ orthographically, and
+register distance.

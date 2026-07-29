@@ -105,6 +105,66 @@
 - **Verdict:** **Very useful** — the established Tigrinya morphological analyser.
   See `projects.md`.
 
+### Low-Resource English–Tigrinya MT: Multilingual Models, Custom Tokenizers, Clean Benchmarks
+
+- **Type:** Paper · **ID:** arXiv 2509.20209 · **Date:** Sep 2025
+- **Authors:** Hailay Kidu Teklehaymanot, Gebrearegawi Gidey, Wolfgang Nejdl (L3S)
+- **Abstract `[verified]`** via `hf://papers/2509.20209`
+- **Tigrinya relevance:** **Direct — corroborates the tokenization thesis**
+- **Key content:** Names three obstacles — *"limited corpora, inadequate
+  tokenization strategies, and the lack of standardized evaluation benchmarks."*
+  Reports that transfer learning with a **custom tokenizer "substantially
+  outperforms" zero-shot baselines**, validated by BLEU, chrF, and human
+  evaluation, with **Bonferroni correction** for significance. Constructs a
+  human-aligned English–Tigrinya evaluation set across diverse domains.
+- **Resources:** `github.com/hailaykidu/MachineT_TigEng` ·
+  `huggingface.co/Hailay/MachineT_TigEng` · model `Hailay/entimt-en-tigrinya-mt`
+  (475.6M params)
+- **Verdict:** **Very useful.** Independent, significance-tested support for
+  A-007 — methodologically stronger than MoVoC on the downstream question.
+  **Note the contrast with MoVoC**, which found no significant MT gain: the two
+  test different interventions.
+- **Cited in:** `reports/02_linguistics/001`, `reports/01_ecosystem/001`
+
+### TIGQA: An Expert Annotated Question Answering Dataset in Tigrinya
+
+- **Type:** Paper + dataset · **ID:** arXiv 2404.17194 · **Date:** Apr 2024
+- **Authors:** Hailay Teklehaymanot, Dren Fazlija, Niloy Ganguly, Gourab K.
+  Patro, Wolfgang Nejdl (L3S Research Center)
+- **Abstract `[verified]`** via `hf://papers/2404.17194`
+- **Key content:** **2.68K QA pairs, 122 topics** (climate, water, traffic),
+  **537 context paragraphs** from publicly accessible **Tigrinya and Biology
+  textbooks**. SQuAD format. Requires single- *and* multiple-sentence inference,
+  not just word matching. Human performance estimated and compared against
+  pretrained models, with notable disparities remaining.
+- **Verdict:** **Useful — a second, distinct Tigrinya QA dataset.** Educational
+  domain, so it **complements** TiQuAD's news domain rather than duplicating it.
+  Candidate for the Ethiopian-variety evaluation gap identified in DEC-005's
+  amendment. Licence not yet verified.
+
+### Tigrinya Neural Machine Translation with Transfer Learning for Humanitarian Response
+
+- **Type:** Paper · **ID:** arXiv 2003.11523 · **Date:** Mar 2020
+- **Key content:** Domain-specific Tigrinya→English NMT using transfer learning
+  from Ge'ez-script languages.
+- **Verdict:** **Partially useful** — early transfer-learning precedent;
+  humanitarian domain signals a real institutional use case.
+
+### Stemming Tigrinya Words for Information Retrieval
+
+- **Type:** Paper · **Venue:** COLING 2012 · **Link:** aclanthology.org/C12-3043
+- **Tigrinya relevance:** **Direct — the only Tigrinya IR work found**
+- **Verdict:** **Assess before designing the retrieval service.** Nothing else
+  found addresses Tigrinya information retrieval specifically. `[reported]`
+
+### Tigrinya POS Tagging with Morphological Patterns and the New Nagaoka Tigrinya Corpus
+
+- **Type:** Paper + corpus
+- **Key content:** Introduces the **Nagaoka Tigrinya Corpus (NTC)** — the `NTC`
+  referenced in `fgaim/tiroberta-pos` metadata. Identifies a previously
+  unresolved dataset reference.
+- **Verdict:** **Useful** — locate the corpus and check its licence.
+
 ---
 
 ## Searched for and NOT found

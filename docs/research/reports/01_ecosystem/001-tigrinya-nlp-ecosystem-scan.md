@@ -39,6 +39,107 @@ flagged again in the summary and is the single most important caveat here.
 
 ---
 
+---
+
+## ✅ Verification addendum — 2026-07-29 (same day)
+
+A follow-up pass reached primary artefact sources via the **Hugging Face
+filesystem API** (`hf://models/...`, `hf://datasets/...`, `hf://papers/...`),
+which is *not* subject to the egress block on `arxiv.org` and publisher domains.
+Several `[reported]` figures are now `[verified]` — **and two were wrong.**
+
+### Corrections to this report
+
+**C-1 — TiQuAD baseline scores were overstated.**
+This report cited "baseline F1 81%, human 92%" `[reported]`. The dataset card's
+own baseline table `[verified]` reports substantially lower figures:
+
+| Model | EM (Val) | F1 (Val) | EM (Test) | F1 (Test) |
+| --- | --- | --- | --- | --- |
+| mBERT | 42.1 | 58.6 | 39.7 | 56.2 |
+| XLM-R | 45.8 | 62.4 | 43.1 | 59.8 |
+
+The card notes additional baselines appear in the paper, so 81% may refer to a
+stronger model not tabulated here. **Either way, the 81% figure must not be used
+as the reference baseline.** Use 56–62 F1 as the published range until the paper
+itself is read. This materially lowers the apparent state of the art for
+Tigrinya QA.
+
+**C-2 — TiQuAD's test set is NOT publicly available.** `[verified]`
+Public splits are train (4,452 questions) and validation (934). The test split
+(1,122 questions) is **deliberately withheld** to prevent contamination from
+web-crawled training data, and is released only on request by email to
+`fitsum.gaim@kaist.ac.kr` under a usage agreement.
+
+This is an **operational constraint on DEC-005**, not a defect — it is
+exemplary contamination practice. But it means our evaluation harness cannot
+run the canonical TiQuAD test split without completing a request process.
+DEC-005 has been updated accordingly.
+
+**C-3 — TiQuAD is Eritrean-sourced.** `[verified]`
+Derived from the Eritrean Ministry of Information (shabait.com) and the *Hadas
+Ertra* newspaper. This report implied most non-`haddas` work was
+Ethiopian-sourced; that was wrong for TiQuAD. It matters for **DEC-004** — our
+main QA evaluation anchor is Eritrean-variety, so Ethiopian-variety QA
+evaluation is a **gap**, not a balanced pair.
+
+**C-4 — TiQuAD carries an unresolved upstream copyright position.** `[verified]`
+The dataset card states plainly: *"we do not own the copyright to the original
+news articles… used under fair use principles for academic research purposes
+only."* The CC-BY-SA-4.0 licence is applied over content the publishers do not
+own.
+
+**Under P-9 and A-009 this is a genuine risk for us**, because "academic
+research purposes only" is narrower than an infrastructure platform others build
+on. Academic *evaluation* use is defensible; redistribution or commercial
+service use may not be. **Flagged for `11_business` and for legal review before
+TiQuAD is used beyond internal evaluation.**
+
+### Newly verified facts
+
+| Fact | Value | Significance |
+| --- | --- | --- |
+| **TiRoBERTa pretraining corpus** | **40M tokens, 40 epochs, TPU v3.8** | **The hard number for Tigrinya data scale.** The best available Tigrinya LM was trained on 40M tokens — orders of magnitude below high-resource languages. Sizes the whole data problem. |
+| TiRoBERTa architecture | 125M params; L=12, AH=12, HS=768, FFN=3072, seq=512 | Standard RoBERTa-base; CPU-servable |
+| TiRoBERTa licence | **Confirmed absent from the model card itself**, not merely missing metadata | Blocker C-1 upgraded from "unstated" to "verified absent" |
+| TiRoBERTa provenance | Gaim, Yang & Park, *Monolingual Pre-trained Language Models for Tigrinya*, WiNLP @ EMNLP 2021 | KAIST affiliation |
+| TiQuAD totals | 290 articles · 572 paragraphs · 6,508 questions · 10,637 answers | Confirms reported size |
+| TiQuAD splitting | **Article-based** partitioning to prevent leakage; val/test carry up to 3 annotations/question | Good practice; enables human-performance estimation |
+| TiQuAD evaluation protocol | EM + token-level F1, max over references; official script normalises articles | Adopt this exactly, for comparability |
+| **TIGQA** — a *second*, distinct Tigrinya QA dataset | 2.68K QA pairs · 122 topics · 537 paragraphs, from **Tigrinya and Biology textbooks** | **New find.** Educational domain, complements TiQuAD's news domain. Authors: Teklehaymanot, Fazlija, Ganguly, Patro, Nejdl (L3S Hannover). arXiv 2404.17194 |
+| `Hailay/entimt-en-tigrinya-mt` size | **475.6M params** | Larger than the encoder stack; serving cost implication |
+
+### Independent confirmation of the tokenization thesis
+
+arXiv **2509.20209** (Teklehaymanot, Gidey & Nejdl, Sept 2025) — abstract
+`[verified]` — names exactly three obstacles for Tigrinya MT: *"limited corpora,
+inadequate tokenization strategies, and the lack of standardized evaluation
+benchmarks."*
+
+It reports that **transfer learning with a custom tokenizer "substantially
+outperforms" zero-shot baselines**, validated with BLEU, chrF, and human
+evaluation, with **Bonferroni correction** applied for statistical significance.
+They also construct a human-aligned English–Tigrinya evaluation set across
+diverse domains. Resources: `github.com/hailaykidu/MachineT_TigEng`,
+`huggingface.co/Hailay/MachineT_TigEng`.
+
+**Why this matters:** it corroborates A-007 **independently of MoVoC**, and it is
+methodologically stronger evidence (significance-tested, human-validated). Note
+the contrast with MoVoC, which found *no* significant downstream MT gain — the
+difference is plausibly that MoVoC tested morpheme-aware *vocabulary
+construction* while this tests language-specific tokenization plus informed
+embedding initialisation. **Both are worth replicating; they are not the same
+intervention.**
+
+### Still unverified
+
+`arxiv.org` remains blocked, and neither the **Tigrinya NLP survey (2507.17974)**
+nor **MoVoC (2509.08812)** is indexed on `hf://papers`. Their figures — notably
+**MoVoC's 21→6 fertility example** and the survey's OOV claims — remain
+`[reported]`.
+
+---
+
 ## Objective
 
 Establish what Tigrinya language technology already exists — models, datasets,

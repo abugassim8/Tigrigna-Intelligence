@@ -140,10 +140,19 @@ base models and Tigrinya's script or morphology that adaptation cannot bridge.
 too pessimistic.** More human-annotated evaluation data exists than assumed:
 
 - **FLORES-200** — human-reviewed, includes Tigrinya (~3K samples `[reported]`)
-- **TiQuAD** — human-annotated, 10.6K QA pairs, CC-BY-SA-4.0, with published
-  baselines (F1 81% vs 92% human `[reported]`)
+- **TiQuAD** — human-annotated, 6,508 questions / 10,637 answers, CC-BY-SA-4.0
+  `[verified]`. Published baselines: **mBERT F1 58.6, XLM-R F1 62.4**
+  `[verified]` — ⚠️ **corrected from the 81% figure first recorded here.**
+- **TIGQA** — a *second*, distinct QA dataset: 2.68K pairs from Tigrinya and
+  Biology textbooks `[verified]`. Educational domain, complements TiQuAD's news.
 - **TiALD** — 13,717 annotated comments, CC-BY-4.0
 - **TiNC24** — 200K+ words NER-annotated `[reported]`, not yet located
+
+**Two caveats that narrow this further** `[verified]`:
+- **TiQuAD's test split is request-gated**, not public — so the canonical
+  held-out set requires an access request.
+- **TiQuAD is Eritrean-sourced**, so under DEC-004 **Ethiopian-variety QA
+  evaluation remains a genuine gap.** TIGQA is a candidate complement.
 
 **Refined form of the assumption:** evaluation data exists for *translation, QA,
 NER, and classification*, but **nothing was found for retrieval/semantic search,
@@ -186,8 +195,22 @@ demonstrated benefits are token efficiency, MorphoScore, and Boundary Precision.
 Morphology matters for **cost and linguistic fidelity**; its downstream accuracy
 benefit is **not yet established** and should be measured, not assumed.
 
-This assumption now underpins DEC-006 (morphology in the minimum viable
-platform). `02_linguistics` should still verify the primary sources.
+**CONFIRMED by `02_linguistics` (2026-07-29) — mechanism identified.**
+
+The reason morphology is first-order is now specific rather than general:
+Tigrinya is **templatic *and* agglutinative**, so triconsonantal roots are
+**discontinuous**, while the Ge'ez abugida **fuses consonant and vowel into one
+character**. Consequently **a morpheme boundary can fall inside a single
+character**, and no subword tokenizer operating on raw Ge'ez can represent it.
+This is a representational limit, not a performance one. → **DEC-007**.
+
+Independent corroboration arrived from arXiv 2509.20209 (`[verified]` abstract),
+which reports a custom tokenizer "substantially outperforms" zero-shot
+baselines with Bonferroni-corrected significance and human validation.
+
+**Still do not over-claim:** MoVoC found *no* significant downstream MT gain from
+morpheme-aware vocabulary. The reliable benefits are token efficiency and
+linguistic fidelity; accuracy gains must be measured, not assumed.
 
 ---
 
