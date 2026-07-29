@@ -1,0 +1,321 @@
+# =============================================================================
+# Tigrinya Language Intelligence Platform — .gitignore
+#
+# Guiding rule: source, configuration, documentation, and small pointer files
+# are tracked. Data, model weights, credentials, and machine-generated output
+# are not. If you find yourself wanting to commit something large, commit a
+# retrieval script instead.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Secrets and environment  — nothing in this block is ever committed
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+client_secret*.json
+service-account*.json
+secrets.yaml
+secrets.yml
+.secrets/
+*.credentials
+.htpasswd
+.netrc
+gcloud-key*.json
+aws-credentials*
+*_rsa
+*_dsa
+*_ed25519
+*.token
+.hf_token
+.huggingface/
+
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+.python-version
+.conda/
+conda-meta/
+
+# Testing / coverage / type checking
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+htmlcov/
+.hypothesis/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# -----------------------------------------------------------------------------
+# Node / JavaScript / TypeScript
+# -----------------------------------------------------------------------------
+node_modules/
+jspm_packages/
+bower_components/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+.eslintcache
+.parcel-cache/
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+*.tsbuildinfo
+
+# -----------------------------------------------------------------------------
+# ML experiments, tracking, and logs
+# -----------------------------------------------------------------------------
+wandb/
+mlruns/
+mlartifacts/
+.neptune/
+lightning_logs/
+runs/
+tensorboard/
+tb_logs/
+events.out.tfevents.*
+catboost_info/
+ray_results/
+.dvc/cache
+.dvc/tmp
+outputs/
+hydra_outputs/
+.hydra/
+
+experiments/logs/**
+!experiments/logs/.gitkeep
+!experiments/logs/README.md
+
+experiments/results/**
+!experiments/results/.gitkeep
+!experiments/results/README.md
+!experiments/results/**/*.md
+!experiments/results/**/*.json
+# ^ Small structured result files ARE tracked — they are the record of what we
+#   learned. Bulk artefacts (predictions, dumps, plots) are not.
+
+# Notebook noise
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+*-checkpoint.ipynb
+
+# -----------------------------------------------------------------------------
+# Datasets  — track structure, READMEs, manifests, and licence records only
+# -----------------------------------------------------------------------------
+datasets/raw/**
+datasets/processed/**
+datasets/evaluation/**
+datasets/dictionaries/**
+datasets/terminology/**
+
+!datasets/**/.gitkeep
+!datasets/**/README.md
+!datasets/**/*.manifest.json
+!datasets/**/LICENSE*
+!datasets/**/PROVENANCE.md
+
+# Data formats, wherever they appear
+*.csv
+*.tsv
+*.jsonl
+*.ndjson
+*.parquet
+*.arrow
+*.feather
+*.avro
+*.orc
+*.sqlite
+*.sqlite3
+*.db
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.gz
+*.bz2
+*.xz
+*.7z
+*.rar
+
+# Corpora / audio / media
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.mp4
+*.mkv
+*.conllu
+*.vrt
+
+# -----------------------------------------------------------------------------
+# Models, checkpoints, and derived artefacts
+# -----------------------------------------------------------------------------
+models/checkpoints/**
+models/experiments/**
+
+!models/**/.gitkeep
+!models/**/README.md
+!models/**/*.md
+!models/**/*.card.json
+!models/evaluations/**/*.json
+
+# Weight and serialisation formats
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.h5
+*.hdf5
+*.pb
+*.tflite
+*.onnx
+*.mlmodel
+*.gguf
+*.ggml
+*.msgpack
+*.npz
+*.npy
+*.joblib
+*.pkl
+*.pickle
+
+# Tokenizer / embedding artefacts
+*.model          # SentencePiece
+*.vocab
+*.bpe
+*.vec
+*.kv
+*.faiss
+*.index
+*.ann
+*.usearch
+!*.card.json
+
+# Vector store / search index directories
+.chroma/
+chroma_db/
+qdrant_storage/
+milvus_data/
+lancedb/
+.lancedb/
+*.lance/
+
+# -----------------------------------------------------------------------------
+# Infrastructure
+# -----------------------------------------------------------------------------
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+kubeconfig
+*.kubeconfig
+charts/*.tgz
+
+docker-compose.override.yml
+.docker/
+
+# -----------------------------------------------------------------------------
+# Editors, OS, and tooling
+# -----------------------------------------------------------------------------
+.vscode/*
+!.vscode/settings.json.example
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.swn
+*~
+.\#*
+\#*\#
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# -----------------------------------------------------------------------------
+# Logs, caches, temporary files
+# -----------------------------------------------------------------------------
+*.log
+/logs/
+# ^ Root-level only. A bare `logs/` would exclude experiments/logs entirely, and
+#   git cannot re-include files beneath an excluded directory — which would drop
+#   that directory's .gitkeep and README.
+tmp/
+temp/
+.tmp/
+.cache/
+*.bak
+*.orig
+*.rej
+*.pid
+*.seed
+*.pid.lock
+.scratch/
+scratch/
