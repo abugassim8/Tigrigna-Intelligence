@@ -20,6 +20,9 @@ that is unclear, not a people problem.
 
 ## Before you contribute anything
 
+**If your contribution is unblocking rather than building**, see
+[`ACTIONS.md`](ACTIONS.md) — the register of items needing a human.
+
 Three files, in this order, every time:
 
 1. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — what we are building and why.

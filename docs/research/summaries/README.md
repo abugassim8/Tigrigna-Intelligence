@@ -84,6 +84,13 @@ running code** are `[verified]`.
 reachable and how, so you do not repeat the discovery. A session with
 unrestricted egress should work the verification backlog listed there.
 
+## Turning findings into action
+
+Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)
+— emails to send, licences to obtain, decisions to confirm, with drafts. **When
+a summary produces something a human must do, add it there** rather than leaving
+it buried in a findings list.
+
 ## What future researchers should add
 
 One summary per research effort — Scout summaries and Analyst report summaries

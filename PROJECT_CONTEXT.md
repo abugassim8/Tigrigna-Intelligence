@@ -169,6 +169,7 @@ scripts/            Operational tooling
 | About to recommend anything | `docs/decisions/DECISIONS.md` |
 | Looking for prior work | `docs/research/summaries/` **before** `docs/research/reports/` |
 | Contributing code or docs | `CONTRIBUTING.md` |
+| **A human with time to unblock things** | **`ACTIONS.md`** — emails to send, licences to get, decisions to confirm |
 
 ---
 
@@ -224,6 +225,9 @@ enough to favour linguistically-informed methods over data-hungry ones, and it
 is the number `03_data_strategy` must plan against.
 
 ### Blocking items
+
+**All of these need a person, not a research session — see
+[`ACTIONS.md`](ACTIONS.md), which includes ready-to-send drafts.**
 
 1. **Licence resolution on the `fgaim` models** — several carry no stated
    licence, including the family's base. Blocks DEC-003 under **P-9**.

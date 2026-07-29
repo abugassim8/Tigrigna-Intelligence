@@ -22,6 +22,33 @@ first service is deployed.
 
 ## [Unreleased]
 
+### ACTIONS.md added; summary 001 re-compressed — 2026-07-29
+
+**`ACTIONS.md` — new.** Research kept producing blockers that need a *person*
+rather than a research session, and they were scattered across five summaries
+and eight decision records. They are now one prioritised register: twelve
+actions, four of them blocking, each stating what to do, why, and what it
+unblocks — **with ready-to-send message drafts** so they can be executed rather
+than merely read.
+
+Highlights: licence clarification on the `fgaim` models (blocks DEC-003, the
+whole reuse plan); confirming DEC-002 (a product-owner call, not a research
+finding); reporting the confirmed TiQuAD contamination upstream; requesting
+TiQuAD's withheld test split; and a single message that could unlock **1.4M
+en–ti parallel sentences**. Also legal review of TiQuAD's copyright position,
+HornMorpho's licence, an `HF_TOKEN` to stop the anonymous rate-limiting that
+disrupted this session, and a session with unrestricted egress to clear the
+verification backlog.
+
+Linked from `README.md`, `PROJECT_CONTEXT.md`, `CONTRIBUTING.md`, and the
+summaries index.
+
+**Summary 001 re-compressed**, 1,054 → ~850 words. The verification-corrections
+block had bloated it past the 800–1,000 target; that detail is historical and
+belongs in the report's addendum, so the summary now carries the current
+conclusions plus a three-line pointer. Findings that need human action now cite
+their `ACTIONS.md` ID directly.
+
 ### 03_data_strategy — corpus measured, contamination risk found — 2026-07-29
 
 **The corpus is now measured rather than estimated.** Instead of reading dataset

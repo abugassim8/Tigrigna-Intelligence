@@ -53,6 +53,7 @@ Full statement in [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
 .
 ├── README.md                  You are here
 ├── PROJECT_CONTEXT.md         Read this first — mission, philosophy, constraints
+├── ACTIONS.md                 Things only a human can do — with email drafts
 ├── CONTRIBUTING.md            How to contribute research, decisions, and code
 ├── CHANGELOG.md               Notable changes to the project and its direction
 │
@@ -151,6 +152,11 @@ aspirational.
 ---
 
 ## Getting started
+
+**If you have time to unblock the project rather than research it, go straight to
+[`ACTIONS.md`](ACTIONS.md).** Four items are blocking; each has a ready-to-send
+draft. One of them could unlock 1.4M parallel sentences for the cost of a
+message.
 
 1. Read [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — the whole thing.
 2. Read [`docs/research/AI_RESEARCH_RULES.md`](docs/research/AI_RESEARCH_RULES.md).
