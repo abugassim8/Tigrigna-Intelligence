@@ -182,9 +182,10 @@ Three research domains are done:
 - `01_ecosystem` → the Tigrinya NLP landscape mapped (DEC-003, DEC-005)
 - `02_linguistics` → morphology, Ge'ez script, tokenization (DEC-007), plus a
   Ge'ez tooling survey and the project's first experiment
+- `03_data_strategy` → the corpus measured; contamination risk found (DEC-008)
 
 **Read [`docs/research/summaries/`](docs/research/summaries/) before doing
-anything else.** Four summaries, ~2 pages each, and they change the plan.
+anything else.** Five summaries, ~2 pages each, and they change the plan.
 Then read [`docs/research/RESEARCH_ACCESS.md`](docs/research/RESEARCH_ACCESS.md)
 before searching for anything — it maps which sources are reachable.
 
@@ -212,7 +213,14 @@ collisions) — but those collisions are the Ge'ez homophone pairs, so the loss
 Epitran for analysis, surface Ge'ez preserved for output. **We build only the
 alignment between them.**
 
-**4. The data ceiling is 40M tokens.** `[verified]` TiRoBERTa — the strongest
+**4. Licensing, not volume, is the binding data constraint.** Of 1,519,253
+dataset rows measured, **~99% carry no stated licence** — cleanly licensed:
+**15,053 documents.** And one dataset advertised for *pretraining* appears to
+contain our *evaluation* anchor's data, so **DEC-008 makes contamination
+screening mandatory.** Externally reported Tigrinya QA scores are now suspect
+until screened.
+
+**5. The data ceiling is 40M tokens.** `[verified]` TiRoBERTa — the strongest
 available Tigrinya encoder — was pretrained on 40 million tokens. That is small
 enough to favour linguistically-informed methods over data-hungry ones, and it
 is the number `03_data_strategy` must plan against.

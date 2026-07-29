@@ -65,6 +65,7 @@ Examples: `001-tigrinya-corpus-survey.md`, `007-tokenizer-options.md`
 | [002](002-scope-users-and-dialect.md) | Scope, Users, and Dialect Definition | Scout → Analyst | `00_project_definition` | 2026-07-29 | Current |
 | [003](003-morphology-script-and-tokenization.md) | Morphology, Ge'ez Script, and the Tokenization Constraint | Scout → Analyst | `02_linguistics` | 2026-07-29 | Current |
 | [004](004-geez-tooling-survey.md) | Ge'ez Tooling Survey and the HornMorpho Question | Scout → Analyst | `02_linguistics` | 2026-07-29 | Current |
+| [005](005-corpus-inventory-and-contamination.md) | Corpus Inventory and a Contamination Risk | Scout → Analyst | `03_data_strategy` | 2026-07-29 | Current |
 
 Keep this table current. It is the first thing anyone reads.
 
@@ -92,13 +93,17 @@ tells the next person that the question is harder than it looks.
 
 ## Status
 
-**4 summaries, 1 experiment.** Phase 1 (`00_project_definition`, `01_ecosystem`)
-and Phase 2's critical path (`02_linguistics`) are complete.
+**5 summaries, 1 experiment.** Four research domains complete:
+`00_project_definition`, `01_ecosystem`, `02_linguistics`, `03_data_strategy`.
 
 **Summary 004 supersedes part of 003's build plan:** the decomposition layer
 003 said to build already exists (Epitran). Read 003 for *why* the problem
 exists, 004 for *what to do about it*.
 
-Next: `03_data_strategy` — a corpus survey is now the blocking dependency for
-the orthographic-variation and normalisation work (DEC-007), and the verified
-40M-token data ceiling is the number to plan against.
+**Summary 005 is the one to read if you touch data.** The corpus is measured
+(~67K monolingual rows, 1.4M parallel pairs) but **~99% is unlicensed**, and a
+dataset advertised for pretraining appears to contain our evaluation anchor's
+data. → **DEC-008**: screen everything, quarantine unlicensed data.
+
+Next: `08_evaluation` (build the harness on FLORES-200 + TiQuAD) or
+`04_model_strategy`. Both are now unblocked by the data picture.

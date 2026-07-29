@@ -70,6 +70,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-005 | 2026-07-29 | FLORES-200 and TiQuAD as initial evaluation anchors | Accepted |
 | DEC-006 | 2026-07-29 | Minimum viable platform is the primitives layer, not translation | Accepted |
 | DEC-007 | 2026-07-29 | Consonant–vowel decomposition as the substrate beneath tokenization | Accepted — **amended same day** |
+| DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
 
 ---
 
@@ -556,6 +557,80 @@ matching and output.
 
 **Evidence:** `../research/summaries/004-geez-tooling-survey.md`;
 `experiments/001-epitran-geez-decomposition/`
+
+---
+
+## DEC-008 — Mandatory contamination screening; unlicensed data quarantined
+
+**Decision ID:** DEC-008 · **Date:** 2026-07-29 · **Status:** Accepted
+
+**Decision:**
+Every dataset is screened for evaluation contamination **before** it enters any
+training or tuning use, and datasets without a usable licence are **structurally
+quarantined** to research-only use — never present in a shipped artefact.
+
+**Context:**
+The corpus inventory (`03_data_strategy/001`) measured what is actually
+available and found two problems that are not about volume.
+
+**First, probable contamination.** `farefaine/tigrinya-pretraining` is titled
+*"Tigrinya Raw Pretraining Sources"* and tagged for pretraining, but its schema
+is `id, question, context, answers, article_title, context_id` — TiQuAD's
+extractive-QA schema, field for field — and its validation split is **exactly
+934 rows, matching TiQuAD's validation split.** TiQuAD is our evaluation anchor
+under DEC-005. Pretraining on this dataset would silently invalidate it.
+
+**Second, licensing.** Of 1,519,253 rows measured, **~99% carry no stated
+licence.** Cleanly licensed: 15,053 documents.
+
+Neither problem is visible from a dataset card. Both were found only by querying
+actual schemas and row counts.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Screen every dataset; quarantine unlicensed data structurally | Protects evaluation validity and licence position | Ongoing cost per dataset; reduces immediately usable data to ~15K documents |
+| B | Screen only datasets that look like evaluation data | Cheaper | **The failure case here was a dataset that did not look like evaluation data.** Would have missed it |
+| C | Trust dataset cards and metadata | Free | Cards were wrong on 2 of 4 sampled; size tags off by up to ~20× |
+| D | Use everything, resolve later | Fastest | Retrofitting licence compliance means discarding trained artefacts; P-9 violation |
+
+**Chosen:** Option A.
+
+**Reason:**
+Option B is disqualified by the very case that motivated this decision — the
+contaminated dataset was labelled "pretraining sources", so a
+looks-like-evaluation heuristic would have skipped it. Option C is disqualified
+by measurement: metadata was wrong on half the sample. Option D trades a small
+present saving for the possibility of discarding trained artefacts later, and
+violates **P-9**.
+
+Contamination is the one form of sloppiness that **invalidates everything
+downstream of it** while leaving no visible symptom — the dashboard still shows
+a number. That asymmetry justifies paying the screening cost on every dataset.
+
+**Consequences:**
+- *Positive:* Evaluation validity is protected. Licence position stays defensible.
+  Screening is automatable, so the per-dataset cost falls over time.
+- *Negative:* Immediately usable cleanly-licensed data drops to **15,053
+  documents**. That is a real constraint on what can be built now.
+- *Accepted tradeoff:* We will be slower than projects that skip this, and our
+  numbers will be trustworthy where theirs may not be.
+- *Newly constrained:* No dataset enters training use without a screening record.
+  Unlicensed data requires structural separation — a directory convention is not
+  sufficient.
+- *Corollary for DEC-005:* **Externally reported Tigrinya QA scores must be
+  treated as suspect** until the models behind them are shown to be
+  uncontaminated. This affects how we read published baselines.
+- *Revisit when:* screening finds nothing across many datasets, or tooling makes
+  it near-free.
+
+**Evidence:** `../research/summaries/005-corpus-inventory-and-contamination.md`
+
+⚠️ **Confidence note:** the `farefaine`/TiQuAD overlap is a **strong signal, not
+proof** — schema and split size are verified, row-level overlap is not
+(egress-blocked). The decision holds regardless: screening is justified by the
+*possibility*, and by the measured unreliability of dataset metadata.
 
 ---
 

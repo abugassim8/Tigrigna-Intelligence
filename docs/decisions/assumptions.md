@@ -78,6 +78,12 @@ nearest proxy.
 **Would be invalidated by:** discovering Tigrinya data resources far larger than
 currently expected.
 
+**CONFIRMED 2026-07-29 by measurement.** `03_data_strategy/001` queried actual
+row counts: **67,153 monolingual/QA rows (56 MB parquet)** plus **1.4M parallel
+pairs**. TiRoBERTa's training corpus is 40M tokens. The open monolingual corpus
+is the **same order of magnitude, not larger** — there is no hidden reservoir.
+Data-hungry methods remain off the table.
+
 ---
 
 ### A-003 — We prioritize accuracy over speed
@@ -148,7 +154,14 @@ too pessimistic.** More human-annotated evaluation data exists than assumed:
 - **TiALD** — 13,717 annotated comments, CC-BY-4.0
 - **TiNC24** — 200K+ words NER-annotated `[reported]`, not yet located
 
-**Two caveats that narrow this further** `[verified]`:
+**A third caveat, and the most serious** `[verified]` 2026-07-29:
+`farefaine/tigrinya-pretraining` — advertised as pretraining text — carries
+TiQuAD's QA schema and a validation split of **exactly 934 rows, matching
+TiQuAD's**. If it contains TiQuAD rows, anyone pretraining on it invalidates
+their own TiQuAD evaluation. Strong signal, not proof (row overlap unverified,
+egress-blocked). → **DEC-008** makes screening mandatory.
+
+**Two further caveats** `[verified]`:
 - **TiQuAD's test split is request-gated**, not public — so the canonical
   held-out set requires an access request.
 - **TiQuAD is Eritrean-sourced**, so under DEC-004 **Ethiopian-variety QA
@@ -239,6 +252,11 @@ depends on — and the largest English–Tigrinya parallel dataset found.
 
 Resolving these licences is now the **single highest-priority action item** on
 the project. Until resolved, the core reuse plan is blocked.
+
+**Sharpened 2026-07-29 by measurement.** Of 1,519,253 dataset rows measured,
+**~99% carry no stated licence.** Cleanly licensed: **15,053 documents.**
+Combined with TiQuAD's unresolved upstream copyright, **licensing — not volume —
+is the binding constraint on this project's data strategy.** → DEC-008.
 
 We assume that unclear licensing is disqualifying. As infrastructure that others
 will build on, we cannot pass on rights we do not have — a downstream user

@@ -22,6 +22,62 @@ first service is deployed.
 
 ## [Unreleased]
 
+### 03_data_strategy — corpus measured, contamination risk found — 2026-07-29
+
+**The corpus is now measured rather than estimated.** Instead of reading dataset
+cards, this pass queried the Hugging Face dataset API for actual row counts,
+schemas, and parquet sizes. That distinction produced every finding below.
+
+| Dataset | Rows | Parquet | Licence |
+| --- | ---: | ---: | --- |
+| `mewaeltsegay/TigrinyaLargeText` | 12,400 | 36.1 MB | **MIT** |
+| `SIMBA9657/haddas-tigrinya-corpus` | 2,653 | 4.3 MB | **CC-BY-SA-4.0** |
+| `farefaine/tigrinya-pretraining` | 52,100 | 15.7 MB | ⚠️ none |
+| `michsethowusu/english-tigrinya_sentence-pairs` | **1,400,000** | 110.4 MB | ⚠️ none |
+
+**Three findings**
+
+1. **No hidden reservoir.** TiRoBERTa was pretrained on 40M tokens; the open
+   monolingual corpus is 56 MB across ~67K documents — same order of magnitude.
+   **A-002 confirmed.** (No MB→token conversion was attempted; Ge'ez parquet
+   compression ratios are unknown and a fabricated figure would propagate.)
+
+2. **Licensing, not volume, is the binding constraint.** Of 1,519,253 rows
+   measured, **~99% carry no stated licence.** Cleanly licensed: **15,053
+   documents.** The single largest resource — 1.4M parallel sentences — is
+   unlicensed. **A-009 sharpened.**
+
+3. **⚠️ Probable evaluation contamination.**
+   `farefaine/tigrinya-pretraining`, titled *"Tigrinya Raw Pretraining Sources"*,
+   carries TiQuAD's extractive-QA schema field for field
+   (`id, question, context, answers, article_title, context_id`), and its
+   validation split is **exactly 934 rows — matching TiQuAD's validation split.**
+
+   TiQuAD is our evaluation anchor under DEC-005. Anyone pretraining on this
+   dataset would silently invalidate their own TiQuAD evaluation. Most likely an
+   honest aggregation error; the downstream effect is identical.
+
+   **Stated as a strong signal, not proof** — schema and split size are
+   `[verified]`, row-level overlap is **not** (huggingface.co download is
+   egress-blocked). A falsifiable check is specified in the report.
+
+**Also found:** Hugging Face `size_categories` tags are unreliable — two of four
+datasets sampled carry *internally contradictory* size metadata, one overstating
+by up to ~20×. Query the API for real counts.
+
+**DEC-008 recorded** — mandatory contamination screening before any dataset
+enters training use, and structural quarantine of unlicensed data to
+research-only. Notably rejected: screening *only* datasets that look like
+evaluation data, since the founding case was labelled "pretraining sources" and
+that heuristic would have missed it (R-019, R-020).
+
+**DEC-005 corollary:** externally reported Tigrinya QA scores must now be treated
+as suspect until the models behind them are shown to be uncontaminated.
+
+**Cost note:** the highest-value action available is asking two maintainers to
+add a licence file — potentially unlocking 1.4M parallel sentences for the price
+of a few emails.
+
 ### Ge'ez tooling survey, first experiment, access playbook — 2026-07-29
 
 **A P-1 violation found and corrected.** DEC-007 specified building a

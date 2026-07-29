@@ -53,4 +53,13 @@ carried in someone's head.
 
 ## Status
 
-**No research conducted.** This directory contains only this scoping document.
+**1 report complete.** `001-corpus-inventory-and-contamination.md` (2026-07-29)
+**measured** the available corpus rather than estimating it: 67,153
+monolingual/QA rows plus 1.4M parallel pairs. Two findings dominate —
+**~99% of rows carry no usable licence** (cleanly licensed: 15,053 documents),
+and `farefaine/tigrinya-pretraining` appears to contain TiQuAD evaluation data
+despite being advertised for pretraining. → **DEC-008**.
+See `../../summaries/005-corpus-inventory-and-contamination.md`.
+
+**Open:** verify the `farefaine`/TiQuAD row overlap (egress-blocked); licence
+clarification outreach; HornMT; orthographic-variation survey for DEC-007.
