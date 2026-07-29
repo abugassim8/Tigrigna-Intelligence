@@ -58,6 +58,13 @@ operates on consonants and vowels separately while the Ge'ez abugida fuses them,
 so **morpheme boundaries can fall inside a single character**. Produced DEC-007.
 See `../../summaries/003-morphology-script-and-tokenization.md`.
 
+**2 reports complete.** `002-geez-tooling-survey.md` (2026-07-29) then found that
+the decomposition layer 001 proposed building **already exists** — Epitran's
+`tir-Ethi` map, verified by `experiments/001`. DEC-007 amended to a
+dual-representation architecture: adopt Epitran for analysis, preserve surface
+Ge'ez for output, build only the alignment between them.
+
 **Open:** orthographic-variation corpus survey (blocked on `03_data_strategy`),
-HornMorpho verification, whether the two varieties differ orthographically, and
-register distance.
+HornMorpho licence and Tigrinya version status (GitHub unreachable — see
+`../../RESEARCH_ACCESS.md`), whether the two varieties differ orthographically,
+register distance, and **native-speaker validation of the `tir-Ethi` map**.

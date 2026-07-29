@@ -180,10 +180,13 @@ Three research domains are done:
 
 - `00_project_definition` → scope, users, dialect (DEC-002, DEC-004, DEC-006)
 - `01_ecosystem` → the Tigrinya NLP landscape mapped (DEC-003, DEC-005)
-- `02_linguistics` → morphology, Ge'ez script, tokenization (DEC-007)
+- `02_linguistics` → morphology, Ge'ez script, tokenization (DEC-007), plus a
+  Ge'ez tooling survey and the project's first experiment
 
 **Read [`docs/research/summaries/`](docs/research/summaries/) before doing
-anything else.** Three summaries, ~2 pages each, and they change the plan.
+anything else.** Four summaries, ~2 pages each, and they change the plan.
+Then read [`docs/research/RESEARCH_ACCESS.md`](docs/research/RESEARCH_ACCESS.md)
+before searching for anything — it maps which sources are reachable.
 
 ### What the research established
 
@@ -201,7 +204,15 @@ it. Hence DEC-007: a consonant–vowel decomposition layer beneath tokenization.
 This also makes **transliteration core infrastructure**, not a peripheral
 feature.
 
-**3. The data ceiling is 40M tokens.** `[verified]` TiRoBERTa — the strongest
+**3. The decomposition layer already exists.** `experiments/001` measured
+**Epitran's `tir-Ethi` map**: 384/384 Ge'ez coverage, correct Tigrinya phonology,
+and ካተበ → `katəbə` yields the root `[k,t,b]`. It is **not reversible** (22
+collisions) — but those collisions are the Ge'ez homophone pairs, so the loss
+*is* orthographic normalisation. DEC-007 is amended to dual representation:
+Epitran for analysis, surface Ge'ez preserved for output. **We build only the
+alignment between them.**
+
+**4. The data ceiling is 40M tokens.** `[verified]` TiRoBERTa — the strongest
 available Tigrinya encoder — was pretrained on 40 million tokens. That is small
 enough to favour linguistically-informed methods over data-hungry ones, and it
 is the number `03_data_strategy` must plan against.

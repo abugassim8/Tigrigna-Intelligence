@@ -22,6 +22,75 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Ge'ez tooling survey, first experiment, access playbook — 2026-07-29
+
+**A P-1 violation found and corrected.** DEC-007 specified building a
+consonant–vowel decomposition layer. Nobody had checked a package registry
+first. **It already exists.**
+
+**Experiment 001 — the project's first empirical result**
+
+`experiments/001-epitran-geez-decomposition/` measured **Epitran**
+(`epitran` 1.35.2, MIT-Modern-Variant, actively maintained) against DEC-007's
+four requirements. It ships **`tir-Ethi`**, a dedicated Tigrinya map.
+
+| Criterion | Result |
+| --- | --- |
+| Decomposition | ✅ ካተበ → `katəbə` → root `[k,t,b]`, pattern `[a,ə,ə]` |
+| Coverage | ✅ 384/384 core Ethiopic characters |
+| Tigrinya-specific | ✅ 59/384 (15.4%) differ from Amharic, correctly |
+| Lossless reversibility | ❌ 384 chars → 362 outputs; **22 collisions** |
+
+Mean symbol expansion **1.97×**. The committed `run.py` was re-executed and
+reproduces exactly (**P-5** satisfied by verification, not assertion).
+
+**The failure was the most useful result.** The 22 collisions are precisely the
+historically redundant Ge'ez homophone pairs (ሀ/ኀ → `hə`, ሠ/ሰ → `sə`) — which
+means **the lossiness performs orthographic normalisation for free.** Good for
+matching and retrieval; wrong for user-facing output. One representation cannot
+serve both.
+
+**DEC-007 amended** to a **dual-representation** architecture:
+- **Surface form** — original Ge'ez, preserved verbatim, source of truth for
+  output.
+- **Analysis form** — Epitran decomposition, for matching/morphology/retrieval.
+  Lossy by design; that loss is normalisation.
+- **Alignment offsets** between them — now the only part we build.
+- The reversibility requirement is **withdrawn as unachievable**, and never
+  reconstruct surface text from the analysis form.
+
+Cost of the substrate drops from days–weeks to `pip install`. Three more
+alternatives rejected (R-016 … R-018).
+
+**HornMorpho: partially resolved, and riskier than assumed**
+- `[verified]` **Not on PyPI** — GitHub-only, hand-built wheel, no standard
+  versioning. A real integration cost under **P-7**.
+- `[reported]` v5.3.5 covers Tigrinya, but docs say *"Version 5 replaces Version
+  4.5 for Amharic. For other languages, see Version 4.3"* — **Tigrinya support
+  may lag.**
+- **A `fgaim/HornMorpho` fork exists** — same group as our primary model
+  candidates. Investigate the fork before upstream.
+- Licence still unknown; GitHub is unreachable from this session.
+
+**Other clean tooling found:** `abyssinica` (MIT — Ge'ez numerals, Ethiopic
+calendar), `amseg` (MIT — Ge'ez-script segmentation, UHH-LT), `pyicu` /
+`unicodedata2` (Unicode normalisation). Confirmed dead-end: `morfessor`, last
+released 2019-07-31.
+
+**New leads:** HornMT corpus; `tigrinyanlp.github.io` (**blocked by egress**).
+
+**`docs/research/RESEARCH_ACCESS.md` — new**
+
+Roughly a third of the previous session's research effort went into discovering
+*how to reach sources* rather than reading them. That is now written down: which
+hosts are blocked, which routes work (`hf://` filesystem for papers and cards;
+PyPI directly, including installing and measuring libraries), the evidence-marking
+convention, and a standing verification backlog.
+
+`AI_RESEARCH_RULES.md` gained two rules from this session's failures: read the
+access playbook before searching, and **check package registries before assuming
+you must build something.**
+
 ### Phase 2 critical path + Phase 1 verification — 2026-07-29
 
 **Verification pass corrected two published figures.** A follow-up reached

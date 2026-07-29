@@ -57,4 +57,10 @@ those are the ones nobody writes up, and the ones most likely to be repeated.
 
 ## Status
 
-**Empty.** No experiments run.
+**1 experiment complete.**
+
+- [`001-epitran-geez-decomposition/`](001-epitran-geez-decomposition/) —
+  tested whether Epitran satisfies DEC-007's requirements for a Ge'ez
+  consonant–vowel decomposition substrate. **3 of 4 criteria passed; the
+  reversibility failure turned out to be the most useful result** and amended
+  DEC-007. Reproducible: `run.py` re-executed and reproduces exactly.

@@ -107,6 +107,7 @@ does not support a decision, say so and specify exactly what is missing.
 docs/research/
 ├── README.md              This file — the protocol
 ├── AI_RESEARCH_RULES.md   Mandatory rules for AI assistants
+├── RESEARCH_ACCESS.md     Which sources are reachable, and how — READ FIRST
 ├── CHECKLIST.md           The nine questions every report answers
 ├── templates/             Use these; do not invent structures
 ├── reports/               Full Analyst reports, by domain
@@ -146,6 +147,8 @@ single largest determinant of whether this repository stays cheap to work in.
 
 1. **Search before you research.** Check `summaries/` and `references/` first.
    Duplicated research is the most expensive mistake available here.
+   Then check [`RESEARCH_ACCESS.md`](RESEARCH_ACCESS.md) for how to reach
+   sources — and **check PyPI before assuming you must build something.**
 2. **Every report gets a summary.** No exceptions.
 3. **Research is not decision.** Findings go in `research/`. Choices go in
    `decisions/`. Keeping these separate is what lets us revisit a choice without

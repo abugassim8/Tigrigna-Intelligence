@@ -69,7 +69,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-004 | 2026-07-29 | Support both Tigrinya varieties; evaluate and report them separately | Accepted |
 | DEC-005 | 2026-07-29 | FLORES-200 and TiQuAD as initial evaluation anchors | Accepted |
 | DEC-006 | 2026-07-29 | Minimum viable platform is the primitives layer, not translation | Accepted |
-| DEC-007 | 2026-07-29 | Consonant–vowel decomposition as the substrate beneath tokenization | Accepted |
+| DEC-007 | 2026-07-29 | Consonant–vowel decomposition as the substrate beneath tokenization | Accepted — **amended same day** |
 
 ---
 
@@ -500,6 +500,62 @@ produces the transliteration capability our scope needs anyway as a by-product.
   practice than the 26×7 grid implies — Option B is the fallback.
 
 **Evidence:** `../research/summaries/003-morphology-script-and-tokenization.md`
+
+### Amendment — 2026-07-29 (same day, post-experiment)
+
+**The decision's direction is unchanged; its implementation is now "buy, not
+build", and its reversibility requirement is dropped as unachievable.**
+
+`experiments/001-epitran-geez-decomposition/` measured **Epitran**
+(`epitran` 1.35.2, MIT-Modern-Variant, last release 2026-06-18) against this
+decision's four requirements. It ships **`tir-Ethi`**, a dedicated Tigrinya map.
+
+| Requirement | Result |
+| --- | --- |
+| Decomposition | ✅ ካተበ → `katəbə` → consonants `[k,t,b]`, vowels `[a,ə,ə]`. The discontinuous root is extractable |
+| Coverage | ✅ 384/384 core Ethiopic characters |
+| Tigrinya-specific | ✅ 59/384 (15.4%) differ from Amharic, and correctly (pharyngeal ħ, uvular q) |
+| **Lossless reversibility** | ❌ **384 chars → 362 outputs; 22 collisions** |
+
+**1. Adopt Epitran rather than building the layer.** This decision originally
+specified building a decomposition layer. That was a **P-1 failure — the
+previous session did not check package registries before assuming "build."**
+Epitran does it already, with better Tigrinya phonology than we would have
+encoded unaided, under a clean licence.
+
+**2. The reversibility requirement is withdrawn.** It cannot be met, and it
+should not be. The 22 collisions are exactly the historically redundant Ge'ez
+homophone pairs (ሀ/ኀ → `hə`, ሠ/ሰ → `sə`) — characters that are pronounced
+identically in modern Tigrinya but written differently. **That is the
+orthographic-variation problem, and the collapse normalises it for free.**
+
+**3. Therefore: dual representation.** One representation cannot serve both
+matching and output.
+
+- **Surface form** — original Ge'ez, preserved verbatim, always. Source of truth
+  for anything returned to a user.
+- **Analysis form** — Epitran `tir-Ethi` decomposition. Used for matching,
+  morphological analysis, retrieval, and embeddings. **Lossy by design; that
+  loss is normalisation.**
+- **Alignment offsets** maintained between them, so analysis results map back
+  onto surface spans.
+- **Never reconstruct surface text from the analysis form.**
+
+**Revised consequences:**
+- *Positive:* Cost of the substrate drops from days–weeks to `pip install`.
+  Orthographic normalisation partly comes free. Net **less** work than before.
+- *Negative:* A dependency on one external map for a core primitive. Mitigated
+  by MIT licensing, small reviewable tables, and keeping the raw-Ge'ez baseline.
+- *New work created:* the **surface↔analysis alignment layer** — now the only
+  part of this we build.
+- *New risk:* **we cannot currently detect systematic errors in `tir-Ethi`.**
+  It would be silently wrong everywhere downstream. **Native-speaker validation
+  is required before anything ships user-facing.**
+- *Measured cost input:* **1.97× mean symbol expansion**, which feeds tokenizer
+  fertility budgeting.
+
+**Evidence:** `../research/summaries/004-geez-tooling-survey.md`;
+`experiments/001-epitran-geez-decomposition/`
 
 ---
 

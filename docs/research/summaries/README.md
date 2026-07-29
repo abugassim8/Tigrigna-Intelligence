@@ -64,6 +64,7 @@ Examples: `001-tigrinya-corpus-survey.md`, `007-tokenizer-options.md`
 | [001](001-tigrinya-nlp-ecosystem-scan.md) | Tigrinya NLP Ecosystem Scan | Scout → Analyst | `01_ecosystem` | 2026-07-29 | Current |
 | [002](002-scope-users-and-dialect.md) | Scope, Users, and Dialect Definition | Scout → Analyst | `00_project_definition` | 2026-07-29 | Current |
 | [003](003-morphology-script-and-tokenization.md) | Morphology, Ge'ez Script, and the Tokenization Constraint | Scout → Analyst | `02_linguistics` | 2026-07-29 | Current |
+| [004](004-geez-tooling-survey.md) | Ge'ez Tooling Survey and the HornMorpho Question | Scout → Analyst | `02_linguistics` | 2026-07-29 | Current |
 
 Keep this table current. It is the first thing anyone reads.
 
@@ -71,11 +72,16 @@ Keep this table current. It is the first thing anyone reads.
 planned to build already exists, and our differentiator is the primitives layer,
 the evaluation harness, and the integration surface.
 
-⚠️ **Both summaries carry an evidence caveat.** The 2026-07-29 session's egress
+⚠️ **Every summary carries an evidence caveat.** The 2026-07-29 session's egress
 policy blocked arxiv, ACL Anthology, publisher sites, and Semantic Scholar, so
-all paper-derived figures are `[reported]` from search summaries rather than
-read from source. Hugging Face data is `[verified]`. A session with unrestricted
-egress should verify the flagged numbers first.
+paper-derived figures are `[reported]` from search summaries rather than read
+from source. Hugging Face cards, PyPI metadata, and anything **measured by
+running code** are `[verified]`.
+
+**Before researching anything, read
+[`../RESEARCH_ACCESS.md`](../RESEARCH_ACCESS.md)** — it maps which sources are
+reachable and how, so you do not repeat the discovery. A session with
+unrestricted egress should work the verification backlog listed there.
 
 ## What future researchers should add
 
@@ -86,8 +92,12 @@ tells the next person that the question is harder than it looks.
 
 ## Status
 
-**3 summaries.** Phase 1 (`00_project_definition`, `01_ecosystem`) and the
-critical-path half of Phase 2 (`02_linguistics`) are complete.
+**4 summaries, 1 experiment.** Phase 1 (`00_project_definition`, `01_ecosystem`)
+and Phase 2's critical path (`02_linguistics`) are complete.
+
+**Summary 004 supersedes part of 003's build plan:** the decomposition layer
+003 said to build already exists (Epitran). Read 003 for *why* the problem
+exists, 004 for *what to do about it*.
 
 Next: `03_data_strategy` — a corpus survey is now the blocking dependency for
 the orthographic-variation and normalisation work (DEC-007), and the verified
