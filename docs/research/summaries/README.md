@@ -65,7 +65,7 @@ Examples: `001-tigrinya-corpus-survey.md`, `007-tokenizer-options.md`
 | [002](002-scope-users-and-dialect.md) | Scope, Users, and Dialect Definition | Scout → Analyst | `00_project_definition` | 2026-07-29 | Current |
 | [003](003-morphology-script-and-tokenization.md) | Morphology, Ge'ez Script, and the Tokenization Constraint | Scout → Analyst | `02_linguistics` | 2026-07-29 | Current |
 | [004](004-geez-tooling-survey.md) | Ge'ez Tooling Survey and the HornMorpho Question | Scout → Analyst | `02_linguistics` | 2026-07-29 | Current |
-| [005](005-corpus-inventory-and-contamination.md) | Corpus Inventory and a Contamination Risk | Scout → Analyst | `03_data_strategy` | 2026-07-29 | Current |
+| [005](005-corpus-inventory-and-contamination.md) | Corpus Inventory and Confirmed Contamination | Scout → Analyst | `03_data_strategy` | 2026-07-29 | Current |
 
 Keep this table current. It is the first thing anyone reads.
 
@@ -102,7 +102,7 @@ exists, 004 for *what to do about it*.
 
 **Summary 005 is the one to read if you touch data.** The corpus is measured
 (~67K monolingual rows, 1.4M parallel pairs) but **~99% is unlicensed**, and a
-dataset advertised for pretraining appears to contain our evaluation anchor's
+dataset advertised for pretraining **verifiably contains** our evaluation anchor's
 data. → **DEC-008**: screen everything, quarantine unlicensed data.
 
 Next: `08_evaluation` (build the harness on FLORES-200 + TiQuAD) or

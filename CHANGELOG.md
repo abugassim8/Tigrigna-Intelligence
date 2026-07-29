@@ -47,7 +47,7 @@ schemas, and parquet sizes. That distinction produced every finding below.
    documents.** The single largest resource — 1.4M parallel sentences — is
    unlicensed. **A-009 sharpened.**
 
-3. **⚠️ Probable evaluation contamination.**
+3. **⛔ CONFIRMED evaluation contamination.**
    `farefaine/tigrinya-pretraining`, titled *"Tigrinya Raw Pretraining Sources"*,
    carries TiQuAD's extractive-QA schema field for field
    (`id, question, context, answers, article_title, context_id`), and its

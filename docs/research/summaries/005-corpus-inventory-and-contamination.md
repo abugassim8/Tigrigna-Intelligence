@@ -1,4 +1,4 @@
-# Summary: Tigrinya Corpus Inventory and a Contamination Risk
+# Summary: Tigrinya Corpus Inventory and Confirmed Evaluation Contamination
 
 | Field | Value |
 | --- | --- |
@@ -41,24 +41,22 @@ contains our evaluation anchor's validation data**.
 - **⚠️ HF `size_categories` tags are unreliable.** Two of four datasets carry
   *internally contradictory* size metadata; `farefaine` overstates by up to ~20×.
   **Query the API for real row counts.**
-- **⚠️ Probable evaluation contamination.** `farefaine/tigrinya-pretraining` is
-  titled *"Tigrinya Raw Pretraining Sources"* but its schema is
-  `id, question, context, answers, article_title, context_id` — **TiQuAD's
-  extractive-QA schema, field for field.** Its validation split is **exactly 934
-  rows; TiQuAD's validation split is 934.**
+- **⛔ CONFIRMED evaluation contamination** `[verified]`.
+  `farefaine/tigrinya-pretraining`, titled *"Tigrinya Raw Pretraining Sources"*
+  and tagged for pretraining, **contains TiQuAD validation data.**
 
-  **TiQuAD is our DEC-005 evaluation anchor.** Anyone pretraining on this dataset
-  would silently invalidate their own TiQuAD evaluation. Most likely an honest
-  aggregation error — the effect on a downstream user is identical.
+  Evidence chain, all verified: identical schema field-for-field; validation
+  split exactly 934 rows in both; **row-level preview returned `article_title`
+  ሃብቶም ክብረኣብ (ሞጀ) with a context passage identical to the sample entry TiQuAD
+  publishes on its own dataset card**; three answer annotations per question,
+  which is TiQuAD's documented validation-set convention.
 
-  **✅ CONFIRMED `[verified]`.** A row-level preview of the validation split
-  returned `article_title` **ሃብቶም ክብረኣብ (ሞጀ)** with a context passage
-  **identical to the sample entry TiQuAD publishes on its own dataset card** —
-  and three answer annotations per question, which is TiQuAD's documented
-  validation-set convention. The earlier "signal, not proof" hedge is withdrawn.
+  **TiQuAD is our DEC-005 evaluation anchor.** Anyone who pretrains on this
+  corpus and evaluates on TiQuAD is reporting a contaminated score. Most likely
+  an honest aggregation error — the downstream effect is identical.
 
-  **Consequence:** any published Tigrinya model trained on this corpus has a
-  TiQuAD score that cannot be trusted. Report upstream to the maintainer.
+  **Consequences:** any published Tigrinya model trained on this corpus has an
+  untrustworthy QA score; report upstream to the maintainer (**G-11**).
 
 ## Important Decisions
 
