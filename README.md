@@ -14,12 +14,12 @@ application, but as infrastructure that others can build on.
 > written. See
 > [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
 >
-> **Phase 1 changed the plan.** Most of the Tigrinya model layer already exists
-> and is largely openly licensed. Our differentiator is the **primitives layer**
-> (Ge'ez normalisation, tokenization, morphology), the **evaluation harness**,
-> and the **API/MCP/SDK surface** — none of which anyone has built. Read
-> [`docs/research/summaries/`](docs/research/summaries/) — three summaries, two
-> pages each.
+> **The research changed the plan.** Most of the Tigrinya model layer already
+> exists and is largely openly licensed. Our differentiator is the **primitives
+> layer** (Ge'ez normalisation, tokenization, morphology), the **evaluation
+> harness**, and the **API/MCP/SDK surface** — none of which anyone has built.
+> Read [`docs/research/summaries/`](docs/research/summaries/) — five summaries,
+> two pages each.
 
 ---
 
@@ -158,12 +158,14 @@ aspirational.
    already known.
 4. Check [`docs/decisions/DECISIONS.md`](docs/decisions/DECISIONS.md) for what is
    already decided (DEC-001 … DEC-008).
-5. Pick up a blocking item from
+5. Read [`docs/research/RESEARCH_ACCESS.md`](docs/research/RESEARCH_ACCESS.md)
+   before searching for anything — it maps which sources are reachable.
+6. Pick up a blocking item from
    [`docs/roadmap/30_days.md`](docs/roadmap/30_days.md) — currently: resolve the
-   `fgaim` model licences, verify HornMorpho's maintenance status, and confirm
-   DEC-002. Then proceed to
-   [`03_data_strategy`](docs/research/reports/03_data_strategy/), which now gates
-   the orthographic-variation survey DEC-007 depends on.
+   `fgaim` model licences, pursue dataset licence clarification, verify the
+   `farefaine`/TiQuAD contamination overlap, and confirm DEC-002. Then proceed to
+   [`08_evaluation`](docs/research/reports/08_evaluation/) or
+   [`04_model_strategy`](docs/research/reports/04_model_strategy/).
 
 ## Licence
 
