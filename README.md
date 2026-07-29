@@ -8,9 +8,10 @@ the language technology that speakers of high-resource languages take for
 granted. This project exists to build that missing layer — not as an
 application, but as infrastructure that others can build on.
 
-> **Status: Phase 1 complete; Phase 2 critical path complete.** Three research
-> domains done (`00_project_definition`, `01_ecosystem`, `02_linguistics`), seven
-> decisions recorded. No architecture designed and no code written. See
+> **Status: four research domains complete** — `00_project_definition`,
+> `01_ecosystem`, `02_linguistics`, `03_data_strategy`. Eight decisions recorded,
+> one reproducible experiment. No architecture designed and no service code
+> written. See
 > [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
 >
 > **Phase 1 changed the plan.** Most of the Tigrinya model layer already exists
@@ -156,7 +157,7 @@ aspirational.
 3. Check [`docs/research/summaries/`](docs/research/summaries/) for what is
    already known.
 4. Check [`docs/decisions/DECISIONS.md`](docs/decisions/DECISIONS.md) for what is
-   already decided (DEC-001 … DEC-007).
+   already decided (DEC-001 … DEC-008).
 5. Pick up a blocking item from
    [`docs/roadmap/30_days.md`](docs/roadmap/30_days.md) — currently: resolve the
    `fgaim` model licences, verify HornMorpho's maintenance status, and confirm

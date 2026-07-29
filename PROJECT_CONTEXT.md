@@ -174,9 +174,7 @@ scripts/            Operational tooling
 
 ## Current status
 
-**Phase 1 complete; Phase 2 critical path complete.**
-
-Three research domains are done:
+**Four research domains complete.**
 
 - `00_project_definition` → scope, users, dialect (DEC-002, DEC-004, DEC-006)
 - `01_ecosystem` → the Tigrinya NLP landscape mapped (DEC-003, DEC-005)
