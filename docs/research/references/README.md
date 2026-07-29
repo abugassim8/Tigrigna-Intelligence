@@ -77,4 +77,11 @@ university page — note the access date and consider archiving it.
 
 ## Status
 
-**Empty.** No research has been conducted.
+**Populated by Phase 1** (2026-07-29): `papers.md`, `models.md`, `datasets.md`,
+`projects.md`, `communities.md`, `commercial.md`.
+
+⚠️ **Access caveat:** arxiv, ACL Anthology, publisher domains, and Semantic
+Scholar were blocked by egress policy during the Phase 1 session. Paper entries
+carry titles, venues, and IDs (reliable) but their quoted findings are
+`[reported]` from search summaries, not read from source. Hugging Face entries
+are `[verified]` against the Hub API. **Verify before relying on precision.**

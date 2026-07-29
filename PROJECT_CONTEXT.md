@@ -174,12 +174,44 @@ scripts/            Operational tooling
 
 ## Current status
 
-**Phase: 0 — Workspace initialisation.**
+**Phase: 1 complete — Foundations researched.**
 
-The repository structure and research operating system exist. **No research has
-been conducted. No technology has been selected. No architecture has been
-designed. No models have been recommended.** Any document in this repository
-that appears to state a technical conclusion is a template or a placeholder, not
-a finding.
+The repository structure and research operating system exist, and the first two
+research domains are done:
+
+- `00_project_definition` → scope, users, and dialect settled (DEC-002, DEC-004,
+  DEC-006)
+- `01_ecosystem` → the Tigrinya NLP landscape mapped (DEC-003, DEC-005)
+
+**Read [`docs/research/summaries/`](docs/research/summaries/) before doing
+anything else.** Two summaries, ~2 pages each, and they change the plan.
+
+### What Phase 1 established
+
+**Most of the model layer already exists.** A single group (GeezLab / `fgaim`)
+has published a coherent Tigrinya stack including an Apache-2.0 embedding model.
+**Our differentiator is not models** — it is the primitives layer (Ge'ez
+normalisation, tokenization, morphology), the evaluation harness, and the
+integration surface (API, MCP, SDKs). Nobody has built those.
+
+### Blocking items
+
+1. **Licence resolution on the `fgaim` models** — several carry no stated
+   licence, including the family's base. Blocks DEC-003 under **P-9**.
+2. **HornMorpho maintenance status** — the only established Tigrinya
+   morphological analyser, now on the critical path via DEC-006.
+3. **DEC-002 needs owner confirmation** — the user determination is inferential.
+
+### Still not done
+
+**No architecture has been designed. No served model has been selected. No code
+has been written.** Everything in `docs/architecture/` remains a scaffold.
+Documents outside `docs/research/` and `docs/decisions/` that appear to state
+technical conclusions are still placeholders.
+
+⚠️ **Evidence caveat:** the Phase 1 session's egress policy blocked arxiv, ACL
+Anthology, publisher sites, and Semantic Scholar. Paper-derived figures are
+`[reported]` from search summaries, not read from source; Hugging Face data is
+`[verified]`. Verify before relying on precision.
 
 _Last amended: 2026-07-29_

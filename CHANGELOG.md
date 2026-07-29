@@ -22,6 +22,73 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Phase 1 research complete — 2026-07-29
+
+The first two research domains were executed and documented. **This changed the
+plan**, and the change is the most important entry in this file so far.
+
+**Reports and summaries added**
+- `docs/research/reports/01_ecosystem/001-tigrinya-nlp-ecosystem-scan.md`
+  + summary `001-tigrinya-nlp-ecosystem-scan.md`
+- `docs/research/reports/00_project_definition/001-scope-users-and-dialect.md`
+  + summary `002-scope-users-and-dialect.md`
+- `docs/research/references/` populated: `papers.md`, `models.md`,
+  `datasets.md`, `projects.md`, `communities.md`, `commercial.md`
+
+**The finding that changed the plan**
+
+Most of the Tigrinya model layer we intended to build **already exists**. One
+group (GeezLab / `fgaim`) has published a coherent stack — base language models,
+an Apache-2.0 `sentence-transformers` embedding model, POS tagging, NER data,
+human-annotated QA data. Meanwhile **no** Tigrinya API, MCP server, SDK, or
+production morphology service exists anywhere.
+
+The gaps are at the **bottom** (Ge'ez normalisation, tokenization, morphology)
+and the **top** (API, MCP, SDKs) of the stack — not in the middle. This inverts
+the naive build order and is now recorded as A-010.
+
+**Decisions recorded**
+- **DEC-002** *(Proposed — needs owner confirmation)* — primary users are
+  application developers; researchers secondary.
+- **DEC-003** — adopt the existing model layer; build primitives, evaluation,
+  and integration.
+- **DEC-004** — support both Tigrinya varieties; evaluate and report separately.
+  Grounded in a measured dialect gap (COMET 0.82 Ethiopian vs 0.80 Eritrean).
+- **DEC-005** — FLORES-200 and TiQuAD as initial evaluation anchors.
+- **DEC-006** — the minimum viable platform is the primitives layer, **not**
+  translation.
+
+Nine alternatives rejected with reasons (R-004 … R-012).
+
+**Assumptions updated**
+- **A-006 partially invalidated** — more human-annotated Tigrinya evaluation
+  data exists than assumed (FLORES-200, TiQuAD, TiALD). Narrowed: we must still
+  build evaluation sets for retrieval, morphology, spell, and grammar, where
+  nothing was found.
+- **A-007 supported, confidence raised** — morphology-aware tokenization reduced
+  one Tigrinya sentence from 21 tokens to 6. *But* the same source reports no
+  significant downstream translation gain, so the benefit is cost and fidelity,
+  not assumed accuracy.
+- **A-009 escalated to an active blocker** — several key reuse candidates carry
+  no stated licence.
+- **A-001, A-004 supported.** **A-010 added.**
+- Two previously-open scope questions closed (users, dialect); register scope,
+  language pairs, deployment model, and diaspora needs remain open.
+
+**Blocking items surfaced**
+1. Licence resolution on the `fgaim` models — blocks DEC-003.
+2. HornMorpho maintenance status — now on the critical path via DEC-006.
+3. DEC-002 owner confirmation.
+
+**Evidence limitation — recorded prominently**
+
+The session's egress policy blocked `arxiv.org`, `aclanthology.org`, publisher
+domains, and `api.semanticscholar.org` at the proxy. Hugging Face Hub data is
+`[verified]` against the API; **all paper-derived figures are `[reported]` from
+search-engine summaries and were not read from source.** This is flagged in both
+summaries, both reports, and `references/README.md`. Re-verification is a
+standing action item.
+
 ### Added — 2026-07-29
 
 Initial repository scaffold and research operating system.

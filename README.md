@@ -8,9 +8,16 @@ the language technology that speakers of high-resource languages take for
 granted. This project exists to build that missing layer — not as an
 application, but as infrastructure that others can build on.
 
-> **Status: Phase 0 — workspace initialisation.** The research operating system
-> is in place. No research has been conducted, no technology selected, and no
-> architecture designed. See [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
+> **Status: Phase 1 complete — foundations researched.** The research operating
+> system is in place and the first two domains are done. No architecture has
+> been designed and no code written. See
+> [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
+>
+> **Phase 1 changed the plan.** Most of the Tigrinya model layer already exists
+> and is largely openly licensed. Our differentiator is the **primitives layer**
+> (Ge'ez normalisation, tokenization, morphology), the **evaluation harness**,
+> and the **API/MCP/SDK surface** — none of which anyone has built. Read
+> [`docs/research/summaries/`](docs/research/summaries/) — two pages each.
 
 ---
 
@@ -146,9 +153,12 @@ enough grounding to make dated commitments honest rather than aspirational.
 3. Check [`docs/research/summaries/`](docs/research/summaries/) for what is
    already known.
 4. Check [`docs/decisions/DECISIONS.md`](docs/decisions/DECISIONS.md) for what is
-   already decided.
-5. Pick up the next open item from
-   [`docs/research/reports/00_project_definition/`](docs/research/reports/00_project_definition/).
+   already decided (DEC-001 … DEC-006).
+5. Pick up a blocking item from
+   [`docs/roadmap/30_days.md`](docs/roadmap/30_days.md) — currently: resolve the
+   `fgaim` model licences, verify HornMorpho's maintenance status, and confirm
+   DEC-002. Then proceed to
+   [`02_linguistics`](docs/research/reports/02_linguistics/).
 
 ## Licence
 

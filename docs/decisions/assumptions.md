@@ -39,7 +39,12 @@ An assumption that has been validated should say so and link the evidence.
 
 ### A-001 — We prefer open source before commercial APIs
 
-**Status:** Unvalidated · **Confidence:** High · **Since:** 2026-07-29
+**Status:** **Supported** · **Confidence:** High · **Since:** 2026-07-29
+**Evidence:** `../research/summaries/001-tigrinya-nlp-ecosystem-scan.md` — viable
+open Tigrinya models exist (Apache-2.0 embeddings, CC-BY datasets), so the
+preference is actionable rather than aspirational. Commercial MT (Google)
+`[reported]` still leads on translation quality specifically, and is retained as
+a **baseline to measure against** rather than a dependency (R-005).
 
 Open models and open source tooling are preferred over commercial APIs where
 they are viable. Rationale: cost control at low volume, no vendor deprecation
@@ -94,7 +99,11 @@ requirement.
 
 ### A-004 — We avoid unnecessary model training
 
-**Status:** Unvalidated · **Confidence:** High · **Since:** 2026-07-29
+**Status:** **Supported — strongly** · **Confidence:** High · **Since:** 2026-07-29
+**Evidence:** The ecosystem scan found existing Tigrinya models for language
+modelling, embeddings, POS, NER, and translation. DEC-006's minimum viable
+platform requires **no training at all**. The assumption is not merely held; it
+is now demonstrably achievable.
 
 Training is a last resort, not a first instinct. It carries data cost, compute
 cost, evaluation cost, and permanent maintenance burden — a trained model is
@@ -124,32 +133,61 @@ base models and Tigrinya's script or morphology that adaptation cannot bridge.
 
 ### A-006 — Tigrinya-specific evaluation data is scarce and will need to be built
 
-**Status:** Unvalidated · **Confidence:** Medium · **Since:** 2026-07-29
+**Status:** **Partially invalidated — refined** · **Confidence:** Medium
+**Since:** 2026-07-29 · **Updated:** 2026-07-29
 
-We assume there is little high-quality Tigrinya evaluation data, and that
-building trustworthy test sets will be a significant, unavoidable workstream
-rather than a preliminary step.
+~~We assume there is little high-quality Tigrinya evaluation data~~ — **this was
+too pessimistic.** More human-annotated evaluation data exists than assumed:
 
-**Flagged as high-impact:** if true, this affects sequencing across the entire
-project — it means evaluation work starts early and is a first-class deliverable,
-not a phase-two concern. This should be among the first things Phase 1 research
-tests.
+- **FLORES-200** — human-reviewed, includes Tigrinya (~3K samples `[reported]`)
+- **TiQuAD** — human-annotated, 10.6K QA pairs, CC-BY-SA-4.0, with published
+  baselines (F1 81% vs 92% human `[reported]`)
+- **TiALD** — 13,717 annotated comments, CC-BY-4.0
+- **TiNC24** — 200K+ words NER-annotated `[reported]`, not yet located
+
+**Refined form of the assumption:** evaluation data exists for *translation, QA,
+NER, and classification*, but **nothing was found for retrieval/semantic search,
+morphological analysis, spell correction, or grammar checking** — which are
+precisely the capabilities DEC-006 puts in the minimum viable platform.
+
+**So the workstream survives, but narrowed:** we build evaluation sets for the
+primitives and retrieval, and adopt existing sets elsewhere (DEC-005).
+
+**New risk surfaced:** `fgaim/tigrinya-squad` (silver, machine-translated) and
+`fgaim/tiquad` (gold) share authorship and probable source overlap.
+**Contamination must be checked before TiQuAD is used as held-out evaluation.**
 
 ---
 
 ### A-007 — Morphological complexity is a first-order design constraint
 
-**Status:** Unvalidated · **Confidence:** Medium · **Since:** 2026-07-29
+**Status:** **Supported** · **Confidence:** High (raised from Medium)
+**Since:** 2026-07-29 · **Updated:** 2026-07-29
 
 We assume Tigrinya's morphology materially affects tokenization, retrieval,
-embeddings, and search quality — and that approaches designed around
-analytic languages will underperform without adaptation.
+embeddings, and search quality — and that approaches designed around analytic
+languages will underperform without adaptation.
 
-**Explicitly flagged for verification.** This assumption is currently based on
-general knowledge of Ethio-Semitic languages, not on research conducted for this
-project. It sits upstream of several architectural choices, which makes it both
-high-impact and, right now, insufficiently evidenced. `02_linguistics` should
-resolve it early.
+**Evidence gathered** (all `[reported]` — see the egress caveat in summary 001):
+
+- The **MoVoC** paper (ACL Findings EMNLP 2025) reports one Tigrinya sentence
+  tokenizing to **21 BPE tokens versus 6** with morphology-aware segmentation.
+  *(Illustrative single sentence, not a corpus average — do not quote as one.)*
+- The **Tigrinya NLP survey** (arXiv 2507.17974) reports that complex morphology
+  causes **high OOV rates and extreme data sparsity**, explicitly "challenging
+  standard tokenization and modeling techniques".
+- **Morfessor** (unsupervised) reportedly performs **poorly** versus rule-based
+  approaches on Tigrinya — a negative result consistent with morphology being
+  structurally important rather than statistically discoverable from small data.
+
+**Important nuance — do not over-claim.** MoVoC also reports **no significant
+gain in automatic translation quality** from morphology-aware tokenization. The
+demonstrated benefits are token efficiency, MorphoScore, and Boundary Precision.
+Morphology matters for **cost and linguistic fidelity**; its downstream accuracy
+benefit is **not yet established** and should be measured, not assumed.
+
+This assumption now underpins DEC-006 (morphology in the minimum viable
+platform). `02_linguistics` should still verify the primary sources.
 
 ---
 
@@ -168,7 +206,16 @@ expected.
 
 ### A-009 — Licensing and provenance must be verifiable for everything we adopt
 
-**Status:** Unvalidated · **Confidence:** High · **Since:** 2026-07-29
+**Status:** **Supported — and now an active blocker** · **Confidence:** High
+**Since:** 2026-07-29 · **Updated:** 2026-07-29
+
+**This assumption stopped being theoretical.** The ecosystem scan found that
+several of the most important reuse candidates carry **no stated licence**,
+including `fgaim/tiroberta-base` — the foundation of the model family DEC-003
+depends on — and the largest English–Tigrinya parallel dataset found.
+
+Resolving these licences is now the **single highest-priority action item** on
+the project. Until resolved, the core reuse plan is blocked.
 
 We assume that unclear licensing is disqualifying. As infrastructure that others
 will build on, we cannot pass on rights we do not have — a downstream user
@@ -179,17 +226,40 @@ constraint.
 
 ---
 
+### A-010 — The primitives layer is our differentiator, not the models
+
+**Status:** Supported · **Confidence:** Medium-high · **Since:** 2026-07-29
+
+We assume the value this project adds is concentrated in **Layer 0** (Ge'ez
+normalisation, tokenization, morphology), the **evaluation harness**, and
+**Layer 5** (API, MCP, SDKs) — not in the model layer, which largely exists.
+
+**Evidence:** the ecosystem scan found a coherent existing model stack but **no**
+Tigrinya API, MCP server, SDK, or production morphology service.
+
+**Would be invalidated by:** someone else shipping a Tigrinya infrastructure
+layer, or the existing models proving unusable — which would push work back into
+the model layer.
+
+---
+
 ## Assumptions we have deliberately not yet made
 
 Recorded so nobody mistakes silence for a decision:
 
-- **Target users.** Whether this primarily serves developers, researchers,
-  institutions, or end-user products is **open**. It is a `00_project_definition`
-  question and it affects API design, SDK priorities, and licensing.
+- ~~**Target users.**~~ **CLOSED** by DEC-002 (Proposed): application developers
+  primary, researchers secondary. Awaiting owner confirmation.
+- ~~**Dialect scope.**~~ **CLOSED** by DEC-004: both varieties, evaluated and
+  reported separately.
+- **Register scope.** **Still open.** Data exists at both extremes (TiALD =
+  YouTube/informal, TiQuAD = news/formal) but nothing was found characterising
+  the distance between them for Tigrinya. → `02_linguistics`.
 - **Deployment model.** Self-hosted, managed service, or both — **open**.
 - **Language pairs.** Which translation directions matter most — **open**.
-- **Dialect and register scope.** Which varieties of Tigrinya are in scope —
-  **open**, and consequential for data collection.
+  En↔Ti is best resourced; Am↔Ti has data and cultural proximity. Lower priority
+  now that DEC-006 excludes translation from the minimum platform.
+- **Diaspora-specific needs.** Whether they differ from in-country users —
+  **open**, and plausibly relevant to transliteration priority.
 - **Project licence.** **Open**, deliberately deferred until data and model
   strategy research is complete.
 

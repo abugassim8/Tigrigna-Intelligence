@@ -61,9 +61,20 @@ Examples: `001-tigrinya-corpus-survey.md`, `007-tokenizer-options.md`
 
 | ID | Title | Stage | Domain | Date | Status |
 | --- | --- | --- | --- | --- | --- |
-| — | *No summaries yet* | — | — | — | — |
+| [001](001-tigrinya-nlp-ecosystem-scan.md) | Tigrinya NLP Ecosystem Scan | Scout → Analyst | `01_ecosystem` | 2026-07-29 | Current |
+| [002](002-scope-users-and-dialect.md) | Scope, Users, and Dialect Definition | Scout → Analyst | `00_project_definition` | 2026-07-29 | Current |
 
 Keep this table current. It is the first thing anyone reads.
+
+**Start with 001.** It is the load-bearing finding: most of the model layer we
+planned to build already exists, and our differentiator is the primitives layer,
+the evaluation harness, and the integration surface.
+
+⚠️ **Both summaries carry an evidence caveat.** The 2026-07-29 session's egress
+policy blocked arxiv, ACL Anthology, publisher sites, and Semantic Scholar, so
+all paper-derived figures are `[reported]` from search summaries rather than
+read from source. Hugging Face data is `[verified]`. A session with unrestricted
+egress should verify the flagged numbers first.
 
 ## What future researchers should add
 
@@ -74,4 +85,6 @@ tells the next person that the question is harder than it looks.
 
 ## Status
 
-**Empty.** No research has been conducted.
+**2 summaries.** Phase 1 research (`00_project_definition`, `01_ecosystem`) is
+complete. Next: `02_linguistics` — Ge'ez normalisation and morphology are the
+critical path per DEC-006.

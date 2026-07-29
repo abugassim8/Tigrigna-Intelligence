@@ -51,4 +51,11 @@ carried in someone's head.
 
 ## Status
 
-**No research conducted.** This directory contains only this scoping document.
+**1 report complete.** `001-tigrinya-nlp-ecosystem-scan.md` (2026-07-29) mapped
+the Tigrinya NLP ecosystem and produced DEC-003, DEC-004, DEC-005. Headline
+finding: most of the model layer already exists; the gaps are the primitives
+layer and the integration surface. See
+`../../summaries/001-tigrinya-nlp-ecosystem-scan.md`.
+
+**Open follow-ups:** verify HornMorpho maintenance; assess GeezKTB's grammar-check
+claim; re-verify `[reported]` figures against primary sources.

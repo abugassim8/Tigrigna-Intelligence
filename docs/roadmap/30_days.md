@@ -35,43 +35,74 @@ implementation — those are decisions that require evidence we do not yet have.
 - [x] Vision, principles, non-goals documented
 - [x] Decision log, assumptions register, and templates in place
 
-### Weeks 1–2 — Project definition (`00_project_definition`)
+### Weeks 1–2 — Project definition (`00_project_definition`) ✅
 
-The questions here are gating and cannot be deferred, because several currently
-sit open in `assumptions.md` and block work elsewhere.
+Completed 2026-07-29 — `reports/00_project_definition/001-scope-users-and-dialect.md`,
+summary `002-scope-users-and-dialect.md`.
 
-- [ ] **Scout:** who the users are and what they need — developers, researchers,
-      institutions, product teams. Resolves an open item in `assumptions.md`.
-- [ ] **Scout:** what each scoped capability means concretely, and what "working"
-      would look like for each.
-- [ ] **Analyst:** minimum useful platform — the smallest thing genuinely
-      valuable to someone.
-- [ ] **Analyst:** dialect, register, and orthographic scope. Blocks data
-      collection design.
-- [ ] **Architect:** record decisions; update `assumptions.md`.
+- [x] **Scout:** who the users are → **DEC-002 (Proposed)**: application
+      developers primary, researchers secondary. *Needs owner confirmation.*
+- [x] **Analyst:** minimum useful platform → **DEC-006**: primitives +
+      embeddings + evaluation harness. Translation explicitly excluded.
+- [x] **Analyst:** dialect scope → **DEC-004**: both varieties, evaluated and
+      reported separately, on measured evidence (COMET 0.82 vs 0.80).
+- [x] **Architect:** decisions recorded; `assumptions.md` updated.
+- [ ] **Deferred:** register scope — data exists at both extremes but nothing
+      characterises the distance between them. → `02_linguistics`.
+- [ ] **Deferred:** per-capability definition of "working" — folded into
+      `08_evaluation`, since it is an evaluation-design question.
 
-### Weeks 2–4 — Ecosystem scan (`01_ecosystem`)
+### Weeks 2–4 — Ecosystem scan (`01_ecosystem`) ✅
 
-- [ ] **Scout:** existing Tigrinya language technology — what exists, what works,
-      what was abandoned.
-- [ ] **Scout:** research groups, communities, and individuals in Tigrinya and
-      Ethio-Semitic NLP.
-- [ ] **Scout:** what Amharic and adjacent ecosystems have that could transfer.
-- [ ] **Analyst:** gap analysis — what is genuinely missing.
-- [ ] Populate `docs/research/references/` throughout.
+Completed 2026-07-29 — `reports/01_ecosystem/001-tigrinya-nlp-ecosystem-scan.md`,
+summary `001-tigrinya-nlp-ecosystem-scan.md`.
+
+- [x] **Scout:** existing Tigrinya language technology mapped — GeezLab stack,
+      community models, HornMorpho, consumer keyboards.
+- [x] **Scout:** research groups and individuals identified — GeezLab/`fgaim`,
+      Hailay Teklehaymanot (L3S Hannover), HLTDI, ~12 HF contributors.
+- [x] **Scout:** adjacent-ecosystem transfer — Amharic parallel data, AfroXLM-R,
+      MoVoC covering four Ge'ez-script languages.
+- [x] **Analyst:** gap analysis → **DEC-003**. The gaps are Layer 0 (primitives)
+      and Layer 5 (API/MCP/SDK), not the model layer.
+- [x] `docs/research/references/` populated: papers, models, datasets, projects,
+      communities, commercial.
 
 ### Ongoing
 
-- [ ] Every research effort produces a ≤2-page summary. No exceptions.
-- [ ] Every decision recorded, with rejected alternatives.
-- [ ] `references/` grows continuously, not at the end.
+- [x] Every research effort produces a ≤2-page summary. No exceptions.
+- [x] Every decision recorded, with rejected alternatives (DEC-002…006;
+      R-004…R-012).
+- [x] `references/` grows continuously, not at the end.
+
+---
+
+## Remaining this month — the blocking items
+
+Phase 1 surfaced three concrete blockers. These now take priority over starting
+Phase 2:
+
+- [ ] **Resolve licensing on the `fgaim` models.** `tiroberta-base` and family
+      carry no stated licence. Under **P-9**/**A-009** this blocks DEC-003, the
+      core reuse plan. *Contact the author.* **Highest priority.**
+- [ ] **Verify HornMorpho is maintained.** It is the only established Tigrinya
+      morphological analyser and DEC-006 puts morphology on the critical path.
+      GitHub was unreachable this session.
+- [ ] **Confirm DEC-002 with the project owner** — the user determination is
+      inferential and is the one decision awaiting sign-off.
+- [ ] **Locate and licence-check** TLMD, NTC, TiNC24, FLORES-200 Tigrinya split,
+      and the MoVoC morpheme data.
+- [ ] **Re-verify `[reported]` figures** against primary sources if egress allows.
 
 ---
 
 ## Explicitly not this month
 
 - No architecture design.
-- No model selection or recommendation.
+- No **final** model selection. *(Amended 2026-07-29: DEC-003 records a
+  reuse-first posture and a shortlist of candidates. It does not select a served
+  model — that is gated on `04_model_strategy` and on the evaluation harness
+  existing, per **P-4**.)*
 - No code in `services/`.
 - No training of anything.
 - No infrastructure provisioning.

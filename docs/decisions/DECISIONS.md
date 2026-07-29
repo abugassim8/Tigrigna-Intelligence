@@ -64,6 +64,11 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | ID | Date | Decision | Status |
 | --- | --- | --- | --- |
 | DEC-001 | 2026-07-29 | Adopt a research-first repository and decision-log workflow | Accepted |
+| DEC-002 | 2026-07-29 | Primary users are application developers; researchers secondary | **Proposed — needs owner confirmation** |
+| DEC-003 | 2026-07-29 | Adopt the existing Tigrinya model layer; build primitives, evaluation, and integration | Accepted |
+| DEC-004 | 2026-07-29 | Support both Tigrinya varieties; evaluate and report them separately | Accepted |
+| DEC-005 | 2026-07-29 | FLORES-200 and TiQuAD as initial evaluation anchors | Accepted |
+| DEC-006 | 2026-07-29 | Minimum viable platform is the primitives layer, not translation | Accepted |
 
 ---
 
@@ -138,6 +143,265 @@ be challenged on evidence later.
 
 **Related:** `../research/README.md`, `../research/AI_RESEARCH_RULES.md`,
 `assumptions.md`
+
+---
+
+## DEC-002 — Primary users are application developers
+
+**Decision ID:** DEC-002 · **Date:** 2026-07-29
+**Status:** **Proposed — requires project-owner confirmation**
+
+**Decision:**
+The platform's primary users are **application developers** building Tigrinya
+language features. **Researchers** are the secondary audience. Institutions
+(media, government, education, NGOs) are served indirectly, through the
+applications developers build.
+
+**Context:**
+This question sat open in `assumptions.md` and gates API design, SDK
+priorities, and capability sequencing. No direct user research was possible —
+community forums were not reachable in this session — so the determination is
+**inferential**, drawn from the ecosystem scan.
+
+The evidence: multiple mature Ge'ez keyboard products (GeezIME, GeezKTB, Mesmer
+Tigrinya, GeezWord) each independently re-solve word suggestion and dictionary
+lookup. GeezKTB additionally advertises grammar checking and translation. These
+teams are building Tigrinya language features today, without a shared
+infrastructure layer beneath them.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Developers primary, researchers secondary | Matches the observed gap; developers are reachable; researcher needs (evaluation, datasets) overlap with work we must do anyway | Inferential — no direct user research |
+| B | Researchers primary | Clearest existing community; easiest to reach | Smaller impact; risks drifting toward N-4 (a research-output project) |
+| C | Institutions primary | Potential funding | Long sales cycles; needs applications that do not exist yet |
+| D | Defer the decision | Avoids being wrong | Blocks API and SDK design indefinitely |
+
+**Chosen:** Option A.
+
+**Reason:**
+The duplication across keyboard products is the clearest demand signal found for
+a shared layer — it is several independent teams paying the same cost. Serving
+researchers simultaneously is nearly free, because the evaluation harness and
+datasets they need are things **G-2** and **G-8** require regardless. Option D
+was rejected because the cost of deferring exceeds the cost of being wrong: this
+decision is cheap to revisit before API design begins, and expensive to keep
+open.
+
+**Consequences:**
+- *Positive:* Unblocks API, MCP, and SDK design. Gives a concrete first-user
+  profile to design against.
+- *Negative:* Built on inferential rather than direct evidence.
+- *Newly constrained:* API ergonomics and SDK quality become first-order
+  concerns rather than later polish.
+- *Revisit when:* direct user research becomes possible, or before finalising
+  the API surface in `07_api_mcp` — whichever comes first.
+
+**Evidence:** `../research/summaries/002-scope-users-and-dialect.md`
+
+---
+
+## DEC-003 — Adopt the existing model layer; build primitives, evaluation, and integration
+
+**Decision ID:** DEC-003 · **Date:** 2026-07-29 · **Status:** Accepted
+
+**Decision:**
+Adopt existing Tigrinya models — principally the GeezLab / `fgaim` stack — as
+the default foundation for language modelling, embeddings, POS, and NER.
+Concentrate our own build effort on **(a)** the primitives layer (Ge'ez
+normalisation, tokenization, morphology), **(b)** the evaluation harness, and
+**(c)** the integration surface (API, MCP server, SDKs).
+
+**Context:**
+The ecosystem scan found substantially more existing Tigrinya capability than a
+"low-resource language" framing suggests. A single group has published a
+coherent stack including `tiroberta-bi-encoder`, an Apache-2.0,
+`sentence-transformers`-compatible embedding model at 124.6M parameters.
+
+At the same time, the scan found **no** Tigrinya API, MCP server, or SDK, and no
+production-ready morphology or morphology-aware tokenization service. The stack
+has gaps at the bottom (Layer 0) and the top (Layer 5), not in the middle.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Build everything from scratch | Full control | Duplicates existing work; violates P-1 outright |
+| B | Adopt existing models, build primitives + evaluation + integration | Fast; cheap; fills the real gap; no training needed | Depends on one group; licence exposure |
+| C | Wrap commercial APIs | Fastest to a demo | No cost control; fails A-001; does nothing for the primitives gap |
+| D | Fine-tune one large multilingual model for everything | Conceptually simple | No evidence it serves the primitives; conflicts with P-2; GPU cost |
+
+**Chosen:** Option B.
+
+**Reason:**
+Option B is what **P-1** and **P-2** require once the artefacts are known to
+exist. It is also the cheapest path: the candidate models are ~124M parameters
+and CPU-servable, consistent with **P-6** and **A-008**. Most importantly, it
+directs our limited effort at the layer nobody has built, which is both the real
+gap and our only plausible differentiator. Options A and D would spend months
+re-creating a middle layer that already exists.
+
+**Consequences:**
+- *Positive:* No model training required to reach a useful platform. Fast route
+  to a first capability. Effort concentrated where it is differentiating.
+- *Negative:* **Concentration risk** — significant dependence on one group's
+  output. Mitigated by artefacts being downloadable and mostly openly licensed.
+- *Accepted tradeoff:* We will not have "our own" models for some capabilities.
+  That is the intended outcome of a reuse-first philosophy, not a shortfall.
+- *Newly constrained:* **Licence resolution on the unlicensed `fgaim` models is
+  now a blocking prerequisite** (P-9, A-009).
+- *Revisit when:* licences prove unresolvable, or the models evaluate poorly
+  outside their news-article training distribution.
+
+**Evidence:** `../research/summaries/001-tigrinya-nlp-ecosystem-scan.md`
+
+---
+
+## DEC-004 — Support both Tigrinya varieties; evaluate and report them separately
+
+**Decision ID:** DEC-004 · **Date:** 2026-07-29 · **Status:** Accepted
+
+**Decision:**
+The platform supports both the Eritrean and Ethiopian varieties of Tigrinya.
+Evaluation is run **separately for each**, and **both scores are always
+reported**. Aggregating them into a single "Tigrinya" number is prohibited.
+
+**Context:**
+Dialect scope sat open in `assumptions.md` and blocks data collection design.
+The CoDET benchmark `[reported]` measures NLLB-3.3B at **COMET 0.82 on the
+Ethiopian variety versus 0.80 on the Eritrean variety**. Speakers are split
+roughly 60/40 Ethiopia/Eritrea, meaning millions of users sit on each side.
+Corpus provenance is already skewed: `haddas-tigrinya-corpus` is explicitly
+Eritrean while much other work is Ethiopian-sourced.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Both varieties, separate evaluation and reporting | Serves all users; makes the gap visible and fixable | Roughly doubles evaluation-set construction cost |
+| B | Both varieties, single aggregate score | Cheaper evaluation | **Hides a measured, asymmetric gap** — under-serves Eritrean users invisibly |
+| C | Pick one variety | Simplest | Excludes millions of speakers for no technical gain — the measured gap does not justify it |
+
+**Chosen:** Option A.
+
+**Reason:**
+The measured gap is small enough that one model can plausibly serve both, so
+Option C sacrifices a large user population for nothing. The decisive argument
+is against Option B: because the gap is real, measurable, and asymmetric, a
+single aggregate score would let quality degrade for Eritrean users while the
+dashboard looked healthy. That is the exact failure `docs/benchmarks/metrics.md`
+requires subset reporting to prevent, and here it is an equity problem rather
+than merely a metrics problem.
+
+**Consequences:**
+- *Positive:* Both user populations are served and measured. Dialect regression
+  becomes detectable.
+- *Negative:* Evaluation-set construction cost roughly doubles.
+- *Newly constrained:* Every dataset must record its dialect provenance. Every
+  evaluation report must carry two numbers.
+- *Revisit when:* evidence emerges that the varieties diverge far enough to need
+  separate models — which would be a significant finding, not a routine update.
+
+**Evidence:** `../research/summaries/002-scope-users-and-dialect.md`; CoDET,
+arXiv 2305.17267 `[reported]`
+
+---
+
+## DEC-005 — FLORES-200 and TiQuAD as initial evaluation anchors
+
+**Decision ID:** DEC-005 · **Date:** 2026-07-29 · **Status:** Accepted
+
+**Decision:**
+Build the first evaluation harness around **FLORES-200** (Tigrinya split, for
+translation) and **TiQuAD** (for question answering and reading comprehension).
+
+**Context:**
+**P-4** requires evaluation before capability. Two credible Tigrinya evaluation
+resources exist: FLORES-200, human-reviewed across 204 languages with a reported
+~3K Tigrinya samples; and TiQuAD, human-annotated, CC-BY-SA-4.0, 10.6K QA pairs,
+an ACL 2023 Outstanding Paper with a reported baseline F1 of 81% against
+estimated human performance of 92%.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | FLORES-200 + TiQuAD | Both human-produced; TiQuAD openly licensed; published baselines exist | Neither covers retrieval, morphology, or correction |
+| B | Build our own evaluation sets first | Exactly fits our capabilities | Months of work before anything can be measured |
+| C | Use machine-translated benchmarks (e.g. `tigrinya-squad`) | Large and available | Silver-standard; unsuitable as ground truth |
+
+**Chosen:** Option A, with Option B for the gaps as a later workstream.
+
+**Reason:**
+Option A gives a trustworthy, human-produced starting point immediately and
+comes with published baselines, which means our numbers are comparable to
+existing work from day one. Option C is disqualified for evaluation use —
+machine-translated data cannot serve as ground truth. Option B remains necessary
+for retrieval, morphology, and correction, where nothing was found, but it must
+not block all measurement until it is done.
+
+**Consequences:**
+- *Positive:* Measurement can start immediately, against published baselines.
+- *Negative:* No coverage yet for retrieval, morphology, spell, or grammar —
+  these evaluation sets must be built (**G-2**).
+- *Newly constrained:* **`fgaim/tigrinya-squad` (silver, machine-translated) must
+  never be used as evaluation data.** It shares authorship and probable source
+  overlap with TiQuAD — **contamination must be checked before TiQuAD is treated
+  as held-out.**
+- *Revisit when:* our own evaluation sets exist, or FLORES's Tigrinya split is
+  shown to have quality problems (published corrections exist for some African
+  languages — verify whether Tigrinya is affected).
+
+**Evidence:** `../research/summaries/001-tigrinya-nlp-ecosystem-scan.md`
+
+---
+
+## DEC-006 — The minimum viable platform is the primitives layer, not translation
+
+**Decision ID:** DEC-006 · **Date:** 2026-07-29 · **Status:** Accepted
+
+**Decision:**
+The minimum viable platform is **Ge'ez normalisation + tokenization +
+morphological analysis + embeddings, behind an API, with a documented evaluation
+harness.** Translation is explicitly **excluded** from the minimum platform.
+
+**Context:**
+The capability scope is wide and needs a starting point. The ecosystem scan
+showed the stack has gaps at Layer 0 (primitives) and Layer 5 (integration),
+while Layers 1–2 largely exist. Meanwhile Google Translate is an established
+Tigrinya translation incumbent, `[reported]` outperforming open alternatives.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Primitives + embeddings + evaluation | Fills the real gap; unblocks everything above it; no training needed | Less visible than translation |
+| B | Lead with translation | Highest visible demand | Strong incumbent; no advantage available; leaves the primitives gap unfilled |
+| C | Lead with an end-user product | Demonstrable | Violates N-1 and N-2 |
+| D | Lead with knowledge graph / RAG | Strategically interesting | Most dependency-heavy layer; no Tigrinya groundwork exists |
+
+**Chosen:** Option A.
+
+**Reason:**
+Every capability above Layer 0 degrades if the primitives are wrong, usually in
+ways that are hard to attribute back to their cause — so building anything else
+first means building on an unmeasured foundation. Option A is also the only
+option that requires no model training (**P-2**, **A-004**) and that every
+identified first user (the keyboard products) could adopt immediately. Option B
+was rejected as the *opening* move rather than as a capability: we should
+measure against Google Translate before assuming we can improve on it.
+
+**Consequences:**
+- *Positive:* Fastest route to something genuinely useful. No training. Unblocks
+  every downstream capability.
+- *Negative:* Less immediately impressive than a translation demo.
+- *Newly constrained:* HornMorpho's maintenance status becomes a critical-path
+  risk, because morphology is now in the minimum platform.
+- *Revisit when:* the primitives are shipped and measured, at which point
+  capability priority is re-derived from `12_master_blueprint`.
+
+**Evidence:** `../research/summaries/002-scope-users-and-dialect.md`
 
 ---
 

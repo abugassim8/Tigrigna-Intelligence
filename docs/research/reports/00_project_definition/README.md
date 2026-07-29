@@ -51,4 +51,7 @@ carried in someone's head.
 
 ## Status
 
-**No research conducted.** This directory contains only this scoping document.
+**1 report complete.** `001-scope-users-and-dialect.md` (2026-07-29) closed the
+user and dialect scope questions and defined the minimum viable platform —
+DEC-002 (Proposed), DEC-004, DEC-006. Register scope and language-pair priority
+remain open. See `../../summaries/002-scope-users-and-dialect.md`.
