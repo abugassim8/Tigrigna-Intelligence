@@ -64,3 +64,10 @@ those are the ones nobody writes up, and the ones most likely to be repeated.
   consonant–vowel decomposition substrate. **3 of 4 criteria passed; the
   reversibility failure turned out to be the most useful result** and amended
   DEC-007. Reproducible: `run.py` re-executed and reproduces exactly.
+
+## Completed experiments
+
+| ID | Question | Result |
+| --- | --- | --- |
+| `001-epitran-geez-decomposition` | Does Epitran satisfy DEC-007's decomposition requirements? | Partly — adopt it, but lossless reversibility is unachievable (22 collisions). Amended DEC-007 |
+| `002-tokenizer-fertility` | Does decomposition lower BPE token fertility? | **No — it raises it ~8%.** Raw Ge'ez won 10/10 configs, 5/5 folds. Refuted DEC-007's token-efficiency rationale |

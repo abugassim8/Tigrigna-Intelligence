@@ -69,7 +69,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-004 | 2026-07-29 | Support both Tigrinya varieties; evaluate and report them separately | Accepted |
 | DEC-005 | 2026-07-29 | FLORES-200 and TiQuAD as initial evaluation anchors | Accepted |
 | DEC-006 | 2026-07-29 | Minimum viable platform is the primitives layer, not translation | Accepted |
-| DEC-007 | 2026-07-29 | Consonant–vowel decomposition as the substrate beneath tokenization | Accepted — **amended same day** |
+| DEC-007 | 2026-07-29 | Consonant–vowel decomposition as the substrate beneath tokenization | Accepted — **amended twice; token-efficiency rationale REFUTED 2026-08-03** |
 | DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
 
 ---
@@ -557,6 +557,60 @@ matching and output.
 
 **Evidence:** `../research/summaries/004-geez-tooling-survey.md`;
 `experiments/001-epitran-geez-decomposition/`
+
+### Amendment 2 — 2026-08-03: the token-efficiency rationale is refuted
+
+**`experiments/002-tokenizer-fertility/` measured the claim this decision rested
+on. It does not hold. Decomposition makes token fertility *worse*, not better.**
+
+BPE trained on identical text at matched vocabulary sizes, evaluated on held-out
+text — the only variable being whether the input was decomposed:
+
+| | char-level (V=2000) | byte-level (V=2000) |
+| --- | ---: | ---: |
+| Raw Ge'ez | **2.261** tokens/word | **3.106** tokens/word |
+| Epitran-decomposed | 2.432 | 3.417 |
+| **Δ** | **+0.171 (worse)** | **+0.312 (worse)** |
+
+**Raw Ge'ez won 10/10 configurations and 5/5 rotating folds** (mean Δ +0.190,
+≈ **8% worse** at realistic vocabulary size).
+
+**Why.** Ge'ez is *already* a compression scheme — each character encodes a
+consonant+vowel pair in one codepoint, which is exactly the structure BPE would
+otherwise have to learn. Decomposition discards it, doubles sequence length
+(**1.957×**, measured), and makes BPE spend its merge budget rebuilding the
+syllables the script supplied for free. The smaller phoneme inventory
+(155 → 35 symbols, also measured) does not compensate.
+
+**What this changes:**
+
+1. **Do not decompose for tokenization.** The tokenizer operates on **raw Ge'ez**.
+   Option A — previously the baseline — is now the default for tokenization on
+   measured grounds.
+2. **The 1.97× cost figure is confirmed** at 1.957× on running text (median
+   exactly 2.000×). That number was right; what it bought was not.
+3. **The decision's direction survives for morphology, but demoted to untested.**
+   Decomposition may still be correct for morphological *analysis*, where a
+   phoneme representation is the point rather than a means to compression. That
+   claim is now explicitly **unproven** — it must not be cited as settled, and it
+   needs its own experiment.
+4. **The surface↔analysis alignment layer is no longer on the critical path.**
+   It was to be built for a tokenizer that will not use it. Build it when
+   morphological analysis needs it, not before.
+
+**Cost/benefit as it now stands:** decomposition costs 1.957× expansion **and**
+~8% worse fertility, in exchange for a morphological-alignment benefit that has
+not been demonstrated. That is not a trade worth making until the benefit is
+measured.
+
+**Limits of the refutation, stated plainly:** the corpus was **991 words** —
+egress policy blocks bulk download (see `ACTIONS.md` **A-09**). The *direction* is
+robust (10/10 configs, 5/5 folds, with an explicable mechanism); the *magnitude*
+is indicative only. The char-level gap narrows with vocabulary before plateauing,
+so a crossover at production scale is not excluded — but there is no evidence for
+one, and at byte level the gap does not narrow at all.
+
+**Evidence:** `experiments/002-tokenizer-fertility/`
 
 ---
 
