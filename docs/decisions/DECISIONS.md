@@ -71,6 +71,8 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-006 | 2026-07-29 | Minimum viable platform is the primitives layer, not translation | Accepted |
 | DEC-007 | 2026-07-29 | Consonant–vowel decomposition as the substrate beneath tokenization | Accepted — **amended twice; token-efficiency rationale REFUTED 2026-08-03** |
 | DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
+| DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted |
+| DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted |
 
 ---
 
@@ -694,6 +696,144 @@ model trained on this corpus has a TiQuAD score that cannot be trusted.**
 
 Reporting this upstream to the `farefaine` maintainer is now an action item
 (**G-11**).
+
+---
+
+## DEC-009 — chrF is the primary translation metric; BLEU is reported for comparability only
+
+**Decision ID:** DEC-009 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+**chrF** is the primary metric for translation and any surface-generation
+capability. **BLEU is always reported alongside it**, never alone, and is
+labelled as **not comparable across languages**. Neither is ever reported without
+the other, and no capability decision rests on BLEU alone.
+
+**Context:**
+`docs/benchmarks/metrics.md` held this question open deliberately: standard
+metrics were validated on high-resource, morphologically simple languages, and
+whether they transfer to Tigrinya was unknown. DEC-005 named FLORES-200 as the
+translation anchor without naming a metric. Literature on the question is
+egress-blocked, so it was **measured** instead — Experiment 003, on FLORES+
+parallel data where the same 30 sentences exist in both languages.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | BLEU primary | Universal; every published Tigrinya result uses it | Measurably harsher on Tigrinya; least informative exactly where low-resource systems sit |
+| B | **chrF primary, BLEU alongside** | Degrades gracefully; advantage grows as quality falls; tokenization-independent | Less widely reported; parameters must be pinned |
+| C | COMET primary | What NLLB's published Tigrinya numbers use | **Untestable here** — model downloads egress-blocked; adopting an unvalidated learned metric repeats the error this decision exists to avoid |
+| D | Drop BLEU entirely | Avoids a biased metric | Overreaction; forfeits comparability with all published work |
+
+**Chosen:** Option B.
+
+**Reason:**
+Measured, **BLEU carries only a ~1.08× harshness penalty** on Tigrinya — real but
+about half the size the standard warning implies, and not grounds for discarding
+it. What decides the matter is *how the metrics behave as quality falls*:
+
+| Near-miss corruption | BLEU kept | chrF kept | ratio |
+| ---: | ---: | ---: | ---: |
+| 10% | 77.8% | 91.6% | 1.18× |
+| 20% | 56.5% | 82.5% | 1.46× |
+| 30% | 41.5% | **74.9%** | **1.80×** |
+
+**chrF's advantage widens precisely where low-resource systems operate.** With a
+40M-token data ceiling (**A-002**), our systems will live in the weak regime for
+a long time, and the metric should be chosen for that regime. chrF is also
+immune to the tokenization instability Experiment 002 exposed for Ge'ez.
+
+Option D is rejected because the penalty is modest and BLEU is what every
+published Tigrinya result reports; dropping it would make our numbers
+incomparable to the field for no measured gain.
+
+**Consequences:**
+- *Positive:* A metric chosen on measured behaviour rather than convention.
+  The BLEU bias is now **quantified**, so it can be stated rather than feared.
+- *Negative:* Two metrics to report and reconcile; chrF parameters
+  (char n-gram order, word n-gram order, β) become load-bearing and must be pinned.
+- *Newly constrained:* **Cross-language BLEU comparisons are forbidden without
+  stating the ~8% penalty.** Comparing our Tigrinya BLEU to an English BLEU
+  without that caveat is now a documented error, not a judgement call.
+- *Important limit:* **COMET remains unvalidated for Tigrinya** and is what
+  NLLB's published numbers use — we cannot compare against them until this is
+  resolved. Recorded as an open question, not quietly ignored.
+- *Revisit when:* the full 1,012-sentence devtest can be measured (**A-09**), or
+  COMET becomes testable, or real MT output replaces synthetic perturbation.
+
+**Evidence:** `experiments/003-metric-validity/`;
+`../research/summaries/006-metric-validity-and-harness.md`
+
+---
+
+## DEC-010 — Evaluation results are variety-scoped; no cross-variety aggregate
+
+**Decision ID:** DEC-010 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+Every evaluation result carries a **variety label** — Eritrean, Ethiopian, or
+**unknown**. Scores from anchors of different varieties are **never aggregated
+into a single "Tigrinya score."** Where the variety of an evaluation set is
+unresolved, it is labelled `unknown` rather than assumed.
+
+**Context:**
+**DEC-004** commits us to supporting both varieties and reporting them
+separately. **DEC-005** named two anchors without checking whether they are in
+the same variety. They appear not to be:
+
+- **TiQuAD** — `[verified]` Eritrean-sourced (Eritrean Ministry of Information,
+  *Hadas Ertra*).
+- **FLORES+ Tigrinya** — carries Ethiopian markers: `ፀ`-series tsade ×8,
+  `አ` alef ×8, `እስካብ` ×2, `ብሄራዊ` ×1, `እንትኸውን` ×1, with **zero Eritrean
+  counterparts** among the diagnostic forms.
+
+Two claims of different strength, kept separate:
+1. `[verified]` — the FLORES+ set is **orthographically inconsistent with
+   itself**; both tsade series and both alef forms appear in one file. This is
+   measurement.
+2. `[strong signal]` — it leans Ethiopian. The author is not a native speaker and
+   the sample is 30 sentences. **Native-speaker confirmation required.**
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Report one aggregate Tigrinya score | Simple; one headline number | Averages two varieties; the number describes nothing that exists |
+| B | **Variety-scoped reporting, no aggregate** | Honest; satisfies DEC-004; makes variety gaps visible | More numbers to report; no single headline figure |
+| C | Pick one variety and evaluate only it | Simplest | Contradicts DEC-004 and abandons half the speaker population |
+| D | Wait for native-speaker confirmation before deciding | Maximum rigour | Blocks the harness indefinitely on an unscheduled dependency |
+
+**Chosen:** Option B.
+
+**Reason:**
+Option B is correct **whether or not the Ethiopian attribution is confirmed** —
+which is why it does not wait on Option D. If the signal holds, B prevents a
+genuinely misleading aggregate. If it turns out FLORES+ is Eritrean after all,
+B costs only a redundant label. **An asymmetric bet with a cheap downside.**
+
+Option A is rejected for the reason **DEC-004** exists: an aggregate across
+varieties reports a number for a language nobody speaks. Option C abandons users
+we have committed to serving.
+
+**Consequences:**
+- *Positive:* Variety gaps become **visible rather than averaged away** — which is
+  the measurement DEC-004 needs and nobody currently publishes.
+- *Negative:* No single headline score. External comparisons get harder, because
+  published Tigrinya results generally do not state variety.
+- *Newly constrained:* Every evaluation set must be **variety-audited before
+  use**, extending the DEC-008 screening gate — which now covers contamination,
+  licence, quality, and variety.
+- *New work created:* native-speaker variety audit of both anchors (**A-13**).
+- *Important limit:* `unknown` is a real and expected label. **Most existing
+  Tigrinya resources do not state their variety**, and guessing would defeat the
+  purpose.
+- *Revisit when:* native-speaker confirmation arrives, or an anchor's provenance
+  is documented upstream.
+
+**Evidence:** `experiments/003-metric-validity/`;
+`../research/summaries/006-metric-validity-and-harness.md`;
+TiQuAD provenance from `../research/summaries/001-tigrinya-nlp-ecosystem-scan.md`
 
 ---
 

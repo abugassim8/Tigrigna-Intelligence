@@ -69,6 +69,14 @@ thin.
 
 ---
 
+| BLEU as the primary translation metric | DEC-009 | 2026-08-03 | Measured ~1.08x harsher on Tigrinya, and degrades least informatively exactly where low-resource systems operate |
+| Dropping BLEU entirely | DEC-009 | 2026-08-03 | Overreaction — the penalty is modest, and BLEU is what every published Tigrinya result reports; dropping it forfeits comparability for no measured gain |
+| COMET as the primary metric | DEC-009 | 2026-08-03 | Untestable in this environment (model downloads egress-blocked); adopting an unvalidated learned metric is the exact error the decision exists to prevent. **Revisit** — NLLB's published Tigrinya numbers use it |
+| A single aggregate "Tigrinya score" | DEC-010 | 2026-08-03 | The two DEC-005 anchors appear to be in different varieties; the aggregate would describe a language nobody speaks |
+| Evaluating one variety only | DEC-010 | 2026-08-03 | Contradicts DEC-004 and abandons roughly half the speaker population |
+| Waiting for native-speaker confirmation before designing the harness | DEC-010 | 2026-08-03 | Variety-scoped reporting is correct whether or not the attribution holds; waiting blocks the harness on an unscheduled dependency |
+| Citing the literature on metric validity instead of measuring it | DEC-009 | 2026-08-03 | Sources egress-blocked; measurement was available and produced a sharper answer — an ~8% penalty, not the qualitative "unsuitable" the literature is usually summarised as |
+
 <!--
 Add rejected options above this line. Every decision in DECISIONS.md should
 contribute at least one row — a decision with no rejected alternatives usually

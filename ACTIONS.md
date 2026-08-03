@@ -42,6 +42,7 @@ itself a research finding.
 | **A-10** | Introduce the project to GeezLab / L3S | 🟢 Low | Collaboration (G-11) | TODO |
 | **A-11** | Licence clarification on `fidel` | 🟢 Low | Transliteration option | TODO |
 | **A-12** | Choose the project licence | ⏸️ Deferred | Deliberately deferred to `11_business` | TODO |
+| **A-13** | **Native-speaker variety audit of our two evaluation anchors** | 🟠 High | Whether DEC-010 is a precaution or a live correction | TODO |
 
 ---
 
@@ -331,6 +332,41 @@ nice-to-have alternative.
 **Deliberately deferred**, not forgotten. Our licence interacts with the licence
 of every model and dataset we adopt, so it cannot sensibly be chosen before
 A-01, A-05, and A-06 resolve. Owned by `11_business`.
+
+---
+
+## 🟠 A-13 — Native-speaker variety audit of the evaluation anchors
+
+**A measurement I cannot make, and it changes what our scores mean.**
+
+**DEC-005** names TiQuAD and FLORES+ as evaluation anchors. They appear to be in
+**different varieties of Tigrinya**:
+
+- **TiQuAD** — `[verified]` Eritrean-sourced (Eritrean Ministry of Information,
+  *Hadas Ertra*).
+- **FLORES+ Tigrinya** — `[verified]` orthographically inconsistent with itself
+  (both `ጸ`- and `ፀ`-series tsade; both `ኣ` and `አ` alef, in one file), and
+  `[strong signal]` Ethiopian-leaning: `እስካብ` ×2, `ብሄራዊ` ×1, `እንትኸውን` ×1, with
+  **zero** Eritrean counterparts among the diagnostic forms.
+
+**What I need from a native speaker** — ideally one Eritrean and one Ethiopian
+Tigrinya speaker, separately:
+
+1. Read ~30 sentences of FLORES+ Tigrinya. **Which variety does this read as?**
+   Natural, or translated-from-Amharic?
+2. Same for a TiQuAD sample.
+3. Are the mixed `ጸ`/`ፀ` and `ኣ`/`አ` spellings **normal variation** or **errors**?
+4. Would an Eritrean reader find the FLORES+ text odd — and vice versa?
+
+**Why it matters:** **DEC-010** already forbids aggregating scores across
+varieties, so the harness is safe either way. But if confirmed, it means the
+field's published Tigrinya translation scores describe **Ethiopian Tigrinya**
+while being reported as "Tigrinya" — worth writing up for the ecosystem
+(**G-11**).
+
+**Why I could not do this:** it requires native fluency and dialect intuition.
+Stating it as fact from character-frequency counts would be exactly the
+overconfidence this project's rules exist to prevent.
 
 ---
 

@@ -22,6 +22,41 @@ first service is deployed.
 
 ## [Unreleased]
 
+### 08_evaluation researched; DEC-009, DEC-010 — 2026-08-03
+
+**The question `metrics.md` was written to hold open is now answered — by
+measurement rather than citation**, since the literature on metric validity is
+egress-blocked.
+
+**Experiment 003** used FLORES+ parallel data (the same 30 sentences in English
+and Tigrinya, so language is the only variable) and pre-committed four
+hypotheses. **All four were refuted; all four effects pointed in the predicted
+direction.** BLEU is **~1.08× harsher** on Tigrinya — real, consistent, and about
+half the size the standard warning implies. A methodological check showed the
+test was itself ~1.44× harsher on Tigrinya by construction, biasing *toward*
+confirmation, so ~8% is an upper bound.
+
+**DEC-009** adopts **chrF as the primary translation metric**, with BLEU always
+reported alongside for comparability and never alone. The case does not rest on
+the refuted threshold: chrF's advantage *widens as quality falls* (1.18× → 1.80×
+at 10% → 30% corruption), and low-resource systems live in that regime.
+Cross-language BLEU comparison without stating the penalty is now a documented
+error.
+
+**DEC-010** makes evaluation results **variety-scoped**. The two DEC-005 anchors
+appear to be in different varieties: TiQuAD is verified Eritrean-sourced, while
+FLORES+ Tigrinya is verified orthographically inconsistent with itself and shows
+Ethiopian markers with zero Eritrean counterparts. No aggregate "Tigrinya score"
+may be reported. Native-speaker confirmation is now **A-13**.
+
+Also recorded: both anchors are gated or awkward, and the convenient parquet
+mirrors of FLORES **systematically drop low-resource languages** — a working
+pipeline for high-resource languages is no evidence our data exists. The ungated
+route and row offsets are written down so nobody re-derives them.
+
+`docs/benchmarks/metrics.md` and `evaluation_strategy.md` are no longer scaffolds
+for translation.
+
 ### ACTIONS.md added; summary 001 re-compressed — 2026-07-29
 
 **`ACTIONS.md` — new.** Research kept producing blockers that need a *person*

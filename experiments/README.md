@@ -71,3 +71,4 @@ those are the ones nobody writes up, and the ones most likely to be repeated.
 | --- | --- | --- |
 | `001-epitran-geez-decomposition` | Does Epitran satisfy DEC-007's decomposition requirements? | Partly — adopt it, but lossless reversibility is unachievable (22 collisions). Amended DEC-007 |
 | `002-tokenizer-fertility` | Does decomposition lower BPE token fertility? | **No — it raises it ~8%.** Raw Ge'ez won 10/10 configs, 5/5 folds. Refuted DEC-007's token-efficiency rationale |
+| `003-metric-validity` | Are standard MT metrics valid for Tigrinya? | **BLEU is ~8% harsher, not catastrophic.** All 4 hypotheses refuted, all 4 directions correct. chrF adopted primary (DEC-009) |

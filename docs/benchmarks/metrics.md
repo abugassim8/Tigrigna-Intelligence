@@ -1,9 +1,11 @@
 # Metrics
 
-> **Status: none selected.** No metrics have been chosen or validated for
-> Tigrinya. The table below is a scaffold, not a recommendation.
+> **Status: translation metrics selected and validated** (DEC-009, 2026-08-03).
+> Remaining capabilities are still unresearched — those rows are a scaffold, not
+> a recommendation.
 >
-> **Gated on:** `../research/reports/08_evaluation/`
+> **Evidence:** `../research/reports/08_evaluation/001-metric-validity-and-harness.md`,
+> `../../experiments/003-metric-validity/`
 
 ## Purpose of this document
 
@@ -41,7 +43,7 @@ finding to record rather than a problem to route around.
 
 | Capability | Metric | Validated for Tigrinya | Baseline | Notes |
 | --- | --- | --- | --- | --- |
-| Translation | TBD | No | — | Not yet researched |
+| Translation | **chrF** (primary) + **BLEU** (comparability only) | **Yes — measured** | NLLB-3.3B COMET 0.82 ET / 0.80 ER `[reported]` | DEC-009. Never report BLEU alone |
 | Embeddings / similarity | TBD | No | — | Not yet researched |
 | Semantic search | TBD | No | — | Not yet researched |
 | Cross-language retrieval | TBD | No | — | Not yet researched |
@@ -55,6 +57,53 @@ finding to record rather than a problem to route around.
 | Entity linking | TBD | No | — | Not yet researched |
 | Summarization | TBD | No | — | Not yet researched |
 | Question answering | TBD | No | — | Not yet researched |
+
+## Validated metrics
+
+### chrF — translation and surface generation `[PRIMARY]`
+
+- **What it measures:** character n-gram F-score between hypothesis and reference.
+- **How it is computed:** `sacrebleu.corpus_chrf`, **sacrebleu 2.6.0**, default
+  parameters. **Pin these** — character n-gram order, word n-gram order, and β
+  all change the number.
+- **Range:** 0–100, higher better.
+- **Validity evidence for Tigrinya:** measured in
+  `experiments/003-metric-validity/` on FLORES+ parallel data (same 30 sentences,
+  English and Tigrinya). Under inflectional near-misses chrF retains **74.9%** of
+  a perfect score where BLEU retains **41.5%** — and **the advantage widens as
+  quality falls** (1.18× → 1.46× → 1.80× at 10/20/30% corruption).
+- **Known failure modes:** rewards surface overlap, so a fluent-but-wrong output
+  sharing character sequences can score respectably. Not a semantic metric.
+- **Morphology sensitivity:** **low** — this is the reason it was chosen. A right
+  stem with a wrong affix keeps most of its character n-grams.
+- **Tokenization dependence:** **none** — it never tokenizes into words, which
+  matters because Ge'ez tokenization is itself unsettled (Experiment 002).
+- **Reported alongside:** BLEU, always.
+
+### BLEU — translation `[COMPARABILITY ONLY]`
+
+- **What it measures:** modified n-gram precision on whitespace-delimited words,
+  with a brevity penalty.
+- **How it is computed:** `sacrebleu.corpus_bleu`, **sacrebleu 2.6.0**.
+- **Validity evidence for Tigrinya:** measured — BLEU is **~1.08× harsher** on
+  Tigrinya than English at an identical error rate. Real, consistent, and about
+  **half** the size the standard warning about morphologically rich languages
+  implies. The test was ~1.44× harsher on Tigrinya by construction (a Ge'ez
+  character is a consonant+vowel pair, a Latin letter is one phoneme), which
+  biased *toward* a larger penalty — so ~8% is an **upper** estimate.
+- **Known failure modes:** treats an inflectional near-miss as a total miss.
+  Loses information fastest exactly where low-resource systems operate.
+- **⛔ Prohibited use:** **never compare Tigrinya BLEU to another language's BLEU
+  without stating the ~8% penalty.** This is a documented error, not a
+  judgement call.
+- **Reported alongside:** chrF, always. Never reported alone.
+
+### COMET — ⚠️ NOT validated
+
+**Untested.** Learned metrics require model downloads from an egress-blocked
+domain. This matters because **NLLB's published Tigrinya numbers use COMET**, so
+we cannot compare against them until it is resolved (**A-09**). Recorded here so
+its absence is visible rather than silently assumed away.
 
 ## Required fields for each metric
 

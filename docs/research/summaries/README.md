@@ -84,6 +84,14 @@ running code** are `[verified]`.
 reachable and how, so you do not repeat the discovery. A session with
 unrestricted egress should work the verification backlog listed there.
 
+### 006 — Metric validity and the evaluation harness
+
+BLEU is **~8% harsher** on Tigrinya than English — real, and about half the size
+the standard warning implies. **chrF adopted as primary** because its advantage
+widens as quality falls. Our two evaluation anchors appear to be in **different
+varieties**, so no aggregate Tigrinya score may be reported.
+→ `006-metric-validity-and-harness.md` · DEC-009, DEC-010
+
 ## Turning findings into action
 
 Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)
