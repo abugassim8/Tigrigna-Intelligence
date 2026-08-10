@@ -22,6 +22,40 @@ first service is deployed.
 
 ## [Unreleased]
 
+### 05_architecture researched; DEC-012, DEC-013, DEC-014 — 2026-08-03
+
+**The memory spread is the architecture.** Our capabilities differ by **~150×**:
+normalising a string is free, tokenization is 10 MB, and MADLAD-400-3B at Q4 is
+1,402 MB. Cold start differs by a similar factor. So the system decomposes **by
+resource profile, not by domain** (**DEC-013**) — Tier 0 primitives at 72 MB,
+Tier 1 adding embeddings at 191 MB, Tier 2 adding translation at 1,593 MB, never
+co-located in one process.
+
+That **independently validates DEC-006**: the minimum viable platform it chose on
+gap-filling grounds is exactly Tier 0 + Tier 1, and adding translation is an
+**8.3× jump**. A decision gets support from evidence it was not built on, and the
+MVP boundary turns out to be a cost cliff rather than a roadmap preference.
+
+Tiering also dissolves the **A-008** low-volume bind: a 1.4 GB model kept warm
+costs idle memory, scaled to zero costs a cold start every request. Neither is
+acceptable platform-wide; both are fine per tier. The tension only exists if the
+tiers are merged.
+
+**DEC-012** makes every capability an importable library with services as thin
+wrappers — a library has zero serving cost at zero volume, which no service
+topology matches, and DEC-002's developer users want `pip install`, not
+infrastructure.
+
+**DEC-014** adopts **CTranslate2 (MIT)** after installing it and inspecting its
+converter registry: `T5Config` (MADLAD), `M2M100Config` (NLLB comparison), and
+`RobertaConfig` (the embedding encoder) are all supported. One runtime, one
+quantisation story, one operational surface. Support is verified; **conversion is
+not** — that needs the weights.
+
+`docs/architecture/system_overview.md` is written and is no longer a scaffold.
+Memory throughout is arithmetic; **no latency figure appears anywhere**, because
+none was measured.
+
 ### 04_model_strategy researched; DEC-011 — 2026-08-03
 
 **The model behind essentially every published Tigrinya MT number cannot be

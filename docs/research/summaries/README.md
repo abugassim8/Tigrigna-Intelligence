@@ -100,6 +100,14 @@ covers Tigrinya, and is the shippable choice** at 4.8× the parameters (1.4 GB a
 Q4, so A-008 survives).
 → `007-translation-model-selection.md` · DEC-011
 
+### 008 — Architecture: tiers and runtime
+
+Capabilities differ by **~150× in memory**, so the system decomposes **by
+resource profile, not by domain**. DEC-006's MVP is Tier 0+1 = **191 MB**;
+adding translation is an 8.3× jump. One MIT runtime (CTranslate2) serves every
+model we have.
+→ `008-architecture-tiers-and-runtime.md` · DEC-012, DEC-013, DEC-014
+
 ## Turning findings into action
 
 Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)

@@ -74,6 +74,9 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted |
 | DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted |
 | DEC-011 | 2026-08-03 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted |
+| DEC-012 | 2026-08-03 | Library-first; services are thin wrappers over libraries | Accepted |
+| DEC-013 | 2026-08-03 | Tier by resource profile; never co-locate tiers in one process | Accepted |
+| DEC-014 | 2026-08-03 | CTranslate2 is the single model runtime | Accepted |
 
 ---
 
@@ -916,6 +919,174 @@ evaluations, and the documentation all assume the model that has to be removed.
 
 **Evidence:** `../research/summaries/007-translation-model-selection.md`;
 Hub metadata `[verified]` 2026-08-03
+
+---
+
+## DEC-012 — Library-first: services are thin wrappers over libraries
+
+**Decision ID:** DEC-012 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+Every capability is implemented as an **importable library first**. Services
+(HTTP API, MCP server) are **thin wrappers** that import those libraries and add
+transport, auth, and validation — **no capability logic lives only behind a
+network call.**
+
+**Context:**
+**DEC-002** makes application developers the primary users; **P-6**/**A-008**
+require low-volume economy; **P-11** and `CONTRIBUTING.md` require services to be
+independently runnable and testable.
+
+Tier 0 is the decisive case. Normalisation, tokenization, transliteration and
+morphology are pure computation over small data (72 MB total, DEC-013).
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | **Library-first, services wrap** | Zero serving cost at zero volume; developers `pip install`; trivially testable | Two distribution surfaces to maintain |
+| B | Service-first, extract libraries later | One surface initially | Imposes infrastructure on developer users; network latency on microsecond ops; **the extraction never happens once services exist** |
+| C | Services only | Simplest operationally | Primitives unusable without infrastructure — fails the users who most need them |
+
+**Chosen:** Option A.
+
+**Reason:**
+**A library has zero serving cost at zero volume**, which no service topology can
+match — and that is precisely what A-008 asks for. Requiring a running service to
+normalise a string would impose an operations burden on the exact users DEC-002
+names as primary, and would add network latency to operations measured in
+microseconds.
+
+Option B is named explicitly because it is the default drift. Once an API exists
+and works, the library extraction is always next quarter's task.
+
+**Consequences:**
+- *Positive:* Primitives usable with **no infrastructure at all**. Services become
+  thin and testable. P-11 independence is structural, not aspirational.
+- *Negative:* Two distribution surfaces (packages and services) to version and
+  document.
+- *Newly constrained:* **Cross-service imports are now not merely a smell but
+  unnecessary** — shared logic goes in a library, never another service.
+- *Revisit when:* a capability genuinely cannot be expressed as a library — for
+  example one requiring a persistent shared index that cannot be embedded.
+
+**Evidence:** `../research/summaries/008-architecture-tiers-and-runtime.md`
+
+---
+
+## DEC-013 — Tier by resource profile; never co-locate tiers in one process
+
+**Decision ID:** DEC-013 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+The platform is decomposed by **resource profile**, not by domain:
+
+| Tier | Contents | Cumulative | Behaviour |
+| --- | --- | ---: | --- |
+| **0** | normalisation, tokenization, transliteration, morphology | **72 MB** | always warm |
+| **1** | + embeddings | **191 MB** | warm |
+| **2** | + translation | **1,593 MB** | lazily loaded; may scale to zero |
+
+**Tiers are never co-located in a single process.** Model weights load lazily,
+per tier, on first use.
+
+**Context:**
+Measured footprints differ by **~150×** — normalisation is free, tokenization is
+10 MB, and MADLAD-400-3B at Q4 (**DEC-011**) is 1,402 MB. Cold start differs by a
+similar factor: seconds versus microseconds.
+
+**A-008** requires low-volume affordability, which creates a bind for a 1.4 GB
+model: kept warm it costs idle memory; scaled to zero it costs a multi-second
+cold start on every request.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Decompose by domain | Matches how people describe capabilities | **Ignores the 150× spread** — the thing that actually determines cost and deployment |
+| B | **Decompose by resource profile** | Each tier scales on its own economics; resolves the cold-start bind | Tier boundaries cut across domains, so they must be documented or they will be violated |
+| C | One container for everything | Simplest to deploy | **1.6 GB resident to normalise a string**; multi-second cold start on microsecond operations |
+
+**Chosen:** Option B.
+
+**Reason:**
+The cold-start tension is **only unresolvable if the tiers are merged**. Split,
+each tier takes the deployment mode that suits it: Tier 0 is cheap enough (72 MB)
+to stay warm and serves the latency-sensitive calls; Tier 2 may scale to zero
+because translation is a seconds-scale operation whose users already expect to
+wait. **An architectural problem becomes a deployment parameter.**
+
+Option C deserves naming because it is what convenience produces. The 150× spread
+is the standing counter-argument.
+
+**Consequences:**
+- *Positive:* **DEC-006's minimum viable platform is Tier 0 + Tier 1 = 191 MB.**
+  Adding translation is an 8.3× jump — now an explicit, visible boundary rather
+  than a surprise.
+- *Negative:* Tier boundaries cut across domain boundaries, so they are less
+  intuitive and must be documented to survive.
+- *Newly constrained:* **No single "do-everything" container**, and no capability
+  may assume another tier is resident in-process.
+- *Independent support for DEC-006:* that decision excluded translation from the
+  MVP on gap-filling grounds; the cost arithmetic agrees for unrelated reasons.
+- *Important limit:* **memory is arithmetic; latency is not measured.** No
+  cold-start or throughput figure here is empirical (**A-09**).
+- *Revisit when:* a capability appears that does not fit a tier, or measured cold
+  start makes Tier 2 scale-to-zero untenable.
+
+**Evidence:** `../research/summaries/008-architecture-tiers-and-runtime.md`
+
+---
+
+## DEC-014 — CTranslate2 is the single model runtime
+
+**Decision ID:** DEC-014 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+**CTranslate2 (MIT)** is the inference runtime for every model-backed capability.
+Alternative runtimes require a recorded decision.
+
+**Context:**
+`[verified]` by installing CTranslate2 4.8.1 and inspecting its converter
+registry — 42 supported HuggingFace architectures, including all three we need:
+
+| Config | Model | Capability |
+| --- | --- | --- |
+| `T5Config` | `google/madlad400-3b-mt` | translation (DEC-011) |
+| `M2M100Config` | `facebook/nllb-200-*` | comparison baseline (DEC-011) |
+| `RobertaConfig` | `fgaim/tiroberta-bi-encoder` | embeddings (DEC-003) |
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | **CTranslate2** | One runtime for all three; native int8; CPU-optimised; MIT | Less widely known than `transformers` |
+| B | `llama-cpp-python` | Runs the published MADLAD GGUFs directly | **Does not serve the Roberta encoder** — two runtimes |
+| C | `transformers` | Most familiar; no conversion step | Heaviest; no native int8 CPU path; poorest fit for A-008 |
+| D | ONNX Runtime + Optimum | Mature; portable | Conversion for seq2seq is fiddlier; two-package story |
+
+**Chosen:** Option A.
+
+**Reason:**
+One dependency, one quantisation story, one operational surface, MIT throughout.
+**P-7 (prefer boring technology)** favours fewer moving parts, and Option B's
+convenience for MADLAD is outweighed by needing a second runtime for embeddings.
+
+**Consequences:**
+- *Positive:* A single runtime and quantisation path across all model-backed
+  capabilities; native int8 suits **A-008**.
+- *Negative:* A **conversion step** before serving, and CTranslate2 is less
+  familiar than `transformers` — so onboarding docs must cover it.
+- *Important limit:* **support is verified; conversion is not.** The registry
+  lists these architectures; actually converting MADLAD-3B and
+  `tiroberta-bi-encoder` is an experiment requiring the weights (**A-09**). If
+  conversion fails, Option B plus `transformers` is the fallback — at the cost of
+  two runtimes.
+- *Revisit when:* conversion fails for a required checkpoint, or GPU serving
+  becomes relevant.
+
+**Evidence:** `../research/summaries/008-architecture-tiers-and-runtime.md`;
+CTranslate2 converter registry inspected 2026-08-03 `[verified]`
 
 ---
 

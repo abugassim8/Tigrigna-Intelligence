@@ -82,6 +82,15 @@ thin.
 | MADLAD-400-7B / 10B | DEC-011 | 2026-08-03 | 3.9–5.0 GB at Q4 versus 1.4 GB for the 3B, with **no measured quality justification** for the cost (A-008) |
 | Waiting on A-01 before deciding model strategy | DEC-011 | 2026-08-03 | A-01 concerns the unlicensed `fgaim` models; `fgaim` publishes **no MT model**. Translation was answerable the whole time |
 
+| Decomposing services by domain | DEC-013 | 2026-08-03 | Ignores the measured ~150x resource spread — the thing that actually determines deployment cost |
+| One container serving all capabilities | DEC-013 | 2026-08-03 | 1.6 GB resident just to normalise a string; multi-second cold start on microsecond operations |
+| Keeping all tiers warm | DEC-013 | 2026-08-03 | Pays idle cost for 1.4 GB continuously at low volume (A-008) |
+| Scaling all tiers to zero | DEC-013 | 2026-08-03 | Multi-second cold start on tokenization, which should take microseconds |
+| Service-first, extract libraries later | DEC-012 | 2026-08-03 | Imposes infrastructure on the developer users DEC-002 names as primary; and the extraction never happens once services exist |
+| Services-only (no libraries) | DEC-012 | 2026-08-03 | Makes the primitives unusable without infrastructure — fails the users who most need them |
+| `llama-cpp-python` as the model runtime | DEC-014 | 2026-08-03 | Serves MADLAD GGUF but not the Roberta encoder — two runtimes where one suffices (P-7) |
+| `transformers` as the serving runtime | DEC-014 | 2026-08-03 | Heaviest option with no native int8 CPU path; poorest fit for A-008 |
+
 <!--
 Add rejected options above this line. Every decision in DECISIONS.md should
 contribute at least one row — a decision with no rejected alternatives usually
