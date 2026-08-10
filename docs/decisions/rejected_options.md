@@ -77,6 +77,11 @@ thin.
 | Waiting for native-speaker confirmation before designing the harness | DEC-010 | 2026-08-03 | Variety-scoped reporting is correct whether or not the attribution holds; waiting blocks the harness on an unscheduled dependency |
 | Citing the literature on metric validity instead of measuring it | DEC-009 | 2026-08-03 | Sources egress-blocked; measurement was available and produced a sharper answer — an ~8% penalty, not the qualitative "unsuitable" the literature is usually summarised as |
 
+| NLLB-200 as the production translation model | DEC-011 | 2026-08-03 | **CC-BY-NC-4.0** — unshippable. Would pass an inherited restriction to downstream users (P-9, A-009), despite being the field's de facto Tigrinya baseline |
+| "NLLB now, swap it later" | DEC-011 | 2026-08-03 | Deferring a licence problem does not shrink it — it moves it to the point where the API, published evaluations, and docs all assume the model that must be removed |
+| MADLAD-400-7B / 10B | DEC-011 | 2026-08-03 | 3.9–5.0 GB at Q4 versus 1.4 GB for the 3B, with **no measured quality justification** for the cost (A-008) |
+| Waiting on A-01 before deciding model strategy | DEC-011 | 2026-08-03 | A-01 concerns the unlicensed `fgaim` models; `fgaim` publishes **no MT model**. Translation was answerable the whole time |
+
 <!--
 Add rejected options above this line. Every decision in DECISIONS.md should
 contribute at least one row — a decision with no rejected alternatives usually

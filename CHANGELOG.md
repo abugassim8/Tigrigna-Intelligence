@@ -22,6 +22,35 @@ first service is deployed.
 
 ## [Unreleased]
 
+### 04_model_strategy researched; DEC-011 — 2026-08-03
+
+**The model behind essentially every published Tigrinya MT number cannot be
+shipped.** Every NLLB-200 variant — 600M, 1.3B, 3.3B — is **CC-BY-NC-4.0**.
+NLLB produced the COMET figures underpinning DEC-004 and has 28M downloads, and
+under P-9/A-009 none of that survives an unshippable licence: we would be passing
+a restriction to downstream users that they inherit without knowing it.
+
+**DEC-011** adopts **`google/madlad400-3b-mt` (Apache-2.0)**, which covers `ti`,
+and extends DEC-008's quarantine rule from data to models — **NC-licensed models
+are research-and-comparison only, never shipped.**
+
+Licence compliance costs **4.8× the parameters** (615M → 2,940M). A-008 survives
+anyway: MADLAD-3B is **1.4 GB at Q4** with GGUF quantisations already published.
+Memory is arithmetic and is stated; **latency is not measured** and is not
+claimed — model downloads are egress-blocked.
+
+Two consequences worth flagging. First, **our production model and our comparison
+baseline are now different models**, so "we match published Tigrinya MT quality"
+is unfounded unless the DEC-009 harness runs both. Second, **MADLAD-400's
+Tigrinya quality appears to be unpublished** — measuring it would be a real
+ecosystem contribution rather than an internal number.
+
+Also recorded: `04_model_strategy` was believed blocked on A-01, and was not.
+A-01 concerns the unlicensed `fgaim` models, and **`fgaim` publishes no MT
+model** — translation was answerable the whole time. And a method lesson: MADLAD
+never surfaced in the ecosystem scan because that scan searched for *Tigrinya*
+resources, while MADLAD is a multilingual model that happens to include it.
+
 ### 08_evaluation researched; DEC-009, DEC-010 — 2026-08-03
 
 **The question `metrics.md` was written to hold open is now answered — by

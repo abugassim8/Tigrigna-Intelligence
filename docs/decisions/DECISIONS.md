@@ -73,6 +73,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
 | DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted |
 | DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted |
+| DEC-011 | 2026-08-03 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted |
 
 ---
 
@@ -834,6 +835,87 @@ we have committed to serving.
 **Evidence:** `experiments/003-metric-validity/`;
 `../research/summaries/006-metric-validity-and-harness.md`;
 TiQuAD provenance from `../research/summaries/001-tigrinya-nlp-ecosystem-scan.md`
+
+---
+
+## DEC-011 — MADLAD-400-3B is the translation baseline; NC-licensed models are quarantined
+
+**Decision ID:** DEC-011 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+**`google/madlad400-3b-mt` (Apache-2.0)** is the translation model for anything we
+ship. **Models under non-commercial licences — including every NLLB variant — are
+structurally quarantined to research and comparison use**, never present in a
+shipped artefact. This extends **DEC-008**'s quarantine rule from *data* to
+*models*.
+
+**Context:**
+Translation is the first capability cleared by **P-4**, because `08_evaluation`
+delivered a validated metric for it (DEC-009) and for nothing else yet.
+
+Three facts decide it, all `[verified]` from Hub metadata:
+
+1. **No Tigrinya-specific MT model exists.** The `fgaim`/GeezLab stack has none;
+   a `language:ti` + `translation` search returns nothing.
+2. **Every NLLB variant is CC-BY-NC-4.0** — 600M, 1.3B, and 3.3B alike. NLLB is
+   the model behind essentially every published Tigrinya MT number, including
+   the COMET figures underpinning **DEC-004**, and has 28M downloads.
+3. **MADLAD-400 is Apache-2.0 and covers `ti`** at 2.94B / 8.3B / 10.7B, with
+   published GGUF quantisations.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | NLLB-600M | Smallest; the field's baseline; best-documented Tigrinya quality | ⛔ **CC-BY-NC-4.0** — unshippable under P-9/A-009 |
+| B | **MADLAD-400-3B** | **Apache-2.0**; covers `ti`; GGUF published; 1.4 GB at Q4 | 4.8× NLLB-600M's parameters; **Tigrinya quality unmeasured** |
+| C | MADLAD-400-7B / 10B | Presumably better quality | 3.9–5.0 GB at Q4 with **no measured justification**; strains A-008 |
+| D | NLLB now, replace later | Fastest to a demo | The replacement never happens on schedule; by then API, evals, and docs assume it |
+| E | Commercial API | No hosting | Already rejected in DEC-003 — fails A-001, no cost control |
+
+**Chosen:** Option B.
+
+**Reason:**
+Option A is disqualified on licensing, not on merit. We are building
+infrastructure others build on; shipping an NC-licensed model passes a
+restriction to our users that they inherit without knowing it — the same failure
+mode as unlicensed data, one layer up. **P-9** and **A-009** do not admit an
+exception for a model that is merely very popular.
+
+Option B is the only Apache-2.0 path that includes Tigrinya at a servable size.
+The licence costs **4.8× the parameters** (615M → 2,940M) — stated plainly as a
+real cost — but **A-008 survives**: MADLAD-3B is **1.4 GB at Q4**, quantisations
+already exist, and it remains within commodity CPU serving.
+
+Option D deserves naming because it is the tempting one. Deferring a licence
+problem does not shrink it; it moves it to the point where the API, the published
+evaluations, and the documentation all assume the model that has to be removed.
+
+**Consequences:**
+- *Positive:* A shippable translation path with a clean licence, decided before
+  anything depends on it.
+- *Negative:* **4.8× the parameters**, and less A-008 headroom than DEC-003
+  assumed when it cited 124M-parameter models.
+- *⚠️ Newly constrained:* **our production model and our comparison baseline are
+  different models.** NLLB permits research use, so evaluating it for
+  comparability is legitimate — but **"we match published Tigrinya MT quality"
+  is unfounded unless both are measured on the same harness.** The DEC-009
+  harness must run both.
+- *New work created:* measure MADLAD-400-3B on Tigrinya. It appears **nobody
+  has** — the ecosystem cites NLLB — so this is also a contribution (**G-11**).
+- *Important limit:* **no quality measurement backs this decision.** It is made
+  on licensing and size, which are verified, while MADLAD's Tigrinya quality is
+  unknown and NLLB's is `[reported]`. If MADLAD proves materially worse, the
+  choice is between a weaker shippable model and no shippable model — not
+  between MADLAD and NLLB.
+- *Also unmeasured:* **latency.** Memory is arithmetic; speed is an experiment
+  that egress policy prevented (**A-09**).
+- *Revisit when:* MADLAD is measured on Tigrinya; a permissively-licensed
+  Tigrinya MT model appears; or legal review (**A-06**) clarifies whether an NC
+  model licence reaches a commercial downstream product.
+
+**Evidence:** `../research/summaries/007-translation-model-selection.md`;
+Hub metadata `[verified]` 2026-08-03
 
 ---
 

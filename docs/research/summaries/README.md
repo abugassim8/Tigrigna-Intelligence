@@ -92,6 +92,14 @@ widens as quality falls. Our two evaluation anchors appear to be in **different
 varieties**, so no aggregate Tigrinya score may be reported.
 → `006-metric-validity-and-harness.md` · DEC-009, DEC-010
 
+### 007 — Translation model selection
+
+**Every NLLB variant is CC-BY-NC-4.0** — the model behind essentially every
+published Tigrinya MT number cannot be shipped. **MADLAD-400-3B is Apache-2.0,
+covers Tigrinya, and is the shippable choice** at 4.8× the parameters (1.4 GB at
+Q4, so A-008 survives).
+→ `007-translation-model-selection.md` · DEC-011
+
 ## Turning findings into action
 
 Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)

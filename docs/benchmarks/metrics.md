@@ -43,7 +43,7 @@ finding to record rather than a problem to route around.
 
 | Capability | Metric | Validated for Tigrinya | Baseline | Notes |
 | --- | --- | --- | --- | --- |
-| Translation | **chrF** (primary) + **BLEU** (comparability only) | **Yes — measured** | NLLB-3.3B COMET 0.82 ET / 0.80 ER `[reported]` | DEC-009. Never report BLEU alone |
+| Translation | **chrF** (primary) + **BLEU** (comparability only) | **Yes — measured** | NLLB-3.3B COMET 0.82 ET / 0.80 ER `[reported]` | DEC-009. Never report BLEU alone. Harness must run **both** MADLAD-3B (shippable) and NLLB (comparison-only, NC-licensed) — DEC-011 |
 | Embeddings / similarity | TBD | No | — | Not yet researched |
 | Semantic search | TBD | No | — | Not yet researched |
 | Cross-language retrieval | TBD | No | — | Not yet researched |

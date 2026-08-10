@@ -245,6 +245,14 @@ CC-BY-SA licence cannot grant rights the licensor does not hold.
 TiQuAD is used beyond internal evaluation. Same question applies to
 `haddas-tigrinya-corpus` (newspaper-derived) and any news-sourced corpus.
 
+**Second question, added 2026-08-03 (DEC-011):** **does a CC-BY-NC-4.0 *model*
+licence reach a commercial downstream product, or only the model's own
+redistribution?** Every NLLB variant is NC-licensed. We have assumed the strict
+reading and chosen an Apache-2.0 alternative at 4.8× the parameters — a real
+cost we accepted on a conservative interpretation. **If the permissive reading is
+correct, NLLB becomes available and the cost disappears.** Worth asking in the
+same conversation.
+
 **Unblocks:** whether TiQuAD-derived work can ship. Referred to `11_business`.
 
 ---
