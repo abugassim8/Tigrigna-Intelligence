@@ -14,10 +14,14 @@ Deterministic: no randomness, no seed required. Runs in under a second.
 See README.md in this directory for results and analysis.
 """
 
+import json
+import pathlib
 import statistics
 from collections import defaultdict
 
 import epitran
+
+RESULTS = pathlib.Path(__file__).parent / "results.json"
 
 ETHIOPIC_CORE = range(0x1200, 0x1380)  # Core Ethiopic block only
 VOWELS = set("aeiouɨəɛɔɐ")
@@ -76,6 +80,7 @@ def main():
             inverse[out].append(ch)
     collisions = {k: v for k, v in inverse.items() if len(v) > 1}
 
+    results = {}
     print("\n=== 4. Reversibility ===")
     print(f"  chars mapped {mapped} -> distinct outputs {len(inverse)}")
     print(f"  colliding outputs: {len(collisions)}")
@@ -92,6 +97,37 @@ def main():
         ratios.append(len(out) / len(s))
         print(f"  {s:>8} {len(s)} -> {len(out):>2} ({ratios[-1]:.2f}x) {out}")
     print(f"  mean expansion: {statistics.mean(ratios):.2f}x")
+
+    # DEC-016: emit a machine-checkable artefact so drift in epitran becomes
+    # detectable. DEC-007's amended form rests on these numbers.
+    results.update({
+        "epitran_version": getattr(epitran, "__version__", "unknown"),
+        "language_specificity": {
+            "identical_to_amharic": identical,
+            "different_from_amharic": len(differences),
+            "pct_different": round(100 * len(differences) / (identical + len(differences)), 2),
+        },
+        "coverage": {"mapped": mapped, "total": total},
+        "cv_separation": {
+            "word": word, "ipa": ipa,
+            "consonants": [c for c in ipa if c not in VOWELS],
+            "vowels": [c for c in ipa if c in VOWELS],
+        },
+        "reversibility": {
+            "chars_mapped": mapped,
+            "distinct_outputs": len(inverse),
+            "colliding_outputs": len(collisions),
+            "chars_lost": sum(len(v) - 1 for v in collisions.values()),
+            "lossless": len(collisions) == 0,
+        },
+        "expansion": {
+            "samples": SAMPLES,
+            "ratios": [round(r, 4) for r in ratios],
+            "mean": round(statistics.mean(ratios), 4),
+        },
+    })
+    RESULTS.write_text(json.dumps(results, ensure_ascii=False, indent=2))
+    print(f"\n  Wrote {RESULTS.name}")
 
 
 if __name__ == "__main__":

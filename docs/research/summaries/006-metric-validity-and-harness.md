@@ -54,9 +54,12 @@ varieties**, so a single "Tigrinya score" would be meaningless.
   TiQuAD is `[verified]` Eritrean-sourced. FLORES+ Tigrinya carries Ethiopian
   markers: `ፀ`-series tsade ×8, `አ` alef ×8, `እስካብ` ×2, `ብሄራዊ` ×1, `እንትኸውን` ×1 —
   **with zero Eritrean counterparts** for the diagnostic forms.
-  - `[verified]`: the set is **orthographically inconsistent with itself** (both
-    tsade series and both alef forms in one file).
-  - `[strong signal]`: it leans Ethiopian. **Needs native-speaker confirmation.**
+  - `[verified]`: the set is orthographically mixed (both tsade series, both alef
+    forms). ⚠️ **Corrected 2026-08-03:** mixing is **normal** — Eritrean sources
+    show it too (1.0–3.8%). What distinguishes FLORES+ is the **rate: 15.1%,
+    ~4–15× Eritrean sources**. See summary 009.
+  - `[strong signal]`: it leans Ethiopian — now on *better* evidence, since the
+    rate has a baseline. **Needs native-speaker confirmation (A-13).**
 
   Either way: **never report an aggregate Tigrinya score across both anchors.**
   → **DEC-010**
@@ -104,6 +107,7 @@ varieties**, so a single "Tigrinya score" would be meaningless.
 | Phonemes per word, en vs ti | 5.31 vs **7.22** | `[verified]` (cross-check) |
 | Words per sentence, en vs ti | 23.57 vs 21.97 | `[verified]` |
 | Forms collapsed by orthographic normalisation | **4 / 496 (0.8%)** | `[verified]` |
+| ET-marker share: Eritrean sources vs FLORES+ | **1.0–3.8%** vs **15.1%** | `[verified]` (added 2026-08-03) |
 | FLORES+ `tir` row offset (ungated mirror) | **188232** | `[verified]` |
 
 ## Recommended Next Steps

@@ -156,6 +156,33 @@ retention ratio at 10/20/30% near-miss corruption on Tigrinya.
 
 ---
 
+### ⚠️ Correction — 2026-08-03, from the `06_ml_pipeline` screening tool
+
+Building `scripts/data_processing/screen_dataset.py` produced a **baseline this
+experiment did not have**, and it refines one claim above.
+
+| Source | ER markers | ET markers | ET share |
+| --- | ---: | ---: | ---: |
+| `tlt_000` — asmarino.com, Eritrean news | 75 | 3 | **3.8%** |
+| `haddas` — *Hadas Ertra*, Eritrean state paper | 95 | 1 | **1.0%** |
+| **FLORES+ `tir`** — this experiment's data | 90 | 16 | **15.1%** |
+
+**Orthographic mixing appears in every Tigrinya source tested, including
+unambiguously Eritrean ones.** So mixing *per se* is **normal practice, not a
+defect**. Calling FLORES+ "orthographically inconsistent with itself" was
+accurate as a fact but **implied an anomaly the baseline does not support** —
+that framing is withdrawn.
+
+**The DEC-010 conclusion strengthens rather than weakens.** The observation now
+has a control, and FLORES+'s ET-marker rate is **~4–15× that of Eritrean
+sources**. Together with the lexeme evidence (`እስካብ`, `ብሄራዊ`, `እንትኸውን`, zero
+Eritrean counterparts), the Ethiopian-leaning signal holds on *better* evidence
+than when it was first recorded.
+
+**A-13's native-speaker audit remains what settles it.**
+
+---
+
 ## Analysis
 
 ### The headline: the standard worry about BLEU is real but much smaller than advertised

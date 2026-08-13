@@ -110,8 +110,13 @@ build, the decision record is the contribution that is needed first.
    result recorded in `models/evaluations/`.
 5. **Reproducibility is required.** Pin versions. Seed randomness. Record
    hardware. A result that cannot be reproduced from this repository does not
-   exist.
-6. **No secrets, ever.** Not in code, not in notebooks, not in config, not in
+   exist. **Every experiment must emit a machine-checkable `results.json`**
+   (**DEC-016**) — re-running it must reproduce that file byte-identically, and a
+   mismatch is a finding to investigate, not a file to overwrite.
+6. **Datasets require a screening record.** No dataset enters use without a
+   committed record from `scripts/data_processing/screen_dataset.py`
+   (**DEC-015**) — licence, quality, variety, and contamination.
+7. **No secrets, ever.** Not in code, not in notebooks, not in config, not in
    commit history. Use `.env` files (git-ignored) and document required variables
    in the relevant `README.md`.
 
@@ -150,6 +155,8 @@ Data carries obligations that code does not:
 - [ ] I searched `docs/research/summaries/` for prior work on this topic.
 - [ ] Research contributions use the templates and answer `CHECKLIST.md`.
 - [ ] Every full report has a corresponding ≤2-page summary.
+- [ ] Experiments emit `results.json` and reproduce byte-identically (DEC-016).
+- [ ] Datasets carry a committed screening record (DEC-015).
 - [ ] New decisions are recorded with rejected alternatives.
 - [ ] Sources are cited and added to `docs/research/references/`.
 - [ ] Uncertainty is stated explicitly rather than smoothed over.

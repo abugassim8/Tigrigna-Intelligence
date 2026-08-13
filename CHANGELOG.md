@@ -22,6 +22,50 @@ first service is deployed.
 
 ## [Unreleased]
 
+### 06_ml_pipeline researched; DEC-015, DEC-016 — 2026-08-03
+
+**Two claims this repository makes about itself were tested. One held; one did
+not.**
+
+**Reproducibility held where it was designed in.** Re-running all experiments and
+byte-comparing: 002 and 003 reproduced identically; **001 emitted no
+machine-checkable artefact at all**, so P-5 could not even be evaluated for it —
+and DEC-007's amended form rests on its numbers. **DEC-016** now requires every
+experiment to emit `results.json`. The debt was paid immediately: Experiment 001
+now emits one and reproduces byte-identically, and its recorded values (384/384
+coverage, 59 Tigrinya-specific characters, 22 collisions, 1.9714× expansion)
+match DEC-007's amendment exactly — that amendment is now regression-checked
+rather than asserted.
+
+**DEC-008 was policy without mechanism.** It mentions screening seven times;
+`scripts/data_processing/` contained **zero files**; and screening logic had been
+reimplemented in all three experiment scripts, differently each time.
+**DEC-015** makes the four gates — licence, quality, variety, contamination —
+executable via `screen_dataset.py`, with a machine-readable record and a
+pipeline-usable exit status. Validated with four tests including a **positive
+control**: screening an evaluation set against itself detects 652 shared
+8-grams. Without that control, "no contamination found" is indistinguishable
+from a broken detector.
+
+Two deliberate design choices: **licence is asserted, never detected** (a licence
+is a legal fact, not a property of bytes), and **contamination fails closed**
+(silence must not read as clearance).
+
+**The pipeline is also named correctly for the first time:** acquire → screen →
+convert → evaluate → release, with **training as a contingency branch**. A
+training-centred design would invest in labelling and checkpoint management we do
+not need, while under-investing in screening and evaluation, which are where the
+work has actually gone.
+
+**Correction issued.** Building the screening tool produced a baseline
+Experiment 003 lacked: orthographic mixing appears in **every** Tigrinya source
+tested, including unambiguously Eritrean ones (1.0–3.8%). Calling FLORES+
+"orthographically inconsistent with itself" was true but implied an anomaly the
+baseline does not support — that framing is withdrawn. **DEC-010 strengthens
+rather than weakens**: FLORES+'s ET-marker rate is 15.1%, ~4–15× Eritrean
+sources, so the Ethiopian-leaning signal now rests on better evidence than when
+first recorded.
+
 ### 05_architecture researched; DEC-012, DEC-013, DEC-014 — 2026-08-03
 
 **The memory spread is the architecture.** Our capabilities differ by **~150×**:

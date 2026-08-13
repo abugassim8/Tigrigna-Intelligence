@@ -91,6 +91,14 @@ thin.
 | `llama-cpp-python` as the model runtime | DEC-014 | 2026-08-03 | Serves MADLAD GGUF but not the Roberta encoder — two runtimes where one suffices (P-7) |
 | `transformers` as the serving runtime | DEC-014 | 2026-08-03 | Heaviest option with no native int8 CPU path; poorest fit for A-008 |
 
+| Leaving DEC-008 screening as written policy | DEC-015 | 2026-08-03 | Measured outcome: three ad-hoc reimplementations, zero files in scripts/data_processing, enforced by nobody |
+| Auto-detecting dataset licences | DEC-015 | 2026-08-03 | A licence is a legal fact about a dataset, not a property of its bytes |
+| Passing contamination when no eval set is supplied | DEC-015 | 2026-08-03 | Silence would read as clearance — the exact failure DEC-008 exists to prevent |
+| An automated column-scramble verdict | DEC-015 | 2026-08-03 | Not reliably separable from unusual prose; a false verdict is worse than a review flag |
+| A training-centred ML pipeline | DEC-015 | 2026-08-03 | We decided not to train (A-004, A-005, DEC-003); it would invest where there is no work and under-invest in screening and evaluation |
+| Prose-only experiment results | DEC-016 | 2026-08-03 | Measured: makes drift undetectable and P-5 unverifiable — the actual state of Experiment 001 |
+| A full experiment-tracking system | DEC-016 | 2026-08-03 | Far too heavy for three experiments; would be abandoned, per DEC-001's reasoning |
+
 <!--
 Add rejected options above this line. Every decision in DECISIONS.md should
 contribute at least one row — a decision with no rejected alternatives usually

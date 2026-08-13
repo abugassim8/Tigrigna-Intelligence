@@ -108,6 +108,14 @@ adding translation is an 8.3× jump. One MIT runtime (CTranslate2) serves every
 model we have.
 → `008-architecture-tiers-and-runtime.md` · DEC-012, DEC-013, DEC-014
 
+### 009 — The pipeline without training
+
+Our pipeline is **acquire → screen → convert → evaluate → release**; training is
+a contingency. Testing two self-claims found reproducibility held where designed
+in (2/3 experiments, now 3/3) while **DEC-008's screening gates had no
+implementation at all** — now executable.
+→ `009-pipeline-without-training.md` · DEC-015, DEC-016
+
 ## Turning findings into action
 
 Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)

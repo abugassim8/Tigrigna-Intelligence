@@ -77,6 +77,8 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-012 | 2026-08-03 | Library-first; services are thin wrappers over libraries | Accepted |
 | DEC-013 | 2026-08-03 | Tier by resource profile; never co-locate tiers in one process | Accepted |
 | DEC-014 | 2026-08-03 | CTranslate2 is the single model runtime | Accepted |
+| DEC-015 | 2026-08-03 | Screening is executable and mandatory; datasets carry a screening record | Accepted |
+| DEC-016 | 2026-08-03 | Every experiment emits a machine-checkable artefact | Accepted |
 
 ---
 
@@ -1087,6 +1089,133 @@ convenience for MADLAD is outweighed by needing a second runtime for embeddings.
 
 **Evidence:** `../research/summaries/008-architecture-tiers-and-runtime.md`;
 CTranslate2 converter registry inspected 2026-08-03 `[verified]`
+
+---
+
+## DEC-015 — Screening is executable and mandatory; datasets carry a screening record
+
+**Decision ID:** DEC-015 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+The **DEC-008** gates are implemented as
+`scripts/data_processing/screen_dataset.py` and are **mandatory**. No dataset
+enters training, tuning, or evaluation use without a committed, machine-readable
+**screening record**. The four gates are **licence**, **quality**, **variety**,
+and **contamination**.
+
+**Context:**
+DEC-008 established the policy in July. Measured on 2026-08-03: it mentions
+screening **seven times**, `scripts/data_processing/` contained **zero files**,
+and screening logic had been **reimplemented in all three experiment scripts,
+differently each time**.
+
+**A gate that exists only in prose is not a gate.** Every dataset this project
+touched was screened by hand, inconsistently, by whoever happened to be looking.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Keep screening as written policy | No work | **Measurably does not happen** — three ad-hoc reimplementations, zero enforcement |
+| B | **Executable gates + committed record** | Enforceable; consistent; auditable; CI-wirable | Must be maintained; thresholds need tuning |
+| C | Manual checklist per dataset | Cheap; flexible | Same failure as A with extra ceremony |
+
+**Chosen:** Option B.
+
+**Reason:**
+The gap between DEC-008's intent and its practice was total, and the cause was
+the absence of a mechanism rather than any disagreement about the policy.
+
+Two design choices are deliberate and load-bearing:
+
+- **Licence is asserted, never detected.** A licence is a legal fact about a
+  dataset, not a property of its bytes. The tool records what is declared and
+  checks it against the usable set; it never guesses.
+- **Contamination fails closed.** Supplying no evaluation set is a **FAIL**, not
+  a pass. **Silence must never read as clearance** — that is precisely the
+  failure mode DEC-008 exists to prevent.
+
+Validated against known results including a **positive control**: screening an
+evaluation set against itself detects **652 shared 8-grams**. Without that
+control, "no contamination found" would be indistinguishable from a broken
+detector.
+
+**Consequences:**
+- *Positive:* Screening is consistent, auditable, and CI-wirable. The three
+  ad-hoc implementations can collapse into one.
+- *Negative:* A tool to maintain, with thresholds (currently 0.1% foreign
+  characters) tuned on a small sample and likely to need revision.
+- *Newly constrained:* **A dataset without a committed screening record may not
+  be used.** This applies retrospectively — existing inventory needs records.
+- *Important limits:* the quality gate detects **mojibake, not meaning**; the
+  column-scramble signal is a **review flag, not a verdict**, because separating
+  scrambled columns from unusual prose is not reliably automatable; the variety
+  gate **never returns a verdict**, labelling `unknown` pending **A-13**; and
+  contamination detection is **exact-match n-gram overlap**, which catches copied
+  text but not paraphrase or translation.
+- *Revisit when:* thresholds misfire on a real dataset, or paraphrase
+  contamination becomes a live concern.
+
+**Evidence:** `../research/summaries/009-pipeline-without-training.md`;
+validation runs `[verified]` 2026-08-03
+
+---
+
+## DEC-016 — Every experiment emits a machine-checkable artefact
+
+**Decision ID:** DEC-016 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+An experiment is not complete until it writes a **machine-readable results
+artefact** (`results.json`) alongside its prose. Re-running an experiment must
+reproduce that artefact **byte-identically**, and a mismatch is a finding to
+investigate rather than a file to overwrite.
+
+**Context:**
+Re-running all three experiments and byte-comparing on 2026-08-03:
+
+| Experiment | Artefact | Byte-identical |
+| --- | --- | --- |
+| 001 — epitran | ❌ **none** | **cannot be checked** |
+| 002 — fertility | ✅ | ✅ |
+| 003 — metrics | ✅ | ✅ |
+
+**P-5 holds for 002 and 003 and cannot be evaluated for 001**, whose results
+exist only as prose. **DEC-007's amended form rests on Experiment 001's
+numbers** — and if `epitran` changed behaviour, nothing would detect it.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Prose results only | Fast to write | Undetectable drift; P-5 unverifiable — the measured state of Experiment 001 |
+| B | **Mandatory machine-readable artefact** | Drift detectable; P-5 checkable; regression-testable | Slight authoring overhead |
+| C | Full experiment-tracking system | Rich metadata | Far too heavy for three experiments; would be abandoned (see DEC-001's reasoning) |
+
+**Chosen:** Option B.
+
+**Reason:**
+The measured evidence is that **reproducibility came from making the artefact
+mandatory, not from intending to be careful.** Experiments 002 and 003 reproduce
+exactly because they were written after the practice existed; 001 does not
+because it predates it. The discipline works, and it works structurally.
+
+Option C is rejected for the reason DEC-001 rejected heavy process: it would be
+abandoned within weeks at this scale.
+
+**Consequences:**
+- *Positive:* Dependency drift becomes detectable. Experiments become regression
+  tests for the libraries they depend on.
+- *Negative:* Minor authoring overhead per experiment.
+- *Newly constrained:* An experiment without an artefact is **incomplete**;
+  `CONTRIBUTING.md` and the experiment template both need this.
+- *Debt created:* **Experiment 001 needs a `results.json`** — DEC-007 depends on
+  numbers nothing currently re-checks.
+- *Revisit when:* experiments become numerous enough that a real tracking system
+  earns its cost.
+
+**Evidence:** `../research/summaries/009-pipeline-without-training.md`;
+re-run and byte-comparison `[verified]` 2026-08-03
 
 ---
 
