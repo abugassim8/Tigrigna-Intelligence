@@ -22,6 +22,38 @@ first service is deployed.
 
 ## [Unreleased]
 
+### 09_training_strategy researched; DEC-017 — 2026-08-03
+
+**The contingency plan has no fuel.** Auditing every dataset against licence
+*and* role found **zero cleanly-licensed parallel training data**: the 1.4M en–ti
+pairs are unlicensed, and FLORES+ and TiQuAD are our evaluation anchors, so
+training on them is contamination. Monolingual comes to 15,053 documents, both
+corpora carrying documented defects.
+
+**This exposes a live risk in DEC-011.** That decision adopted MADLAD-400-3B on
+licensing and size **without measuring its Tigrinya quality** — correctly, on the
+evidence available. So the likeliest trigger for training is that MADLAD proves
+inadequate, and **if that happens we could not fine-tune our way out**, because
+there is no parallel data we may lawfully use.
+
+**A-05 is therefore escalated to Blocking.** It was filed as "the cheapest
+high-value action"; it is now **the only route to a remedy if our translation
+model underperforms** — the insurance policy on DEC-011.
+
+**DEC-017** gates training behind an adaptation ladder climbed cheapest-first
+(decoding config → tokenizer adaptation → LoRA → full fine-tune), with
+from-scratch **foreclosed** by A-002's ~40M-token ceiling and recorded once so it
+is not re-proposed. Five trigger conditions are required, the first being a
+measured deficit against a pre-committed threshold: **no training without a
+number.**
+
+If triggered, LoRA on a 4-bit base needs **~1.4 GB peak memory against ~32.9 GB**
+for a full fine-tune — ~23× less, ~400× fewer trainable parameters, and under
+A-008 the difference between renting datacentre hardware and using a desktop.
+Tooling is available and Apache-licensed; **nothing is blocked on tooling**.
+Memory is arithmetic; training time and quality are not estimated, because they
+cannot be known without running it.
+
 ### 06_ml_pipeline researched; DEC-015, DEC-016 — 2026-08-03
 
 **Two claims this repository makes about itself were tested. One held; one did

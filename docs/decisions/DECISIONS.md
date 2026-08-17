@@ -79,6 +79,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-014 | 2026-08-03 | CTranslate2 is the single model runtime | Accepted |
 | DEC-015 | 2026-08-03 | Screening is executable and mandatory; datasets carry a screening record | Accepted |
 | DEC-016 | 2026-08-03 | Every experiment emits a machine-checkable artefact | Accepted |
+| DEC-017 | 2026-08-03 | Training gated behind an adaptation ladder and measured triggers; from-scratch foreclosed | Accepted |
 
 ---
 
@@ -1216,6 +1217,94 @@ abandoned within weeks at this scale.
 
 **Evidence:** `../research/summaries/009-pipeline-without-training.md`;
 re-run and byte-comparison `[verified]` 2026-08-03
+
+---
+
+## DEC-017 — Training is gated behind an adaptation ladder and measured triggers
+
+**Decision ID:** DEC-017 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+Model training is reached only by climbing an **adaptation ladder**, cheapest
+rung first, and only after a **measured** deficit against a pre-committed
+threshold. **Training from scratch is foreclosed.**
+
+| Rung | Intervention | Training? | Blocked by |
+| --- | --- | --- | --- |
+| **0** | decoding config, prompting, beam/length tuning | No | nothing — **always first** |
+| 1 | vocabulary / tokenizer adaptation | no gradients | nothing |
+| 2 | **LoRA adapter** on the adopted model | 7.4M params | **parallel data (A-05)** |
+| 3 | full fine-tune | 2,940M params | A-05 + hardware |
+| 4 | from scratch | — | **foreclosed by A-002** |
+
+**Context:**
+**A-004** makes training a last resort and puts the burden of proof on whoever
+proposes it. This decision makes that burden concrete, and audits what we could
+actually do if the burden were met.
+
+The audit produced the governing fact: **we have zero cleanly-licensed parallel
+training data.** The 1.4M en–ti pairs are unlicensed (**A-05**); FLORES+ and
+TiQuAD are our evaluation anchors, so training on them is contamination
+(**DEC-008**). Monolingual: 15,053 documents, both corpora carrying documented
+defects.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | **Ladder with measured triggers** | Cheapest interventions tried first; training requires evidence; from-scratch closed once | Requires the harness to exist before any training |
+| B | Train from scratch | Full control | **A-002's ~40M-token ceiling makes it impossible**, not merely expensive |
+| C | Fine-tune now on available data | Fastest | The only sizeable parallel corpus is **unlicensed** (P-9/A-009); the licensed ones are our eval anchors |
+| D | Full fine-tune as default adaptation | Familiar | 23× LoRA's memory for no measured benefit; fails A-008 |
+
+**Chosen:** Option A.
+
+**Reason:**
+Rung 0 is not a formality — decoding parameters routinely move translation
+quality more than expected, cost nothing, and are reversible. Nothing above it
+should be entertained until rung 0 has been measured on the DEC-009 harness.
+
+Where training is genuinely justified, **LoRA on a 4-bit base needs ~1.4 GB peak
+memory against ~32.9 GB for a full fine-tune — ~23× less, and ~400× fewer
+trainable parameters.** Under **A-008** that is the difference between renting
+datacentre hardware and using a desktop, which decides the method.
+
+Option B is foreclosed explicitly rather than left implicit, so it is not
+re-proposed: **A-002's ceiling is the entire open Tigrinya corpus**, and our
+lawful share is a fraction of it.
+
+**Trigger conditions — all five required:**
+
+1. **A measured deficit** on the DEC-009 harness against a **pre-committed**
+   threshold. Not an impression of poor output.
+2. **Rung 0 exhausted**, with the measurement recorded.
+3. **Lawful data**, screened through DEC-015's gates.
+4. **A stated evaluation plan** for the artefact, including regression detection
+   (DEC-016).
+5. **A named maintenance owner** — a trained model must be kept alive,
+   re-evaluated, and eventually retrained.
+
+**No training without a number.** The failure mode guarded against is training
+because it feels like progress.
+
+**Consequences:**
+- *Positive:* Training proposals now have an explicit, checkable bar. The cheap
+  interventions get tried first, which is where the easy wins usually are.
+- *Negative:* Adds process before any training can start — deliberately.
+- *⚠️ Newly exposed:* **DEC-011's fallback is currently unavailable.** DEC-011
+  adopted MADLAD-400-3B *without quality measurement*, so the likeliest trigger
+  is that MADLAD proves inadequate — and we could not fine-tune our way out,
+  because rung 2 is blocked on parallel data we do not lawfully have.
+  **This re-frames A-05 from "cheapest high-value action" to "the insurance
+  policy on DEC-011."**
+- *Important limit:* **no training was run.** Memory is arithmetic; training time
+  and resulting quality are not estimated, because they cannot be known without
+  the weights (**A-09**).
+- *Revisit when:* A-05 resolves, A-06 changes what is trainable, or the harness
+  measures MADLAD.
+
+**Evidence:** `../research/summaries/010-training-triggers.md`; licence audit and
+PyPI metadata `[verified]` 2026-08-03
 
 ---
 

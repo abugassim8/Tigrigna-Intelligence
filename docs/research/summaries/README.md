@@ -116,6 +116,14 @@ in (2/3 experiments, now 3/3) while **DEC-008's screening gates had no
 implementation at all** — now executable.
 → `009-pipeline-without-training.md` · DEC-015, DEC-016
 
+### 010 — Training strategy
+
+**Zero cleanly-licensed parallel training data.** So if MADLAD (adopted without
+quality measurement) underperforms, **we cannot fine-tune our way out** — which
+makes **A-05 the insurance policy on DEC-011**. If triggered, LoRA is ~23×
+cheaper than a full fine-tune. From-scratch is foreclosed by A-002.
+→ `010-training-triggers.md` · DEC-017
+
 ## Turning findings into action
 
 Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)

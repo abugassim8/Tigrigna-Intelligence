@@ -99,6 +99,12 @@ thin.
 | Prose-only experiment results | DEC-016 | 2026-08-03 | Measured: makes drift undetectable and P-5 unverifiable — the actual state of Experiment 001 |
 | A full experiment-tracking system | DEC-016 | 2026-08-03 | Far too heavy for three experiments; would be abandoned, per DEC-001's reasoning |
 
+| Training a Tigrinya MT model from scratch | DEC-017 | 2026-08-03 | A-002's ~40M-token ceiling is the entire open corpus; our lawful share is a fraction. Not a resource question — not possible |
+| Fine-tuning on the 1.4M unlicensed en–ti pairs | DEC-017 | 2026-08-03 | Unlicensed (P-9, A-009); shipping the result would pass on rights we do not hold |
+| Fine-tuning on FLORES+ or TiQuAD | DEC-017 | 2026-08-03 | They are our evaluation anchors — training on them is contamination (DEC-008) and destroys our only measurement |
+| Full fine-tune as the default adaptation method | DEC-017 | 2026-08-03 | 23x LoRA's memory for no measured benefit; fails A-008 |
+| Training because output "looks bad" | DEC-017 | 2026-08-03 | A-004 puts the burden of proof on the proposer — no training without a measured deficit against a pre-committed threshold |
+
 <!--
 Add rejected options above this line. Every decision in DECISIONS.md should
 contribute at least one row — a decision with no rejected alternatives usually

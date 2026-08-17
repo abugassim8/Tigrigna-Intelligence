@@ -34,7 +34,7 @@ itself a research finding.
 | **A-02** | Confirm DEC-002 (who our primary users are) | 🔴 **Blocking** | API, MCP, SDK design | TODO |
 | **A-03** | Report the TiQuAD contamination to `farefaine` | 🟠 High | Ecosystem (G-11); protects others | TODO |
 | **A-04** | Request the TiQuAD test set | 🟠 High | DEC-005 — canonical evaluation | TODO |
-| **A-05** | Get licence on 1.4M en–ti parallel sentences | 🟠 High | Translation work; largest single resource | TODO |
+| **A-05** | Get licence on 1.4M en–ti parallel sentences | 🔴 **Blocking** | **The only remedy if MADLAD underperforms** — insurance on DEC-011 | TODO |
 | **A-06** | Legal review of TiQuAD's copyright position | 🟠 High | Whether we can ship anything using it | TODO |
 | **A-07** | Resolve HornMorpho licence + Tigrinya version | 🟡 Medium | Morphology service (DEC-006 critical path) | TODO |
 | **A-08** | Set an `HF_TOKEN` for this environment | 🟡 Medium | Removes anonymous rate limits | TODO |
@@ -224,7 +224,18 @@ Tigrinya sentence pairs** — by far the largest Tigrinya resource found — wit
 > [Your name]
 
 **Unblocks:** translation work; a large share of the usable data.
-**Note:** even licensed, it needs contamination screening under **DEC-008**.
+
+**⚠️ Escalated to Blocking, 2026-08-03 (DEC-017).** The training-strategy audit
+found we have **zero cleanly-licensed parallel training data** — FLORES+ and
+TiQuAD are evaluation anchors, so training on them is contamination, and this
+1.4M-pair corpus is the only other parallel data that exists.
+
+**DEC-011 adopted MADLAD-400-3B without measuring its Tigrinya quality.** If it
+underperforms, fine-tuning is the remedy — and it needs parallel data. **Without
+A-05 there is no fix available.** This is no longer an optimisation; it is the
+insurance policy on our translation decision.
+
+**Note:** even licensed, it needs screening under **DEC-008**/**DEC-015**.
 
 ---
 
