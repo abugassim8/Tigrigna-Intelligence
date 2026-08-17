@@ -1,0 +1,44 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Copyright (c) 2026 Tigrinya Language Intelligence Platform contributors
+
+The DOCUMENTATION in this repository — everything under docs/, plus README.md,
+PROJECT_CONTEXT.md, CONTRIBUTING.md, ACTIONS.md and CHANGELOG.md — is licensed
+under the Creative Commons Attribution 4.0 International License.
+
+  Canonical text:  https://creativecommons.org/licenses/by/4.0/legalcode
+  Summary:         https://creativecommons.org/licenses/by/4.0/
+  SPDX identifier: CC-BY-4.0
+
+Creative Commons licences are designed to be referenced by URL rather than
+copied, so the canonical text above is authoritative.
+
+--------------------------------------------------------------------------------
+SCOPE — this repository is licensed BY ARTEFACT CLASS (DEC-020)
+--------------------------------------------------------------------------------
+
+  Source code ............ Apache-2.0            see LICENSE
+  Documentation .......... CC-BY-4.0             this file
+  Data derivatives ....... INHERIT UPSTREAM      see below
+  Model artefacts ........ none produced         (DEC-017)
+
+--------------------------------------------------------------------------------
+DATA — obligations we cannot waive
+--------------------------------------------------------------------------------
+
+Some datasets this project works with carry SHARE-ALIKE terms. Derivatives of
+them inherit those terms; neither Apache-2.0 nor CC-BY-4.0 overrides that.
+
+  mewaeltsegay/TigrinyaLargeText ....... MIT
+  SIMBA9657/haddas-tigrinya-corpus ..... CC-BY-SA-4.0   (share-alike)
+  FLORES+ .............................. CC-BY-SA-4.0   (share-alike)
+  fgaim/TiQuAD ......................... CC-BY-SA-4.0   (share-alike)
+
+TiQuAD additionally states that its authors do not hold copyright in the
+underlying news articles, which are used under fair-use principles for academic
+research. Its position for anything shipped is UNRESOLVED and under review as
+A-06 in ACTIONS.md.
+
+Any artefact derived from a share-alike source must be released under that same
+licence, and its provenance recorded. See docs/decisions/DECISIONS.md (DEC-020,
+DEC-008, DEC-015).

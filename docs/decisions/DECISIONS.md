@@ -82,6 +82,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-017 | 2026-08-03 | Training gated behind an adaptation ladder and measured triggers; from-scratch foreclosed | Accepted |
 | DEC-018 | 2026-08-03 | CI enforces the machine-checkable rules in the decision log | Accepted — ⚠️ **workflow written, NOT YET ACTIVE (A-15)** |
 | DEC-019 | 2026-08-03 | Tier 2 deployment mode set by measured duty cycle, not fixed in advance | Accepted |
+| DEC-020 | 2026-08-03 | Licence by artefact class: Apache-2.0 code, CC-BY-4.0 docs, inherit for data | Accepted — closes A-12 |
 
 ---
 
@@ -1447,6 +1448,79 @@ exactly what fixing Option A blindly would produce.
   to move it.
 
 **Evidence:** `../research/summaries/011-cost-model-and-enforcement.md`
+
+---
+
+## DEC-020 — Licence by artefact class
+
+**Decision ID:** DEC-020 · **Date:** 2026-08-03 · **Status:** Accepted · **Closes:** A-12
+
+**Decision:**
+Different artefact classes carry different licences, because their upstream
+obligations differ:
+
+| Artefact | Licence | Why |
+| --- | --- | --- |
+| **Source code** | **Apache-2.0** | No upstream code imposes copyleft; explicit patent grant matters for infrastructure |
+| **Documentation** | **CC-BY-4.0** | Permissive, attribution-preserving, standard for docs |
+| **Data derivatives** | **Inherit upstream** — CC-BY-SA-4.0 where required | Share-alike obligations are not ours to waive |
+| **Model artefacts** | *(none produced)* | DEC-017 means we adopt rather than produce |
+
+**Context:**
+A-12 was deferred until the upstream licence map was known. It now is,
+`[verified]`:
+
+- **Code dependencies are uniformly permissive** — `ctranslate2` (MIT),
+  `epitran` (MIT-Modern-Variant), `tokenizers`, `sacrebleu`,
+  `sentence-transformers`, `peft`, `accelerate`, `datasets` (Apache-2.0),
+  `fastapi` (MIT).
+- **Both adopted models are Apache-2.0** — `madlad400-3b-mt`,
+  `tiroberta-bi-encoder`.
+- **Three of six datasets carry CC-BY-SA-4.0 share-alike** — `haddas`, FLORES+,
+  TiQuAD.
+
+**Nothing forces copyleft on our code.** Share-alike enters only through *data*
+and binds only *derivatives of that data*; source code is not a derivative of a
+corpus.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | **Licence by artefact class** | Honours upstream data terms without over-restricting code | Contributors must know which class they are touching |
+| B | One project-wide licence | Simple to state | Either over-restricts code or under-honours upstream data terms |
+| C | GPL/AGPL for code | Strong reciprocity | Nothing upstream requires it, and it restricts the application developers DEC-002 names as primary |
+| D | MIT for code | Simplest permissive | No explicit patent grant — weaker for infrastructure others build on |
+
+**Chosen:** Option A, with **Apache-2.0** for code.
+
+**Reason:**
+Option B fails in one direction or the other: a permissive project-wide licence
+would silently under-honour the share-alike obligations on `haddas`, FLORES+, and
+TiQuAD derivatives; a copyleft one would impose restrictions no upstream requires
+on the developers we exist to serve.
+
+Apache-2.0 over MIT because the **explicit patent grant** matters more for
+infrastructure others build on than the marginal simplicity of MIT, and it
+matches what the surrounding ecosystem already uses.
+
+**Consequences:**
+- *Positive:* Upstream obligations are honoured precisely rather than
+  approximately. Code stays maximally usable by our primary users.
+- *Negative:* Contributors must know which class an artefact belongs to; the
+  distinction needs to live in `CONTRIBUTING.md`.
+- *Newly constrained:* **Data derivatives inherit their source's terms.** Mixing
+  a CC-BY-SA corpus into a derived artefact makes that artefact CC-BY-SA. This
+  must be recorded per artefact, not remembered.
+- *Not in force until the files exist:* `LICENSE` (Apache-2.0) and `LICENSE-docs`
+  (CC-BY-4.0) must be added.
+- *Important limit:* **this is a reading, not a ruling.** That share-alike binds
+  data derivatives and not our code is the standard interpretation and the one I
+  would act on, but **A-06** remains the authority.
+- *Revisit when:* A-06 returns, or a dependency changes licence.
+
+**Evidence:** `../research/summaries/012-licence-and-sustainability.md`;
+licence metadata `[verified]` 2026-08-03
 
 ---
 

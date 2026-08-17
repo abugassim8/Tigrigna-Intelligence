@@ -132,6 +132,14 @@ slow, and it is unmeasured (**A-14**). CI now enforces the five decision-log
 rules that nothing was checking.
 → `011-cost-model-and-enforcement.md` · DEC-018, DEC-019
 
+### 012 — Licensing and sustainability
+
+**Nothing forces copyleft on our code** → Apache-2.0 code, CC-BY-4.0 docs,
+inherit for data (**DEC-020**, closing A-12). And running cost is so small
+(**52.6 GB-h/month**) that **money is not the binding constraint — maintainer
+attention is.** `ACTIONS.md` is the real risk register.
+→ `012-licence-and-sustainability.md` · DEC-020
+
 ## Turning findings into action
 
 Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)

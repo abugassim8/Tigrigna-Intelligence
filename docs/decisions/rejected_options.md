@@ -113,6 +113,13 @@ thin.
 | Kubernetes or a comparable orchestration layer | DEC-019 | 2026-08-03 | Three tiers, one runtime, low volume — a continuous expense buying nothing (P-7) |
 | GPU infrastructure | DEC-019 | 2026-08-03 | DEC-014's runtime is CPU int8, and DEC-017's training is blocked on data rather than hardware |
 
+| A single project-wide licence | DEC-020 | 2026-08-03 | Data derivatives carry share-alike obligations code does not; one licence either over-restricts code or under-honours upstream data terms |
+| GPL / AGPL for source code | DEC-020 | 2026-08-03 | Nothing upstream requires it, and it would restrict the application developers DEC-002 names as primary users |
+| MIT for source code | DEC-020 | 2026-08-03 | Apache-2.0's explicit patent grant matters more for infrastructure others build on; the surrounding ecosystem already uses it |
+| Deferring the licence choice further | DEC-020 | 2026-08-03 | Deferred pending A-01/A-05/A-06, but the code licence turns out to depend on none of them |
+| Proposing a revenue model | DEC-020 | 2026-08-03 | N-9 forecloses a commercial service for now; inventing one would contradict a recorded non-goal |
+| Treating funding as the main sustainability risk | DEC-020 | 2026-08-03 | Measured cost is 52.6 GB-h/month for the always-warm tier — the scarce resource is maintainer attention, not money |
+
 <!--
 Add rejected options above this line. Every decision in DECISIONS.md should
 contribute at least one row — a decision with no rejected alternatives usually

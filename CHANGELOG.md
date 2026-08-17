@@ -22,6 +22,39 @@ first service is deployed.
 
 ## [Unreleased]
 
+### 11_business researched; DEC-020 — A-12 closed — 2026-08-03
+
+**A-12 (the project licence) is resolved and the files are in place.** It had
+been deferred pending A-01/A-05/A-06; the code licence turns out to depend on
+none of them.
+
+Every upstream licence is now verified, and **nothing forces copyleft on our
+code**: all code dependencies are MIT or Apache-2.0, both adopted models are
+Apache-2.0, and share-alike enters only through *data* — three of six datasets
+are CC-BY-SA-4.0. Share-alike binds derivatives of that data, not source code.
+
+**DEC-020** therefore licenses **by artefact class**: Apache-2.0 for code
+(`LICENSE`, canonical text verified against installed copies rather than
+transcribed), CC-BY-4.0 for documentation (`LICENSE-docs`), and **inherit
+upstream** for data derivatives. `CONTRIBUTING.md` now states which class a
+contributor is touching, because the data row is the one that catches people.
+
+**⚠️ A licence false-negative caught.** PyPI's legacy `license` field reads
+"NOT STATED" for `sacrebleu`, `sentence-transformers`, `fastapi`, `trl` and
+`bitsandbytes` — under P-9 that is disqualifying, and recording it would have
+wrongly rejected four dependencies including the metric implementation DEC-009
+relies on. They are licensed; the values live in PEP 639's newer
+`license_expression` field. Same shape as HF `size_categories` being wrong on 2
+of 4 datasets: **a single metadata field is not a check.**
+
+**On sustainability, the report deliberately contains no revenue model** — N-9
+forecloses a commercial service for now. What it establishes instead is that
+**money is not the binding constraint**: no training, no GPU, no orchestration,
+and 52.6 GB-h/month for the always-warm tier. **What this project can die of is
+maintainer attention** — fifteen `ACTIONS.md` items need a human and three are
+blocking, none resolvable by further research. The action register is the real
+risk register.
+
 ### 10_infrastructure researched; DEC-018, DEC-019 — 2026-08-03
 
 **No dollar figures appear in this domain, deliberately** — vendor pricing is

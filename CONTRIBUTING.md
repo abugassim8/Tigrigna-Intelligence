@@ -137,6 +137,23 @@ Data carries obligations that code does not:
 
 ---
 
+## Licensing — know which artefact class you are touching
+
+This repository is licensed **by artefact class** (**DEC-020**). Contributions
+are accepted under the licence matching what you are changing:
+
+| You are changing | Licence | File |
+| --- | --- | --- |
+| Source code | **Apache-2.0** | `LICENSE` |
+| Documentation | **CC-BY-4.0** | `LICENSE-docs` |
+| A data derivative | **inherits upstream** | see `LICENSE-docs` |
+
+**The data row is the one that catches people.** Three of our six datasets are
+**CC-BY-SA-4.0**, and share-alike is not ours to waive: anything derived from
+`haddas`, FLORES+, or TiQuAD must carry CC-BY-SA-4.0 and record its provenance.
+Mixing a share-alike corpus into a derived artefact changes that artefact's
+licence.
+
 ## Commit and branch conventions
 
 - Branch from the current default branch; use descriptive branch names.

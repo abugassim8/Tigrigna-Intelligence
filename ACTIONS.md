@@ -41,7 +41,7 @@ itself a research finding.
 | **A-09** | Arrange a session with unrestricted egress | 🟡 Medium | The whole verification backlog | TODO |
 | **A-10** | Introduce the project to GeezLab / L3S | 🟢 Low | Collaboration (G-11) | TODO |
 | **A-11** | Licence clarification on `fidel` | 🟢 Low | Transliteration option | TODO |
-| **A-12** | Choose the project licence | ⏸️ Deferred | Deliberately deferred to `11_business` | TODO |
+| ~~**A-12**~~ | ~~Choose the project licence~~ | ✅ **DONE** | Resolved by **DEC-020** | **DONE** |
 | **A-13** | **Native-speaker variety audit of our two evaluation anchors** | 🟠 High | Whether DEC-010 is a precaution or a live correction | TODO |
 | **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO |
 | **A-15** | **Activate the CI workflow** (one command) | 🟠 High | DEC-018 — every checkable rule is unenforced until this is done | TODO |
@@ -458,4 +458,4 @@ research finding — record it in `docs/research/` too.)*
 
 | ID | Action | Outcome | Date |
 | --- | --- | --- | --- |
-| — | *Nothing completed yet* | — | — |
+| **A-12** | Choose the project licence | **DEC-020** — Apache-2.0 code, CC-BY-4.0 docs, inherit for data. Resolved once the upstream licence map was complete: **no code dependency imposes copyleft**; share-alike enters only through data | 2026-08-03 |
