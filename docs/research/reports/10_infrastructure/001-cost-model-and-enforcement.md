@@ -1,4 +1,4 @@
-# Infrastructure: A Cost Model in Resource-Hours, and Rules That Enforce Themselves
+# Infrastructure: A Cost Model in Resource-Hours, and Rules That Should Enforce Themselves
 
 | Field | Value |
 | --- | --- |
@@ -97,8 +97,12 @@ by nobody:
 | Summaries stay within two pages | DEC-001 | ✅ yes |
 | Every decision names rejected alternatives | CONTRIBUTING | ✅ yes |
 
-**`.github/workflows/verify.yml` now enforces all five.** Every check was run
-locally before commit:
+**`ci/verify.yml` implements all five, and every check was run locally before
+commit.** ⚠️ **It is not yet running:** GitHub refused the push (an app token
+cannot write `.github/workflows/` without `workflows` permission), so it awaits a
+one-command install (**A-15**). **Until then DEC-018 is itself policy without
+mechanism** — the very failure it addresses.
+
 
 | Check | Result |
 | --- | --- |
@@ -139,8 +143,10 @@ for weights, and CI.** Everything else is premature.
   volatile; GB-hours and break-even rates survive price changes.
 - **Cold start is unmeasured**, which is precisely why Finding 2 cannot conclude.
   The 2 s service-time assumption is also unmeasured.
-- **CI is verified locally, not on a runner.** The shell logic and the tools were
-  exercised; GitHub Actions itself has not run it.
+- **⚠️ CI is written, verified locally, and NOT INSTALLED.** GitHub refused the
+  push without `workflows` permission (**A-15**). The shell logic and tools were
+  exercised by hand; GitHub Actions has never run it. **DEC-018 is unenforced
+  until installed.**
 - **No deployment target chosen.** That depends on cold-start behaviour
   (**A-14**) and on A-02's answer about who is using this.
 

@@ -124,8 +124,9 @@ request.** Fixing scale-to-zero blindly would produce exactly that.
 
 ## Continuous integration
 
-`.github/workflows/verify.yml` (**DEC-018**) enforces every decision-log rule
-that can be checked mechanically:
+`ci/verify.yml` (**DEC-018**) implements every decision-log rule that can be
+checked mechanically. ⚠️ **It is not yet installed** — see `ci/README.md` and
+**A-15**:
 
 | Check | Rule |
 | --- | --- |
@@ -168,6 +169,6 @@ CI. Everything else is premature.
 
 | Decision | ID | Date | Summary |
 | --- | --- | --- | --- |
-| CI enforces checkable rules | DEC-018 | 2026-08-03 | Five rules enforced; all verified locally first |
+| CI enforces checkable rules | DEC-018 | 2026-08-03 | Six rules implemented and locally verified — ⚠️ **not installed (A-15)** |
 | Tier 2 mode by measured duty cycle | DEC-019 | 2026-08-03 | Rule stated; input (**A-14**) still missing |
 | Tier by resource profile | DEC-013 | 2026-08-03 | 22× standing-cost saving confirms it |

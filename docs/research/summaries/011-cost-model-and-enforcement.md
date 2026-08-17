@@ -11,7 +11,8 @@
 **One-line answer:** Tiering cuts standing resource cost **22×**, but **Tier 2's
 deployment mode cannot be decided yet** — the scale-to-zero break-even is as low
 as **~1 request/minute** if cold start is slow, and we have never measured it.
-Separately, CI now enforces the decision-log rules that nothing was checking.
+Separately, a CI workflow is written for the decision-log rules nothing was
+checking — **though it is not yet installed (A-15)**.
 
 ---
 
@@ -60,8 +61,10 @@ Separately, CI now enforces the decision-log rules that nothing was checking.
   | Summaries stay within two pages | DEC-001 |
   | Every decision names rejected alternatives | CONTRIBUTING |
 
-  `.github/workflows/verify.yml` enforces all five. **Every check was run locally
-  before commit:** 3 experiments byte-identical ✅ · screening fails closed ✅ ·
+  `ci/verify.yml` implements all five. ⚠️ **NOT YET ACTIVE** — GitHub refused the
+  push without `workflows` permission, so it awaits a one-command install
+  (**A-15**). Until then DEC-018 is itself unenforced. **Every check was run
+  locally before commit:** 3 experiments byte-identical ✅ · screening fails closed ✅ ·
   corrupted sample still detected ✅ · 10 summaries under limit ✅ · 17 decisions
   have rejected alternatives ✅. → **DEC-018**
 
@@ -92,6 +95,7 @@ Separately, CI now enforces the decision-log rules that nothing was checking.
 | Costing infrastructure in dollars | Vendor pricing is unverifiable here and volatile; GB-hours survive price changes |
 | Kubernetes / orchestration | Three tiers, one runtime, low volume — a continuous expense buying nothing (P-7) |
 | Leaving DEC-015/DEC-016 unenforced | DEC-008 already demonstrated what happens: silently ignored for three months |
+| Quietly dropping the workflow when the push was refused | The work would have been lost and DEC-018 would have claimed enforcement that did not exist — the exact failure it names |
 | GPU infrastructure | DEC-014's runtime is CPU int8; DEC-017's training is blocked on data, not hardware |
 
 ## Important Numbers
@@ -109,8 +113,8 @@ Separately, CI now enforces the decision-log rules that nothing was checking.
 
 1. **Measure Tier 2 cold start (A-14).** It decides DEC-019 and nothing else can
    settle it.
-2. **Let CI run on a real runner** — logic is verified locally, Actions has not
-   executed it.
+2. **Install the workflow (A-15)** — one command; until then six rules are
+   enforced by nobody, and DEC-018 is policy without mechanism.
 3. **Choose a deployment target** once A-14 and A-02 resolve.
 4. **Add a screening-record check to CI** once datasets carry committed records.
 5. **Re-run the break-even model** with measured service time, not the assumed 2 s.
@@ -118,7 +122,7 @@ Separately, CI now enforces the decision-log rules that nothing was checking.
 ## References
 
 1. `docs/research/summaries/008-architecture-tiers-and-runtime.md` — tier footprints
-2. `.github/workflows/verify.yml` — the enforcement mechanism
+2. `ci/verify.yml` — the enforcement mechanism (**awaiting install, A-15**)
 3. Local CI verification runs `[verified]` 2026-08-03
 
 ---

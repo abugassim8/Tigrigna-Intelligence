@@ -46,11 +46,18 @@ contingent.
 
 **DEC-018** puts CI behind the decision log. **DEC-008 spent three months as
 policy with no mechanism and was silently ignored the whole time**; five newer
-rules sat in exactly that position. `.github/workflows/verify.yml` now enforces
-all of them, and **every check was run locally before commit** — 3 experiments
-byte-identical, screening fails closed, corrupted sample still detected, 10
-summaries under limit, 17 decisions with rejected alternatives. The
-reproducibility job doubles as a dependency regression test.
+rules sat in exactly that position. `ci/verify.yml` implements all of them, and
+**every check was run locally before commit** — 3 experiments byte-identical,
+screening fails closed, corrupted sample still detected, 10 summaries under
+limit, 17 decisions with rejected alternatives. The reproducibility job doubles
+as a dependency regression test.
+
+⚠️ **The workflow is NOT yet running.** GitHub refused the push — an app token
+cannot create `.github/workflows/` files without `workflows` permission — so it
+sits at `ci/verify.yml` awaiting a one-command install (**A-15**). **Until then
+DEC-018 is itself policy without mechanism**, the very failure it was written to
+prevent. That is recorded loudly in the decision, the report, the summary, and
+`ci/README.md` rather than left to be discovered later.
 
 Also recorded: what we deliberately **do not** build — no orchestration, no GPU,
 no model registry, no vector DB, no autoscaling curves. A container runtime,

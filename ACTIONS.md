@@ -44,6 +44,7 @@ itself a research finding.
 | **A-12** | Choose the project licence | ⏸️ Deferred | Deliberately deferred to `11_business` | TODO |
 | **A-13** | **Native-speaker variety audit of our two evaluation anchors** | 🟠 High | Whether DEC-010 is a precaution or a live correction | TODO |
 | **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO |
+| **A-15** | **Activate the CI workflow** (one command) | 🟠 High | DEC-018 — every checkable rule is unenforced until this is done | TODO |
 
 ---
 
@@ -416,6 +417,37 @@ in the model is assumed, not measured.
 neither the conversion nor the timing can run here.
 
 **Unblocks:** DEC-019's deployment mode, and the hosting-target choice.
+
+---
+
+## 🟠 A-15 — Activate the CI workflow
+
+**One command. Until it runs, six decision-log rules are enforced by nobody.**
+
+`ci/verify.yml` is written and every check was verified by hand. It is **not
+running**, because GitHub refused the push:
+
+```
+refusing to allow a GitHub App to create or update workflow
+`.github/workflows/verify.yml` without `workflows` permission
+```
+
+**What to do** — from a normal clone with write access:
+
+```bash
+mkdir -p .github/workflows
+git mv ci/verify.yml .github/workflows/verify.yml
+git commit -m "Activate CI verification workflow (DEC-018)"
+git push
+```
+
+**Why it matters:** DEC-018 exists because **DEC-008 spent three months as policy
+with no mechanism and was silently ignored**. Until A-15 is done, **DEC-018 is in
+exactly that state** — and so are DEC-015, DEC-016, and DEC-001's summary rules.
+
+The reproducibility job also doubles as a **dependency regression test**: it is
+currently the only thing that would catch `epitran`, `tokenizers`, or
+`sacrebleu` changing behaviour under DEC-007's amended numbers.
 
 ---
 

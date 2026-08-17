@@ -80,7 +80,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-015 | 2026-08-03 | Screening is executable and mandatory; datasets carry a screening record | Accepted |
 | DEC-016 | 2026-08-03 | Every experiment emits a machine-checkable artefact | Accepted |
 | DEC-017 | 2026-08-03 | Training gated behind an adaptation ladder and measured triggers; from-scratch foreclosed | Accepted |
-| DEC-018 | 2026-08-03 | CI enforces the machine-checkable rules in the decision log | Accepted |
+| DEC-018 | 2026-08-03 | CI enforces the machine-checkable rules in the decision log | Accepted — ⚠️ **workflow written, NOT YET ACTIVE (A-15)** |
 | DEC-019 | 2026-08-03 | Tier 2 deployment mode set by measured duty cycle, not fixed in advance | Accepted |
 
 ---
@@ -1316,7 +1316,16 @@ PyPI metadata `[verified]` 2026-08-03
 
 **Decision:**
 Every decision-log rule that **can** be checked mechanically **is**, in
-`.github/workflows/verify.yml`. A rule that is checkable and unchecked is treated
+`ci/verify.yml`.
+
+> ⚠️ **Status: written and locally verified, NOT YET RUNNING.** GitHub refused
+> the push — an app token cannot create `.github/workflows/` files without
+> `workflows` permission. The workflow therefore sits at `ci/verify.yml` awaiting
+> a one-command install (**A-15**).
+>
+> **Until then this decision is itself policy without mechanism** — exactly the
+> failure it exists to prevent. Recorded loudly rather than left to be found
+> later. A rule that is checkable and unchecked is treated
 as a defect in the rule, not a matter of discipline.
 
 Currently enforced: experiments reproduce byte-identically (**DEC-016**),
@@ -1364,8 +1373,10 @@ than none.
   CI.
 - *Newly constrained:* **A new checkable rule arrives with its check**, or it is
   not a rule.
-- *Important limit:* **verified locally, not on a runner.** The shell logic and
-  tools were exercised; GitHub Actions has not executed it.
+- *⚠️ Important limit:* **verified locally, not on a runner, and not yet
+  installed.** The shell logic and tools were exercised by hand; GitHub Actions
+  has never executed it, and the workflow is not in `.github/workflows/`. **This
+  decision is unenforced until A-15 is done.**
 - *Revisit when:* experiments grow too slow for CI, or a rule proves checkable in
   principle but not in practice.
 
