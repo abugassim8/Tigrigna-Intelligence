@@ -140,6 +140,14 @@ inherit for data (**DEC-020**, closing A-12). And running cost is so small
 attention is.** `ACTIONS.md` is the real risk register.
 → `012-licence-and-sustainability.md` · DEC-020
 
+### 013 — State of play (master blueprint)
+
+**P-4 clears exactly one capability — translation — and DEC-006 excludes it.**
+Validated metrics: 1; inside the MVP: 0. Root cause is **DEC-005's anchors not
+covering DEC-006's platform**. The next research is primitive evaluation, and it
+is blocked by nothing.
+→ `013-state-of-play.md` · DEC-021
+
 ## Turning findings into action
 
 Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)

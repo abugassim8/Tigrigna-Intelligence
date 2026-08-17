@@ -120,6 +120,11 @@ thin.
 | Proposing a revenue model | DEC-020 | 2026-08-03 | N-9 forecloses a commercial service for now; inventing one would contradict a recorded non-goal |
 | Treating funding as the main sustainability risk | DEC-020 | 2026-08-03 | Measured cost is 52.6 GB-h/month for the always-warm tier — the scarce resource is maintainer attention, not money |
 
+| Building translation next because it is the cleared capability | DEC-021 | 2026-08-03 | Follows P-4 literally but abandons DEC-006's reasoning; the primitives gap is our differentiator and translation has a strong incumbent |
+| Revisiting DEC-006 to make translation the MVP | DEC-021 | 2026-08-03 | The gap-filling argument still holds, and 05_architecture independently confirmed the MVP is also the cheap tier — 191 MB against 1,593 MB |
+| Building MVP primitives without evaluation | DEC-021 | 2026-08-03 | Violates P-4 directly — unmeasurable capabilities cannot be improved or defended, and failures could not be localised |
+| Treating the anchor/MVP mismatch as a sequencing accident | DEC-021 | 2026-08-03 | It is structural: DEC-005's anchors do not cover DEC-006's platform and never would have |
+
 <!--
 Add rejected options above this line. Every decision in DECISIONS.md should
 contribute at least one row — a decision with no rejected alternatives usually

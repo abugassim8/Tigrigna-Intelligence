@@ -170,6 +170,7 @@ scripts/            Operational tooling
 | Looking for prior work | `docs/research/summaries/` **before** `docs/research/reports/` |
 | Contributing code or docs | `CONTRIBUTING.md` |
 | **A human with time to unblock things** | **`ACTIONS.md`** — emails to send, licences to get, decisions to confirm |
+| **Where the project actually stands** | **`docs/research/summaries/013-state-of-play.md`** — the synthesis of all 11 domains |
 
 ---
 

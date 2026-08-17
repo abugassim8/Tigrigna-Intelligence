@@ -83,6 +83,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-018 | 2026-08-03 | CI enforces the machine-checkable rules in the decision log | Accepted — ⚠️ **workflow written, NOT YET ACTIVE (A-15)** |
 | DEC-019 | 2026-08-03 | Tier 2 deployment mode set by measured duty cycle, not fixed in advance | Accepted |
 | DEC-020 | 2026-08-03 | Licence by artefact class: Apache-2.0 code, CC-BY-4.0 docs, inherit for data | Accepted — closes A-12 |
+| DEC-021 | 2026-08-03 | Extend evaluation anchors to the MVP primitives; next research is Tier 0 evaluation | Accepted |
 
 ---
 
@@ -1521,6 +1522,77 @@ matches what the surrounding ecosystem already uses.
 
 **Evidence:** `../research/summaries/012-licence-and-sustainability.md`;
 licence metadata `[verified]` 2026-08-03
+
+---
+
+## DEC-021 — Extend the evaluation anchors to cover the MVP primitives
+
+**Decision ID:** DEC-021 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+**DEC-005's anchors are extended.** FLORES+ and TiQuAD remain the anchors for
+translation and QA, but evaluation must additionally cover the **DEC-006 minimum
+viable platform** — tokenization, morphological analysis, transliteration, and
+embeddings. **The next research domain is evaluation for those primitives**, not
+another capability.
+
+**Context:**
+A readiness audit of `docs/benchmarks/metrics.md` against DEC-006 found:
+
+| Capability | Metric validated? | In the MVP? |
+| --- | --- | --- |
+| **Translation** | ✅ Yes (DEC-009) | ❌ **excluded** |
+| Embeddings · Tokenization · Morphology · Transliteration | ❌ TBD | ✅ **yes** |
+
+**Capabilities with a validated metric: 1. Inside the MVP: 0.**
+
+**P-4** gates capability work on evaluation existing, so **the only capability we
+are cleared to build is the one DEC-006 decided not to build first.**
+
+**The root cause is structural, not a sequencing accident.** DEC-005 named
+FLORES-200 (translation) and TiQuAD (QA). **Neither evaluates tokenization,
+morphology, transliteration, or embeddings.** DEC-005 and DEC-006 were taken the
+same day; each was sound alone, and together they left the MVP unmeasurable. This
+is the failure `DECISIONS.md` warns about in its preamble — not contradiction,
+but two decisions that do not compose.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | **Extend the anchors; research primitive evaluation next** | Restores P-4 for the platform we actually chose; blocked by nothing | Primitive evaluation is genuinely harder — no Tigrinya benchmark exists for morphology or tokenization |
+| B | Build translation next, since it is cleared | Follows P-4 literally | Abandons DEC-006's reasoning; the primitives gap is our differentiator and translation has a strong incumbent |
+| C | Revisit DEC-006 to make translation the MVP | Removes the tension | The gap-filling argument still holds, and `05_architecture` independently confirmed the MVP is also the cheap tier — 191 MB against 1,593 MB |
+| D | Build the primitives without evaluation | Fastest to code | **Violates P-4 directly.** Unmeasurable capabilities cannot be improved or defended |
+
+**Chosen:** Option A.
+
+**Reason:**
+Option A is the only one that leaves both DEC-006 and P-4 intact. DEC-006's
+reasoning has since gained independent support it did not originally have —
+`05_architecture` found the MVP is also the cheapest tier by 8.3× — so weakening
+it (Option C) would discard a decision that has grown *stronger*, not weaker.
+
+Option D is the tempting one and the one P-4 exists to forbid: building
+primitives we cannot measure would leave us unable to tell whether the
+tokenizer, the morphology, or the normalisation is what is wrong when something
+downstream fails.
+
+**Consequences:**
+- *Positive:* The MVP becomes buildable under P-4. The next work is **blocked by
+  nothing** — no licence, no egress, no human decision.
+- *Negative:* Primitive evaluation is harder than translation evaluation. **No
+  Tigrinya benchmark exists for morphology or tokenization**, so some of it may
+  have to be constructed, which **A-006** already anticipated.
+- *Newly constrained:* **A capability may not enter the MVP without an evaluation
+  method**, which now has teeth because `metrics.md` is audited.
+- *Honest limit:* it is **not yet known whether usable metrics exist** for these
+  primitives. If they do not, that is itself a finding, and it would force
+  DEC-006 back open on evidence rather than preference.
+- *Revisit when:* primitive evaluation is researched, or it proves impossible.
+
+**Evidence:** `../research/summaries/013-state-of-play.md`; readiness audit
+`[verified]` 2026-08-03
 
 ---
 

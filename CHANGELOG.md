@@ -22,6 +22,40 @@ first service is deployed.
 
 ## [Unreleased]
 
+### 12_master_blueprint — the synthesis; DEC-021 — 2026-08-03
+
+**Reading eleven domains together surfaced something invisible from inside any
+one of them.**
+
+**P-4 gates capability work on evaluation existing. Evaluation exists for exactly
+one capability — translation — which DEC-006 explicitly excludes from the minimum
+viable platform.** Capabilities with a validated metric: **1**. Inside the MVP:
+**0**. Translation has a metric, a licensed model, a runtime and a tier, while
+every capability DEC-006 actually named has no way to tell whether it works.
+
+**The root cause is structural, not a sequencing accident.** DEC-005 named
+FLORES-200 (translation) and TiQuAD (QA) as anchors, and **neither evaluates
+tokenization, morphology, transliteration, or embeddings**. DEC-005 and DEC-006
+were taken the same day; each was sound alone, and together they left the MVP
+unmeasurable — the exact failure `DECISIONS.md` warns about in its own preamble.
+
+**DEC-021** extends the anchors to cover the MVP primitives and makes primitive
+evaluation the next research. It is the only option that leaves both DEC-006 and
+P-4 intact — and DEC-006 has since gained independent support it did not
+originally have, since `05_architecture` found its MVP is also the cheapest tier
+by 8.3×.
+
+**Step 1 on the critical path is blocked by nothing** — no licence, no egress, no
+human decision. Everything else waits on **A-01**, **A-02**, or **A-05**, none of
+which any amount of research can resolve.
+
+Also recorded honestly: **nothing has been built.** Three experiments, one
+screening tool, one uninstalled CI workflow. 80% of summary claims carry
+`[verified]`. And five method findings worth transferring — measurement beat
+citation, pre-committed thresholds caught overclaiming twice, policy without
+mechanism fails silently, metadata is evidence rather than truth, and the
+corrections improved the evidence rather than weakening the conclusions.
+
 ### 11_business researched; DEC-020 — A-12 closed — 2026-08-03
 
 **A-12 (the project licence) is resolved and the files are in place.** It had
