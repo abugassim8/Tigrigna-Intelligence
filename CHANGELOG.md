@@ -22,6 +22,40 @@ first service is deployed.
 
 ## [Unreleased]
 
+### 10_infrastructure researched; DEC-018, DEC-019 — 2026-08-03
+
+**No dollar figures appear in this domain, deliberately** — vendor pricing is
+unverifiable from this environment and volatile, so cost is modelled in
+**GB-hours** and **break-even rates**, arithmetic that survives price changes.
+
+**Tiering cuts standing resource cost 22×**: 52.6 GB-h/month for a warm Tier 0
+against 1,162.9 GB-h/month for one merged always-warm process. DEC-013 was
+decided on the memory spread and holds on cost too.
+
+**⚠️ A correction.** A first pass concluded scale-to-zero for Tier 2 "wins across
+the whole plausible range." **That was wrong and contradicted the table it
+accompanied.** At a 60 s cold start the break-even is roughly **one request per
+minute** — above which always-warm is both cheaper *and* faster. The pathological
+case is real: at ~1 req/min with slow cold start, Tier 2 is busy 100% of the hour,
+warm in all but name while still paying cold-start latency on every request.
+
+**DEC-019** therefore fixes neither mode. It states the rule — keep warm above
+`3600 / (cold_start + service)` req/hour — and makes measuring cold start
+**A-14**. DEC-013's tiering is unaffected; only Tier 2's *mode* was ever
+contingent.
+
+**DEC-018** puts CI behind the decision log. **DEC-008 spent three months as
+policy with no mechanism and was silently ignored the whole time**; five newer
+rules sat in exactly that position. `.github/workflows/verify.yml` now enforces
+all of them, and **every check was run locally before commit** — 3 experiments
+byte-identical, screening fails closed, corrupted sample still detected, 10
+summaries under limit, 17 decisions with rejected alternatives. The
+reproducibility job doubles as a dependency regression test.
+
+Also recorded: what we deliberately **do not** build — no orchestration, no GPU,
+no model registry, no vector DB, no autoscaling curves. A container runtime,
+object storage, and CI.
+
 ### 09_training_strategy researched; DEC-017 — 2026-08-03
 
 **The contingency plan has no fuel.** Auditing every dataset against licence

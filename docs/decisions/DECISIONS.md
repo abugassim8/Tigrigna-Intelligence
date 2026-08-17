@@ -80,6 +80,8 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-015 | 2026-08-03 | Screening is executable and mandatory; datasets carry a screening record | Accepted |
 | DEC-016 | 2026-08-03 | Every experiment emits a machine-checkable artefact | Accepted |
 | DEC-017 | 2026-08-03 | Training gated behind an adaptation ladder and measured triggers; from-scratch foreclosed | Accepted |
+| DEC-018 | 2026-08-03 | CI enforces the machine-checkable rules in the decision log | Accepted |
+| DEC-019 | 2026-08-03 | Tier 2 deployment mode set by measured duty cycle, not fixed in advance | Accepted |
 
 ---
 
@@ -1305,6 +1307,135 @@ because it feels like progress.
 
 **Evidence:** `../research/summaries/010-training-triggers.md`; licence audit and
 PyPI metadata `[verified]` 2026-08-03
+
+---
+
+## DEC-018 — CI enforces the machine-checkable rules in the decision log
+
+**Decision ID:** DEC-018 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+Every decision-log rule that **can** be checked mechanically **is**, in
+`.github/workflows/verify.yml`. A rule that is checkable and unchecked is treated
+as a defect in the rule, not a matter of discipline.
+
+Currently enforced: experiments reproduce byte-identically (**DEC-016**),
+screening fails closed (**DEC-015**), every report has a summary (**DEC-001**),
+summaries stay within two pages (**DEC-001**), every decision names rejected
+alternatives (**CONTRIBUTING**).
+
+**Context:**
+**DEC-008 spent three months as policy with no mechanism and was silently ignored
+the entire time** — screening reimplemented three times, differently, with zero
+files in `scripts/data_processing/`. It was found by measurement in
+`06_ml_pipeline`, not by anyone noticing.
+
+Several newer rules sat in exactly that position: true, agreed, and enforced by
+nobody.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | **CI enforces checkable rules** | Rules stop depending on vigilance; drift becomes visible | A workflow to maintain; CI minutes |
+| B | Rely on review discipline | No setup | **Already measured to fail** — DEC-008 is the evidence |
+| C | Enforce everything, including judgement calls | Maximum rigour | Judgement is not mechanically checkable; would produce false failures and get disabled |
+
+**Chosen:** Option A.
+
+**Reason:**
+The DEC-008 failure was not carelessness — it was a rule with nothing behind it.
+The distinction that matters is **checkable versus not**: reproducibility, word
+counts, and file correspondence are mechanical; "is this research good?" is not,
+and Option C's attempt to automate the latter would produce noise until someone
+switched the workflow off.
+
+**Every check was run locally before commit** — 3 experiments byte-identical,
+screening fails closed, corrupted sample still detected, 10 summaries under
+limit, 17 decisions with rejected alternatives. CI that does not work is worse
+than none.
+
+**Consequences:**
+- *Positive:* Rules stop depending on whoever is paying attention. **The
+  reproducibility job doubles as a dependency regression test** — if `epitran`,
+  `tokenizers`, or `sacrebleu` changes behaviour, CI catches it, which is the
+  only thing standing between DEC-007's amended numbers and silent drift.
+- *Negative:* A workflow to maintain; experiments must stay fast enough to run in
+  CI.
+- *Newly constrained:* **A new checkable rule arrives with its check**, or it is
+  not a rule.
+- *Important limit:* **verified locally, not on a runner.** The shell logic and
+  tools were exercised; GitHub Actions has not executed it.
+- *Revisit when:* experiments grow too slow for CI, or a rule proves checkable in
+  principle but not in practice.
+
+**Evidence:** `../research/summaries/011-cost-model-and-enforcement.md`;
+local verification `[verified]` 2026-08-03
+
+---
+
+## DEC-019 — Tier 2's deployment mode is set by measured duty cycle, not fixed in advance
+
+**Decision ID:** DEC-019 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+Tier 2 (translation, 1.593 GB) is deployed **scale-to-zero or always-warm
+according to measured duty cycle**, by this rule:
+
+> Keep Tier 2 warm when sustained request rate exceeds the break-even
+> `3600 / (cold_start_seconds + service_seconds)` per hour. Below it, scale to
+> zero.
+
+**Neither mode is fixed now**, because `cold_start_seconds` has never been
+measured (**A-14**).
+
+**Context:**
+DEC-013 stated Tier 2 "may scale to zero." Tested against arithmetic, that turns
+out to be conditional:
+
+| Cold start | Break-even | req/min |
+| ---: | ---: | ---: |
+| 5 s | 514/hour | 8.6 |
+| 10 s | 300/hour | 5.0 |
+| **60 s** | **58/hour** | **1.0** |
+
+**A first pass at this concluded scale-to-zero "wins across the whole plausible
+range." That was wrong and contradicted the table it accompanied** — at a 60 s
+cold start the break-even is roughly **one request per minute**.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Fix as scale-to-zero | Cheapest when idle | Unfounded — break-even may be ~1 req/min, and above it this is slower *and* dearer |
+| B | Fix as always-warm | Predictable latency | Wastes 1,162.9 GB-h/month at genuinely low volume (A-008) |
+| C | **Decide by measured duty cycle against a stated rule** | Correct under either outcome; the rule is written now, the input arrives later | Requires a measurement we do not yet have |
+
+**Chosen:** Option C.
+
+**Reason:**
+The honest position is that **the answer depends on a number we do not have.**
+Fixing either mode now would be asserting a conclusion the arithmetic does not
+support. Writing the *rule* costs nothing and makes the eventual decision
+mechanical rather than a fresh argument.
+
+The pathological case is worth naming: at ~1 req/min with a slow cold start,
+Tier 2 is busy 100% of the hour — **warm in all but name, while also paying
+cold-start latency on every request.** That is the worst of both, and it is
+exactly what fixing Option A blindly would produce.
+
+**Consequences:**
+- *Positive:* Deployment mode becomes a measurement, not a preference. The rule
+  survives changes in vendor, price, and model.
+- *Negative:* Cannot finalise deployment until **A-14** is measured.
+- *Does not affect DEC-013:* tiering itself stands on the 150× memory spread and
+  the 22× standing-cost saving. **Only Tier 2's mode is contingent.**
+- *Newly constrained:* **A-14 blocks the deployment target choice**, which also
+  waits on A-02.
+- *Revisit when:* cold start is measured, or the model or runtime changes enough
+  to move it.
+
+**Evidence:** `../research/summaries/011-cost-model-and-enforcement.md`
 
 ---
 

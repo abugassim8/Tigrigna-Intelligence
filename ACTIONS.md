@@ -43,6 +43,7 @@ itself a research finding.
 | **A-11** | Licence clarification on `fidel` | 🟢 Low | Transliteration option | TODO |
 | **A-12** | Choose the project licence | ⏸️ Deferred | Deliberately deferred to `11_business` | TODO |
 | **A-13** | **Native-speaker variety audit of our two evaluation anchors** | 🟠 High | Whether DEC-010 is a precaution or a live correction | TODO |
+| **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO |
 
 ---
 
@@ -386,6 +387,35 @@ while being reported as "Tigrinya" — worth writing up for the ecosystem
 **Why I could not do this:** it requires native fluency and dialect intuition.
 Stating it as fact from character-frequency counts would be exactly the
 overconfidence this project's rules exist to prevent.
+
+---
+
+## 🟡 A-14 — Measure Tier 2 cold start
+
+**A single number that decides the deployment architecture.**
+
+**DEC-019** sets Tier 2's deployment mode by this rule:
+
+> Keep Tier 2 warm when sustained request rate exceeds
+> `3600 / (cold_start_seconds + service_seconds)` per hour. Below it, scale to zero.
+
+Every term is known **except cold start**, and the answer swings hard on it:
+
+| Cold start | Break-even | req/min |
+| ---: | ---: | ---: |
+| 5 s | 514/hour | 8.6 |
+| 10 s | 300/hour | 5.0 |
+| **60 s** | **58/hour** | **1.0** |
+
+**What to measure:** time from cold container to first translation returned, for
+MADLAD-400-3B under CTranslate2 int8 — load, quantised-weight mmap, and first
+forward pass. Also the steady-state per-request service time, since the 2 s used
+in the model is assumed, not measured.
+
+**Why I could not do it:** model weights are behind egress policy (**A-09**), so
+neither the conversion nor the timing can run here.
+
+**Unblocks:** DEC-019's deployment mode, and the hosting-target choice.
 
 ---
 

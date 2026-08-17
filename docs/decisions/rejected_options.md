@@ -105,6 +105,14 @@ thin.
 | Full fine-tune as the default adaptation method | DEC-017 | 2026-08-03 | 23x LoRA's memory for no measured benefit; fails A-008 |
 | Training because output "looks bad" | DEC-017 | 2026-08-03 | A-004 puts the burden of proof on the proposer — no training without a measured deficit against a pre-committed threshold |
 
+| Relying on review discipline to enforce decision-log rules | DEC-018 | 2026-08-03 | Already measured to fail — DEC-008 was policy with no mechanism for three months and silently ignored |
+| Automating enforcement of judgement calls | DEC-018 | 2026-08-03 | Not mechanically checkable; would produce false failures until someone disabled the workflow |
+| Fixing Tier 2 as scale-to-zero now | DEC-019 | 2026-08-03 | Break-even may be ~1 req/min at slow cold start, where scale-to-zero is both slower and dearer. Unmeasured |
+| Fixing Tier 2 as always-warm now | DEC-019 | 2026-08-03 | Wastes 1,162.9 GB-h/month at genuinely low volume (A-008) |
+| Costing infrastructure in dollar figures | DEC-019 | 2026-08-03 | Vendor pricing unverifiable from this environment and volatile; GB-hours and break-even rates survive price changes |
+| Kubernetes or a comparable orchestration layer | DEC-019 | 2026-08-03 | Three tiers, one runtime, low volume — a continuous expense buying nothing (P-7) |
+| GPU infrastructure | DEC-019 | 2026-08-03 | DEC-014's runtime is CPU int8, and DEC-017's training is blocked on data rather than hardware |
+
 <!--
 Add rejected options above this line. Every decision in DECISIONS.md should
 contribute at least one row — a decision with no rejected alternatives usually

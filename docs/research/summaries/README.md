@@ -124,6 +124,14 @@ makes **A-05 the insurance policy on DEC-011**. If triggered, LoRA is ~23×
 cheaper than a full fine-tune. From-scratch is foreclosed by A-002.
 → `010-training-triggers.md` · DEC-017
 
+### 011 — Infrastructure: cost model and enforcement
+
+Tiering cuts standing resource cost **22×**. But **Tier 2's deployment mode is
+not decidable yet** — break-even is as low as **~1 req/min** if cold start is
+slow, and it is unmeasured (**A-14**). CI now enforces the five decision-log
+rules that nothing was checking.
+→ `011-cost-model-and-enforcement.md` · DEC-018, DEC-019
+
 ## Turning findings into action
 
 Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)
