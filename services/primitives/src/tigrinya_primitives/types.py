@@ -1,0 +1,115 @@
+"""Response types implementing the DEC-022 API contract.
+
+Every clause here traces to a decision. The contract exists because these
+choices are expensive to change once consumers depend on them, and because
+three of them were arrived at by measurement rather than convention:
+
+  - offsets are WORD-LEVEL spans, not character offsets (DEC-023). Character
+    alignment is measurably impossible: only 23.89% of words align, because
+    Ge'ez 6th-order characters are ambiguous between "consonant + ɨ" and a bare
+    consonant, and epitran resolves that from surrounding characters.
+  - the analysis form is NOT guaranteed phonemic (DEC-022). 19 real Ethiopic
+    characters pass through untransliterated, and three whole blocks are
+    unmapped.
+  - variety is mandatory and `unknown` is a first-class value, never null
+    (DEC-010). Most Tigrinya resources do not state their variety, and a null
+    invites callers to ignore the distinction.
+"""
+
+from __future__ import annotations
+
+import enum
+from dataclasses import dataclass, field, asdict
+from typing import Any
+
+
+class Variety(str, enum.Enum):
+    """Tigrinya variety (DEC-004, DEC-010).
+
+    `UNKNOWN` is the expected common case, not an error. Scores and analyses
+    from different varieties are never aggregated.
+    """
+
+    ERITREAN = "eritrean"
+    ETHIOPIAN = "ethiopian"
+    UNKNOWN = "unknown"
+
+
+class OffsetUnit(str, enum.Enum):
+    """The unit `Span` offsets are expressed in.
+
+    Stated explicitly in every response rather than assumed. Ethiopic
+    Extended-B (U+1E7E0–U+1E7FF) lies above the BMP, so a UTF-16 client
+    (JavaScript `.length`) and a code-point client (Python `len`) disagree about
+    the same string — silently, and only on characters unlikely to reach a test
+    fixture. Code points are the unit where neither is wrong by default.
+    """
+
+    CODEPOINT = "codepoint"
+
+
+@dataclass(frozen=True)
+class Span:
+    """A word-level span linking surface text to its analysis.
+
+    Word-level rather than character-level is not a limitation we settled for —
+    it is exact. Epitran resolves epenthesis within a word and nothing crosses
+    word boundaries (measured: a word's transliteration is preserved inside a
+    sentence 1,639/1,639 times), so per-word analysis is both fully faithful and
+    alignable by construction.
+    """
+
+    start: int
+    end: int
+    surface: str
+    analysis: str
+
+    def __post_init__(self) -> None:
+        if self.start < 0 or self.end < self.start:
+            raise ValueError(f"invalid span [{self.start}, {self.end})")
+        if len(self.surface) != self.end - self.start:
+            raise ValueError(
+                f"span width {self.end - self.start} does not match surface "
+                f"length {len(self.surface)} — offsets would be wrong"
+            )
+
+
+@dataclass(frozen=True)
+class Analysis:
+    """The result of analysing Tigrinya text.
+
+    `surface` is returned verbatim and is the source of truth for anything shown
+    to a user. It is never reconstructed from `analysis` (DEC-007).
+    """
+
+    surface: str
+    analysis: str
+    spans: tuple[Span, ...] = ()
+    variety: Variety = Variety.UNKNOWN
+    offset_unit: OffsetUnit = OffsetUnit.CODEPOINT
+    #: False whenever the analysis form may contain non-phonemic characters,
+    #: which with the current transliterator is always. Declared rather than
+    #: implied, so a consumer expecting IPA cannot be silently wrong.
+    analysis_is_phonemic: bool = False
+    warnings: tuple[str, ...] = field(default_factory=tuple)
+
+    def to_dict(self) -> dict[str, Any]:
+        d = asdict(self)
+        d["variety"] = self.variety.value
+        d["offset_unit"] = self.offset_unit.value
+        d["spans"] = [asdict(s) for s in self.spans]
+        return d
+
+    def verify_offsets(self) -> None:
+        """Check every span actually indexes back into the surface form.
+
+        Cheap, and it turns the class of bug this contract exists to prevent
+        into an immediate failure rather than a silent misalignment downstream.
+        """
+        for s in self.spans:
+            actual = self.surface[s.start:s.end]
+            if actual != s.surface:
+                raise ValueError(
+                    f"span [{s.start},{s.end}) claims {s.surface!r} but surface "
+                    f"holds {actual!r}"
+                )

@@ -995,12 +995,36 @@ The platform is decomposed by **resource profile**, not by domain:
 
 | Tier | Contents | Cumulative | Behaviour |
 | --- | --- | ---: | --- |
-| **0** | normalisation, tokenization, transliteration, morphology | **72 MB** | always warm |
+| **0** | normalisation, tokenization, transliteration, morphology | **72 MB** *(estimate)* | always warm |
 | **1** | + embeddings | **191 MB** | warm |
 | **2** | + translation | **1,593 MB** | lazily loaded; may scale to zero |
 
 **Tiers are never co-located in a single process.** Model weights load lazily,
 per tier, on first use.
+
+⚠️ **Corrected 2026-08-03, on building Tier 0.** The 72 MB figure was arithmetic
+from estimated component sizes. **Measured, Tier 0 is 113.4 MB — and that is
+*without* morphology**, which the estimate included:
+
+| Component | Marginal RSS |
+| --- | ---: |
+| normalisation | ~0 (pure `str.translate`) |
+| tokenization (`tokenizers`) | **4.3 MB** |
+| **transliteration (`epitran` → `panphon`)** | **107.4 MB** |
+
+**One dependency is the entire budget** — `epitran` loads `panphon`'s
+phonological feature tables on instantiation. Two consequences:
+
+1. **Lazy loading is load-bearing, not tidiness.** Importing the package costs
+   6.8 MB; the 107 MB is paid only if transliteration is used.
+2. **Tier 0 is not homogeneous.** By this decision's own logic — tier by
+   resource profile — normalisation+tokenization (~15 MB) and transliteration
+   (~107 MB) are arguably different tiers. Lazy loading makes that a per-use
+   cost rather than a resident one, so no re-tiering is proposed yet.
+
+**DEC-019's derived figures shift**: the 22× standing-cost saving was computed
+on 72 MB; at 113 MB it is closer to **14×**. The conclusion is unchanged —
+tiering still dominates — but the number should not be quoted as 22×.
 
 **Context:**
 Measured footprints differ by **~150×** — normalisation is free, tokenization is

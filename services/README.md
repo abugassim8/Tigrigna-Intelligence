@@ -12,7 +12,20 @@ service so that it can be developed, evaluated, deployed, and — critically —
 these should work; the structure exists so that changing our mind is a
 replacement rather than a rewrite (**P-11**).
 
-## Services
+> ⚠️ **This layout predates DEC-013.** "One directory per capability" is a
+> *domain* decomposition, which DEC-013 explicitly rejected in favour of
+> **resource tiers** after measuring a ~150× memory spread across capabilities.
+> [`primitives/`](primitives/) is the built Tier 0 and spans what this table
+> calls `tokenizer/`, `morphology/`, and part of `spellcheck/`. Reconciling the
+> rest of the layout with DEC-013 is outstanding.
+
+## Built
+
+| Package | Tier | Status |
+| --- | --- | --- |
+| [`primitives/`](primitives/) | **Tier 0** | ✅ normalisation, tokenization, transliteration — 61 property tests passing. **Morphology blocked on A-07** |
+
+## Services (scaffold — pre-DEC-013)
 
 | Service | Capability | Depends on |
 | --- | --- | --- |
