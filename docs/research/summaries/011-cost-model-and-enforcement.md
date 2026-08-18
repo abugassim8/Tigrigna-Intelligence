@@ -8,7 +8,7 @@
 | **Status** | Current |
 | **Confidence** | High on arithmetic and CI; **cold start unmeasured, and it is decisive** |
 
-**One-line answer:** Tiering cuts standing resource cost **22×**, but **Tier 2's
+**One-line answer:** Tiering cuts standing resource cost **~14×** (measured), but **Tier 2's
 deployment mode cannot be decided yet** — the scale-to-zero break-even is as low
 as **~1 request/minute** if cold start is slow, and we have never measured it.
 Separately, a CI workflow is written for the decision-log rules nothing was
@@ -29,6 +29,19 @@ checking — **though it is not yet installed (A-15)**.
   | --- | ---: |
   | Merged, always warm | **1,162.9 GB-h/month** |
   | Tier 0 warm + Tier 2 to zero | **52.6 GB-h/month** + per-request |
+
+⚠️ **Corrected 2026-08-03, after Tier 0 was built and measured.** Tier 0 is
+**113.4 MB**, not the estimated 72 MB — one dependency (`epitran` → `panphon`)
+is the whole budget. The corrected arithmetic:
+
+| Shape | Standing cost |
+| --- | ---: |
+| Merged, always warm | **1,193.1 GB-h/month** |
+| Tier 0 warm + Tier 2 to zero | **82.8 GB-h/month** + per-request |
+
+**The saving is ~14×, not 22×.** The conclusion is unchanged — tiering still
+dominates — but the figure should not be quoted as 22×.
+
 
 - **⚠️ Tier 2's deployment mode is NOT decidable, and my first pass got it
   wrong.** I concluded scale-to-zero "wins across the whole plausible range" —
@@ -102,9 +115,9 @@ checking — **though it is not yet installed (A-15)**.
 
 | Metric | Value | Basis |
 | --- | --- | --- |
-| Tier 0 always-warm | **52.6 GB-h/month** | arithmetic |
+| Tier 0 always-warm | **82.8 GB-h/month** (measured 113.4 MB) | measured |
 | Tier 2 always-warm | **1,162.9 GB-h/month** | arithmetic |
-| **Standing-cost saving from tiering** | **22×** | arithmetic |
+| **Standing-cost saving from tiering** | **~14×** (was 22× on the pre-build estimate) | measured |
 | Break-even at 10 s cold start | 300 req/hour | arithmetic |
 | **Break-even at 60 s cold start** | **58 req/hour (~1/min)** | arithmetic |
 | CI checks passing locally | **5 of 5** | `[verified]` |

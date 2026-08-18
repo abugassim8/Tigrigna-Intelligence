@@ -45,6 +45,19 @@ Against the **DEC-013 counterfactual** — one merged always-warm process:
 **Tiering cuts standing resource-hours by 22× while keeping the latency-sensitive
 path warm.** DEC-013 was decided on the memory spread; it holds on cost too.
 
+⚠️ **Corrected 2026-08-03, after Tier 0 was built and measured.** Tier 0 is
+**113.4 MB**, not the estimated 72 MB — one dependency (`epitran` → `panphon`)
+is the whole budget. The corrected arithmetic:
+
+| Shape | Standing cost |
+| --- | ---: |
+| Merged, always warm | **1,193.1 GB-h/month** |
+| Tier 0 warm + Tier 2 to zero | **82.8 GB-h/month** + per-request |
+
+**The saving is ~14×, not 22×.** The conclusion is unchanged — tiering still
+dominates — but the figure should not be quoted as 22×.
+
+
 ## Finding 2 — ⚠️ Tier 2's deployment mode is **not** decidable yet, and I nearly said otherwise
 
 DEC-013 states Tier 2 "may scale to zero." Testing that against arithmetic

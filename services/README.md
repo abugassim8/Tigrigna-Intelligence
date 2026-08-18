@@ -24,6 +24,7 @@ replacement rather than a rewrite (**P-11**).
 | Package | Tier | Status |
 | --- | --- | --- |
 | [`primitives/`](primitives/) | **Tier 0** | ✅ normalisation, tokenization, transliteration — 61 property tests passing. **Morphology blocked on A-07** |
+| [`evaluation/`](evaluation/) | cross-cutting | ✅ chrF+BLEU, variety-scoped, CIs on by default — 14 tests passing. **No model run through it yet (A-09)** |
 
 ## Services (scaffold — pre-DEC-013)
 

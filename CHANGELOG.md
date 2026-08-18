@@ -22,6 +22,35 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Evaluation harness built; DEC-013 cost figures corrected — 2026-08-03
+
+**`services/evaluation/` implements DEC-009 and DEC-010 as enforced code rather
+than documented intent.** 14 tests passing.
+
+Two rules are made structurally unbreakable. **BLEU cannot be obtained alone** —
+`score()` always returns both metrics, because DEC-009 forbids reporting BLEU by
+itself and the cheapest enforcement is to make the alternative unrepresentable.
+**`aggregate()` raises** rather than warns, because a warning would be ignored
+exactly when it mattered: our two DEC-005 anchors appear to be in different
+varieties, so a combined score would describe a language nobody speaks.
+
+Confidence intervals are on by default. On three sentences the harness reports
+`chrF 59.33 [30.62, 88.05]` — which is the point, since a bare point estimate on
+a small set looks authoritative and is not.
+
+**A second real bug caught by tests:** sacrebleu returns numpy `float32`, which
+is not JSON-serialisable, so `save()` would have failed the first time anyone
+persisted a real evaluation run. Fixed at the source.
+
+**DEC-013's cost figures corrected against the Tier 0 measurement.** Tier 0 is
+113.4 MB rather than the estimated 72 MB, so the standing-cost saving from
+tiering is **~14×, not 22×** — 82.8 GB-h/month against 1,193.1. The conclusion
+is unchanged and the figure should no longer be quoted as 22×.
+
+**Status: the harness works; no model has been run through it.** Model weights
+are behind the egress block (A-09), so MADLAD-400-3B's Tigrinya quality — which
+appears to be unpublished — remains unmeasured.
+
 ### DEC-021 answered: primitive evaluation; DEC-023 — 2026-08-03
 
 **Most of the primitives layer is evaluable with no annotated data at all.**
