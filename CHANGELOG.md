@@ -22,6 +22,42 @@ first service is deployed.
 
 ## [Unreleased]
 
+### 07_api_mcp researched (partial); DEC-022 — 2026-08-03
+
+**Less was blocked than claimed — for the second time.** I said
+`04_model_strategy` was blocked on A-01 and it was not; the same test here gives
+the same answer. **A-02 blocks the API *surface* — which endpoints, which SDKs,
+whether MCP ships early — not the *contract*.** The contract is the part that is
+expensive to change once consumers depend on it, and it was decidable today.
+
+Three measurements drove **DEC-022**:
+
+**⚠️ Ethiopic Extended-B (U+1E7E0–U+1E7FF) is above the BMP.** On three core
+characters plus one Extended-B character, Python `len()` gives 4 and JavaScript
+`.length` gives 5 — same string, different offsets, silently, on characters
+unlikely to reach a test fixture. Absent from all five of our corpora, so a
+contract risk rather than a live bug. Offsets are therefore **code points, with
+the unit stated explicitly in the response.**
+
+**✅ Ge'ez is normalisation-stable** — 0 of 384 core characters change under
+NFC/NFD, so offsets do not shift under normalisation. An entire class of API bug
+does not exist here, which is not true of many scripts.
+
+**⚠️ DEC-007's analysis form is not guaranteed phonemic.** Its "384/384 coverage"
+is true for *non-empty* output, but only **310** characters are transliterated;
+**19 real characters** (16 syllables, 3 combining marks) return as raw Ge'ez, and
+three non-core blocks are entirely unmapped. Not a contradiction of Experiment
+001, which scoped to the core block honestly — **the implication was never
+drawn.** Corrected in DEC-007, Experiment 001, and stated as a contract clause.
+
+Also in the contract: **the 150× tier spread means endpoints cannot present
+uniform latency** (one timeout either aborts translations or hangs on tokenize),
+and **DEC-010 puts a mandatory variety label in the schema** with `unknown` as a
+first-class value rather than a null.
+
+**The surface remains undesigned** and waits on A-02. No API code should be
+written before DEC-021's primitive evaluation, since P-4 applies to endpoints too.
+
 ### 12_master_blueprint — the synthesis; DEC-021 — 2026-08-03
 
 **Reading eleven domains together surfaced something invisible from inside any

@@ -125,6 +125,14 @@ thin.
 | Building MVP primitives without evaluation | DEC-021 | 2026-08-03 | Violates P-4 directly — unmeasurable capabilities cannot be improved or defended, and failures could not be localised |
 | Treating the anchor/MVP mismatch as a sequencing accident | DEC-021 | 2026-08-03 | It is structural: DEC-005's anchors do not cover DEC-006's platform and never would have |
 
+| Deferring all of 07_api_mcp to A-02 | DEC-022 | 2026-08-03 | A-02 blocks the surface, not the contract — and the contract is the part that is expensive to change once consumers exist |
+| UTF-8 byte offsets | DEC-022 | 2026-08-03 | Natural in Python, wrong for every JS client; 3–4 bytes per Ge'ez character also makes them unreadable when debugging |
+| UTF-16 code-unit offsets | DEC-022 | 2026-08-03 | Natural in JS, wrong in Python, and inherits the surrogate-pair split precisely at Ethiopic Extended-B |
+| Leaving the offset unit implicit | DEC-022 | 2026-08-03 | The divergence is silent and appears only on rare characters — the worst failure profile available |
+| Uniform latency expectations across endpoints | DEC-022 | 2026-08-03 | A 150x spread; one client timeout either aborts valid translations or hangs on a tokenize call |
+| `null` for unknown Tigrinya variety | DEC-022 | 2026-08-03 | Invites clients to ignore the distinction DEC-010 exists to preserve; `unknown` is the common case, not an absence |
+| Describing the analysis form as phonemes | DEC-022 | 2026-08-03 | Measurably false for 19 real characters and for three entire Ethiopic blocks |
+
 <!--
 Add rejected options above this line. Every decision in DECISIONS.md should
 contribute at least one row — a decision with no rejected alternatives usually

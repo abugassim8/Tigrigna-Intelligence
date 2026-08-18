@@ -148,6 +148,14 @@ covering DEC-006's platform**. The next research is primitive evaluation, and it
 is blocked by nothing.
 → `013-state-of-play.md` · DEC-021
 
+### 014 — API response contract
+
+**A-02 blocks the surface, not the contract.** Deciding the contract found an
+offset trap above the BMP (JS and Python disagree on Extended-B), a favourable
+normalisation property (Ge'ez is NFC/NFD-stable), and that **DEC-007's analysis
+form is not guaranteed phonemic** — 19 real characters pass through unmapped.
+→ `014-api-response-contract.md` · DEC-022
+
 ## Turning findings into action
 
 Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)

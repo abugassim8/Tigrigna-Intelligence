@@ -84,6 +84,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-019 | 2026-08-03 | Tier 2 deployment mode set by measured duty cycle, not fixed in advance | Accepted |
 | DEC-020 | 2026-08-03 | Licence by artefact class: Apache-2.0 code, CC-BY-4.0 docs, inherit for data | Accepted — closes A-12 |
 | DEC-021 | 2026-08-03 | Extend evaluation anchors to the MVP primitives; next research is Tier 0 evaluation | Accepted |
+| DEC-022 | 2026-08-03 | API response contract: code-point offsets, surface verbatim, variety label, tier disclosed | Accepted |
 
 ---
 
@@ -527,7 +528,7 @@ decision's four requirements. It ships **`tir-Ethi`**, a dedicated Tigrinya map.
 | Requirement | Result |
 | --- | --- |
 | Decomposition | ✅ ካተበ → `katəbə` → consonants `[k,t,b]`, vowels `[a,ə,ə]`. The discontinuous root is extractable |
-| Coverage | ✅ 384/384 core Ethiopic characters |
+| Coverage | ✅ 384/384 core Ethiopic characters produce **non-empty** output — ⚠️ **refined 2026-08-03:** only **310** are transliterated to phonemes; 74 pass through, of which **19 are real characters** (16 syllables + 3 combining marks). Non-core blocks are **entirely** unmapped. See DEC-022 |
 | Tigrinya-specific | ✅ 59/384 (15.4%) differ from Amharic, and correctly (pharyngeal ħ, uvular q) |
 | **Lossless reversibility** | ❌ **384 chars → 362 outputs; 22 collisions** |
 
@@ -1593,6 +1594,94 @@ downstream fails.
 
 **Evidence:** `../research/summaries/013-state-of-play.md`; readiness audit
 `[verified]` 2026-08-03
+
+---
+
+## DEC-022 — The API response contract
+
+**Decision ID:** DEC-022 · **Date:** 2026-08-03 · **Status:** Accepted
+
+**Decision:**
+Every API and MCP response obeys this contract, independently of which endpoints
+eventually exist:
+
+1. **Offsets are Unicode code points**, and the response **states the unit
+   explicitly** (`"offset_unit": "codepoint"`). Never implicit.
+2. **The surface form is returned verbatim**, always. It is never reconstructed
+   from the analysis form (DEC-007).
+3. **The analysis form is declared non-phonemic.** It is a *mixed* string and
+   consumers must not assume phonemes.
+4. **A variety label is mandatory** on any analysis or score —
+   `eritrean` / `ethiopian` / `unknown`. **`unknown` is a first-class value, never
+   a null** (DEC-010).
+5. **The serving tier is disclosed**, and Tier 2 endpoints document cold-start
+   behaviour rather than hiding it in an average (DEC-013, DEC-019).
+
+**Context:**
+`07_api_mcp` was believed blocked on **A-02**. Testing that — after the same
+claim proved wrong for `04_model_strategy` — showed **A-02 blocks the *surface*
+(which endpoints, which SDKs, whether MCP ships), not the *contract***. The
+contract is the part that is expensive to change once consumers depend on it.
+
+Three measurements drove the clauses:
+
+- **Ethiopic Extended-B (U+1E7E0–U+1E7FF) is above the BMP.** On three core
+  characters plus one Extended-B character, Python `len()` gives **4** and
+  JavaScript `.length` gives **5**. Same string, different offsets, silently, on
+  characters unlikely to appear in a test fixture. **Absent from all our corpora
+  — a contract risk, not a live bug.**
+- **Ge'ez is normalisation-stable** — 0 of 384 core characters change under
+  NFC/NFD, so offsets do not shift under normalisation.
+- **epitran transliterates 310 of 384 core characters.** Of the 74
+  pass-throughs, 26 are unassigned and 29 are punctuation/digits (both correct),
+  but **16 real syllables and 3 combining marks** return as raw Ge'ez, and
+  Supplement / Extended-A / Extended-B are **entirely** unmapped.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | **Decide the contract now; defer the surface** | Settles the expensive half; the measurements are available today | Half a domain remains open |
+| B | Defer everything to A-02 | Simple | Leaves the hard-to-reverse part undecided while the easy part waits on a human |
+| C | UTF-8 byte offsets | Natural in Python | Wrong for every JS client; 3–4 bytes per character makes them unreadable |
+| D | UTF-16 code-unit offsets | Natural in JS | Wrong in Python, and inherits the surrogate split exactly at Extended-B |
+| E | Leave the offset unit implicit | Less schema | **The worst failure profile available** — silent, and only on rare characters |
+
+**Chosen:** Option A, with code-point offsets.
+
+**Reason:**
+Code points are the only unit where **neither** major client language is
+silently wrong; both can convert if they state the unit. Stating it explicitly
+costs one field and removes a class of bug that would otherwise surface as
+mysterious off-by-N errors in production, on the rarest characters.
+
+Clause 3 exists because **describing the analysis form as "phonemes" is
+measurably false** for 19 characters and for three whole blocks. A contract that
+overstates what it returns is worse than one that admits mixed content.
+
+Clause 5 exists because a **150× latency spread** cannot be presented uniformly:
+one client timeout either aborts valid translations or hangs on a tokenize call.
+
+**Consequences:**
+- *Positive:* The expensive half of the API is settled, on measurement, before
+  any consumer exists.
+- *Negative:* Slightly heavier responses — unit, tier, and variety fields on
+  every payload.
+- *Newly constrained:* **No endpoint may return an analysis form without also
+  returning the surface form**, and none may omit the variety label.
+- *Refines DEC-007:* its "384/384 coverage" is true for non-empty output but
+  must not be read as full phonemic coverage. Corrected in that record and in
+  Experiment 001.
+- *New work:* a **test fixture containing Extended-B**, so the offset contract is
+  exercised rather than assumed.
+- *Important limit:* **the surface is not designed** — endpoints, SDK order, and
+  whether MCP ships all wait on **A-02**. And no API code should be written until
+  DEC-021's primitive evaluation lands, since **P-4** applies to endpoints too.
+- *Revisit when:* A-02 lands, or the 19 unmapped characters are handled — possibly
+  by contributing them upstream to epitran (**G-11**).
+
+**Evidence:** `../research/summaries/014-api-response-contract.md`; encoding and
+epitran measurements `[verified]` 2026-08-03
 
 ---
 
