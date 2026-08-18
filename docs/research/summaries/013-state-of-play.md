@@ -48,15 +48,24 @@ next research is evaluation for the primitives, and it is blocked by nothing.
   **80% of summary claims carry `[verified]`**, 20% `[reported]` — the latter
   almost all paper-derived figures behind the egress block.
 
-- **Nothing has been built.** Three experiments, one screening tool, one
-  uninstalled CI workflow. Appropriate after eleven domains, and worth saying
-  plainly so document count is not mistaken for progress.
+- ~~**Nothing has been built.**~~ ⚠️ **Superseded 2026-08-03.** Tier 0 and the
+  evaluation harness are now built: **two packages, 75 tests passing**.
+
+  | Package | Status |
+  | --- | --- |
+  | `services/primitives` | ✅ normalisation, tokenization, transliteration. **Morphology blocked on A-07** |
+  | `services/evaluation` | ✅ chrF+BLEU, variety-scoped, CIs by default. **No model run through it (A-09)** |
+
+  **The tests caught two shipping bugs**: byte-level BPE emitted `[UNK]` on
+  unseen text (breaking DEC-022's verbatim-surface guarantee), and sacrebleu's
+  numpy `float32` broke JSON persistence. Both would have surfaced in
+  production.
 
 - **The critical path does not start where you would guess:**
 
   | # | Step | Blocked by |
   | --- | --- | --- |
-  | **1** | **Evaluation for the MVP primitives** | **nothing** |
+  | ~~1~~ | ~~Evaluation for the MVP primitives~~ ✅ **done** (DEC-023) | — |
   | 2 | Confirm DEC-002 (**A-02**) | a human |
   | 3 | `fgaim` licences (**A-01**) | a human |
   | 4 | HornMorpho (**A-07**) | a human |
@@ -108,7 +117,8 @@ next research is evaluation for the primitives, and it is blocked by nothing.
 | Verified share of summary claims | **80%** | `[verified]` |
 | Experiments reproducing byte-identically | **3 of 3** | `[verified]` |
 | Blocking actions, all needing a human | **3** | `[verified]` |
-| Services built | **0** | `[verified]` |
+| **Packages built** | **2** (75 tests passing) | `[verified]` |
+| Shipping bugs caught by those tests | **2** | `[verified]` |
 
 ## Recommended Next Steps
 

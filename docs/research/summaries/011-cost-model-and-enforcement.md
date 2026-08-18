@@ -22,25 +22,18 @@ checking — **though it is not yet installed (A-15)**.
   unverifiable from here and volatile. Cost is modelled in **GB-hours** and as
   **break-even rates** — arithmetic that stays true whatever anyone charges.
 
-- **Tiering cuts standing cost 22×** — DEC-013 was decided on the memory spread
+- **Tiering cuts standing cost ~14×** — DEC-013 was decided on the memory spread
   and holds on cost too:
 
   | Shape | Standing cost |
   | --- | ---: |
-  | Merged, always warm | **1,162.9 GB-h/month** |
-  | Tier 0 warm + Tier 2 to zero | **52.6 GB-h/month** + per-request |
+  | Merged, always warm | **1,193.1 GB-h/month** |
+  | Tier 0 warm + Tier 2 to zero | **82.8 GB-h/month** + per-request |
 
-⚠️ **Corrected 2026-08-03, after Tier 0 was built and measured.** Tier 0 is
-**113.4 MB**, not the estimated 72 MB — one dependency (`epitran` → `panphon`)
-is the whole budget. The corrected arithmetic:
-
-| Shape | Standing cost |
-| --- | ---: |
-| Merged, always warm | **1,193.1 GB-h/month** |
-| Tier 0 warm + Tier 2 to zero | **82.8 GB-h/month** + per-request |
-
-**The saving is ~14×, not 22×.** The conclusion is unchanged — tiering still
-dominates — but the figure should not be quoted as 22×.
+  ⚠️ **Revised after Tier 0 was built.** The pre-build estimate put Tier 0 at
+  72 MB and the saving at 22×. **Measured, Tier 0 is 113.4 MB** — one dependency
+  (`epitran` → `panphon`) is the whole budget. Conclusion unchanged; **22×
+  should not be quoted.**
 
 
 - **⚠️ Tier 2's deployment mode is NOT decidable, and my first pass got it
@@ -104,7 +97,7 @@ dominates — but the figure should not be quoted as 22×.
 | Alternative | Rejected because |
 | --- | --- |
 | Fixing Tier 2 as scale-to-zero now | Break-even is ~1 req/min at slow cold start — the answer depends on a number we have not measured |
-| Fixing Tier 2 as always-warm now | Equally unfounded in the other direction; at genuinely low volume it wastes 1,162.9 GB-h/month |
+| Fixing Tier 2 as always-warm now | Equally unfounded in the other direction; at genuinely low volume it wastes 1,193.1 GB-h/month |
 | Costing infrastructure in dollars | Vendor pricing is unverifiable here and volatile; GB-hours survive price changes |
 | Kubernetes / orchestration | Three tiers, one runtime, low volume — a continuous expense buying nothing (P-7) |
 | Leaving DEC-015/DEC-016 unenforced | DEC-008 already demonstrated what happens: silently ignored for three months |
@@ -116,7 +109,7 @@ dominates — but the figure should not be quoted as 22×.
 | Metric | Value | Basis |
 | --- | --- | --- |
 | Tier 0 always-warm | **82.8 GB-h/month** (measured 113.4 MB) | measured |
-| Tier 2 always-warm | **1,162.9 GB-h/month** | arithmetic |
+| Tier 2 always-warm | **1,193.1 GB-h/month** | arithmetic |
 | **Standing-cost saving from tiering** | **~14×** (was 22× on the pre-build estimate) | measured |
 | Break-even at 10 s cold start | 300 req/hour | arithmetic |
 | **Break-even at 60 s cold start** | **58 req/hour (~1/min)** | arithmetic |

@@ -36,6 +36,8 @@ left to be discovered later.
 
 | Check | Rule |
 | --- | --- |
+| `services/primitives` — 61 property tests | **DEC-023** (Tier 0 evaluation) |
+| `services/evaluation` — 14 harness tests | **DEC-009**, **DEC-010** |
 | Every experiment re-runs and diffs byte-identically | **DEC-016** |
 | Screening fails closed with no licence / no eval set | **DEC-015** |
 | The known-corrupted corpus still fails the quality gate | **DEC-015** |
@@ -47,7 +49,8 @@ left to be discovered later.
 
 All six checks were run by hand before commit, 2026-08-03:
 
-- 3 experiments reproduced byte-identically
+- 61 primitives tests and 14 evaluation tests passed
+- 4 experiments reproduced byte-identically
 - screening correctly failed closed
 - the known-corrupted sample was still detected
 - 10 summaries under the word limit

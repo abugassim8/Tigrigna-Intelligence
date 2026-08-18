@@ -6,6 +6,8 @@ name: verify
 #   DEC-015 — datasets carry a screening record
 #   DEC-001 — every research report has a summary
 #   DEC-001 — summaries stay within the two-page limit
+#   DEC-023 — Tier 0's intrinsic property tests pass (services/primitives)
+#   DEC-009/010 — the evaluation harness enforces its own rules
 #
 # DEC-008 spent three months as policy with no mechanism and was silently
 # ignored the whole time. This workflow exists so the newer rules do not
@@ -18,6 +20,25 @@ on:
   workflow_dispatch:
 
 jobs:
+  packages:
+    name: Tier 0 and evaluation packages
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [primitives, evaluation]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ${{ matrix.package }}
+        run: pip install --quiet -e "services/${{ matrix.package }}[dev]"
+
+      - name: Test ${{ matrix.package }}
+        run: pytest -q services/${{ matrix.package }}/tests
+
   reproducibility:
     name: DEC-016 — experiments reproduce byte-identically
     runs-on: ubuntu-latest

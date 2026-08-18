@@ -22,6 +22,23 @@ first service is deployed.
 
 ## [Unreleased]
 
+### CI extended to the packages; stale cost figures fixed in place — 2026-08-03
+
+`ci/verify.yml` predated both packages and did not test either. It now runs
+**`services/primitives` (61 tests)** and **`services/evaluation` (14 tests)** in a
+matrix alongside the experiment-reproducibility and documentation jobs. Verified
+locally; still awaiting install (**A-15**).
+
+**The 22× corrections were appended rather than applied**, leaving the original
+claims standing above them so the documents read as self-contradictory. Fixed in
+place: the tier table, the counterfactual, and the finding heading now all carry
+the measured figures (Tier 0 **113.4 MB**, saving **~14×**), with a single note
+recording that 22× came from the pre-build estimate and should not be quoted.
+
+**`013-state-of-play.md` said "nothing has been built"**, which stopped being
+true two commits ago. Superseded with the current position: two packages, 75
+tests, and two shipping bugs caught by those tests.
+
 ### Evaluation harness built; DEC-013 cost figures corrected — 2026-08-03
 
 **`services/evaluation/` implements DEC-009 and DEC-010 as enforced code rather
