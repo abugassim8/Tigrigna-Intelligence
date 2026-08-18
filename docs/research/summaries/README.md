@@ -156,6 +156,14 @@ normalisation property (Ge'ez is NFC/NFD-stable), and that **DEC-007's analysis
 form is not guaranteed phonemic** — 19 real characters pass through unmapped.
 → `014-api-response-contract.md` · DEC-022
 
+### 015 — Primitive evaluation
+
+**Most of the primitives layer is evaluable with no annotated data** — 3 of 4
+intrinsic properties hold, so **P-4 is satisfiable for Tier 0 today**. The
+fourth found a real error: surface↔analysis alignment must be **word-level**,
+not character-level (23.89% alignable). Corrects DEC-007 and DEC-022.
+→ `015-primitive-evaluation.md` · DEC-023
+
 ## Turning findings into action
 
 Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)

@@ -84,7 +84,8 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-019 | 2026-08-03 | Tier 2 deployment mode set by measured duty cycle, not fixed in advance | Accepted |
 | DEC-020 | 2026-08-03 | Licence by artefact class: Apache-2.0 code, CC-BY-4.0 docs, inherit for data | Accepted — closes A-12 |
 | DEC-021 | 2026-08-03 | Extend evaluation anchors to the MVP primitives; next research is Tier 0 evaluation | Accepted |
-| DEC-022 | 2026-08-03 | API response contract: code-point offsets, surface verbatim, variety label, tier disclosed | Accepted |
+| DEC-022 | 2026-08-03 | API response contract: code-point offsets, surface verbatim, variety label, tier disclosed | Accepted — **alignment clause corrected by DEC-023** |
+| DEC-023 | 2026-08-03 | Primitive evaluation is intrinsic-first; alignment is word-level (corrects DEC-007, DEC-022) | Accepted |
 
 ---
 
@@ -553,7 +554,10 @@ matching and output.
   morphological analysis, retrieval, and embeddings. **Lossy by design; that
   loss is normalisation.**
 - **Alignment offsets** maintained between them, so analysis results map back
-  onto surface spans.
+  onto surface spans. ⚠️ **Corrected 2026-08-03 (DEC-023): these are WORD-LEVEL
+  spans, not character offsets.** Character-level alignment is **measurably
+  impossible** — only 23.89% of words align, because epitran resolves epenthetic
+  `ɨ` from cross-character context supplying 16.3% of output symbols.
 - **Never reconstruct surface text from the analysis form.**
 
 **Revised consequences:**
@@ -1682,6 +1686,92 @@ one client timeout either aborts valid translations or hangs on a tokenize call.
 
 **Evidence:** `../research/summaries/014-api-response-contract.md`; encoding and
 epitran measurements `[verified]` 2026-08-03
+
+---
+
+## DEC-023 — Primitive evaluation is intrinsic-first; alignment is word-level
+
+**Decision ID:** DEC-023 · **Date:** 2026-08-03 · **Status:** Accepted
+**Corrects:** DEC-007, DEC-022 · **Answers:** DEC-021
+
+**Decision:**
+
+**(a) Primitives are evaluated intrinsically first.** Idempotence, determinism,
+reversibility, coverage, and alignment integrity are measured as **property tests
+over real text**, requiring no annotated data. Gold-standard evaluation is
+reserved for **accuracy**, which is the only property that needs it.
+
+**(b) Surface↔analysis alignment is WORD-LEVEL.** Offsets map word spans, not
+characters. **This corrects DEC-007's "alignment offsets" and DEC-022's
+code-point offset clause**, both of which assumed a character-level alignment
+that does not exist.
+
+**Context:**
+**DEC-021** asked how to evaluate the MVP primitives when no Tigrinya gold
+standard exists for any of them. Experiment 004 pre-committed four hypotheses:
+
+| Hypothesis | Prediction | Measured | Verdict |
+| --- | --- | --- | --- |
+| H1 — normalisation idempotent | 100% | 0 failures | ✅ |
+| H2 — transliteration deterministic | 100% | 0 failures | ✅ |
+| **H3 — character alignment recoverable** | ≥ 99% | **23.89%** | ❌ |
+| H4 — tokenization reversible | ≥ 99% | 100.00%, 0 `[UNK]` | ✅ |
+
+**Three of four hold, so P-4 is satisfiable for Tier 0 today.** H3's failure is
+the substantive finding: `ር` transliterates to `r` alone but `rɨ` inside ሃገርነት,
+because **Ge'ez 6th-order characters are ambiguous between "consonant + ɨ" and a
+bare consonant** and epitran resolves that from neighbours. Context supplies
+**1,375 of 8,430 output symbols — 16.3%**.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | **Intrinsic-first; word-level alignment** | Evaluable today with no annotation; alignment exact by construction | Catches *broken*, not *wrong*; morphology still needs gold data |
+| B | Build a Tigrinya primitives benchmark first | Enables accuracy measurement | Months of work (A-006) before anything can be evaluated at all |
+| C | Keep character-level offsets | Finest granularity | **Measurably impossible** — 23.89% |
+| D | Accept a tradeoff: offsets *or* phonology | Seemed to follow from H3 | **Refuted by measurement** — a false dilemma; see below |
+| E | Skip evaluation, build the primitives | Fastest | Violates P-4, and H3 is exactly the error that only checking finds |
+
+**Chosen:** Option A.
+
+**Reason:**
+Primitives differ from translation in a way that turns out to matter: **most of
+their correctness is a property of the function, not agreement with a human.**
+That makes Option B's cost avoidable for everything except accuracy.
+
+Option D deserves recording because **I proposed it and it was wrong.** The
+first reading of H3 framed a tradeoff between exact offsets and faithful
+phonemes. A follow-up measurement refuted it **before it reached this record**:
+
+- a word's transliteration is preserved inside a sentence: **1,639/1,639 (100%)**
+- prepending a character changes **0 of 1,635** tokens
+
+Epenthesis resolves **within a word**; nothing crosses word boundaries. So
+word-by-word transliteration gives **full fidelity *and* exact alignment**. The
+decisions asked for the wrong granularity, not for something unachievable.
+
+**Consequences:**
+- *Positive:* **P-4 is satisfied for Tier 0 now**, without building a benchmark.
+  Tier 0 becomes buildable.
+- *Positive:* the alignment layer gets **simpler** — word spans are exact by
+  construction, so no alignment algorithm is needed at all.
+- *Negative:* **no character-level offsets, ever**, with this transliterator.
+  Consumers wanting sub-word alignment cannot be served.
+- *⚠️ Important limit:* **intrinsic checks catch *broken*, not *wrong*.** A
+  transliterator returning deterministically incorrect phonemes passes H2
+  perfectly. These properties are necessary and nowhere near sufficient.
+- *Remaining gap:* **morphology still needs gold data** — but it is now **one**
+  capability needing annotation rather than four, which is what DEC-021 set out
+  to establish. Its intrinsic properties are also **untested**, because
+  HornMorpho is unresolved (**A-07**).
+- *Untested:* **embeddings**. Tier 1, and `tiroberta-bi-encoder` is monolingual,
+  so FLORES+ bitext retrieval does not directly apply.
+- *Revisit when:* a transliterator exposing character alignment appears, or
+  morphological gold data exists.
+
+**Evidence:** `../research/summaries/015-primitive-evaluation.md`;
+`experiments/004-primitive-evaluation/` `[verified]` 2026-08-03
 
 ---
 

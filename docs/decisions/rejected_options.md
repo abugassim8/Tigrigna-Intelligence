@@ -133,6 +133,12 @@ thin.
 | `null` for unknown Tigrinya variety | DEC-022 | 2026-08-03 | Invites clients to ignore the distinction DEC-010 exists to preserve; `unknown` is the common case, not an absence |
 | Describing the analysis form as phonemes | DEC-022 | 2026-08-03 | Measurably false for 19 real characters and for three entire Ethiopic blocks |
 
+| Building a Tigrinya primitives benchmark before evaluating anything | DEC-023 | 2026-08-03 | Months of work (A-006) when three of four intrinsic properties are measurable today with no annotation |
+| Character-level surface<->analysis offsets | DEC-023 | 2026-08-03 | Measurably impossible — 23.89% of words align; epitran resolves epenthetic vowels from cross-character context supplying 16.3% of output |
+| Accepting a tradeoff between alignment and phonology | DEC-023 | 2026-08-03 | A false dilemma I proposed and then refuted by measurement — word-level gives exact alignment AND full fidelity (1,639/1,639 preserved in context) |
+| Treating intrinsic properties as sufficient evaluation | DEC-023 | 2026-08-03 | They catch broken, not wrong; a deterministically incorrect transliterator passes every one of them |
+| Skipping evaluation and building the primitives directly | DEC-023 | 2026-08-03 | Violates P-4 — and H3 is precisely the class of error that surfaces only when you check |
+
 <!--
 Add rejected options above this line. Every decision in DECISIONS.md should
 contribute at least one row — a decision with no rejected alternatives usually

@@ -73,5 +73,7 @@ those are the ones nobody writes up, and the ones most likely to be repeated.
 | `002-tokenizer-fertility` | Does decomposition lower BPE token fertility? | **No — it raises it ~8%.** Raw Ge'ez won 10/10 configs, 5/5 folds. Refuted DEC-007's token-efficiency rationale |
 | `003-metric-validity` | Are standard MT metrics valid for Tigrinya? | **BLEU is ~8% harsher, not catastrophic.** All 4 hypotheses refuted, all 4 directions correct. chrF adopted primary (DEC-009) |
 
-**All three emit `results.json` and reproduce byte-identically** (DEC-016,
+| `004-primitive-evaluation` | Can the MVP primitives be evaluated without a gold standard? | **Yes — 3 of 4 intrinsic properties hold.** The 4th refuted character-level alignment (23.89%), correcting DEC-007 and DEC-022 to word-level spans |
+
+**All four emit `results.json` and reproduce byte-identically** (DEC-016,
 verified 2026-08-03).

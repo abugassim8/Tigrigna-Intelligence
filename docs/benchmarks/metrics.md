@@ -1,6 +1,6 @@
 # Metrics
 
-> **Status: translation metrics selected and validated** (DEC-009, 2026-08-03).
+> **Status: translation validated (DEC-009); Tier 0 primitives validated intrinsically (DEC-023).**
 > Remaining capabilities are still unresearched — those rows are a scaffold, not
 > a recommendation.
 >
@@ -44,15 +44,15 @@ finding to record rather than a problem to route around.
 | Capability | Metric | Validated for Tigrinya | Baseline | Notes |
 | --- | --- | --- | --- | --- |
 | Translation | **chrF** (primary) + **BLEU** (comparability only) | **Yes — measured** | NLLB-3.3B COMET 0.82 ET / 0.80 ER `[reported]` | DEC-009. Never report BLEU alone. Harness must run **both** MADLAD-3B (shippable) and NLLB (comparison-only, NC-licensed) — DEC-011 |
-| Embeddings / similarity | TBD | No | — | Not yet researched |
+| Embeddings / similarity | TBD | No | — | **Tier 1 — untested.** Monolingual encoder, so FLORES+ bitext retrieval does not apply |
 | Semantic search | TBD | No | — | Not yet researched |
 | Cross-language retrieval | TBD | No | — | Not yet researched |
-| Tokenization | TBD | No | — | Not yet researched |
-| Morphological analysis | TBD | No | — | Not yet researched |
+| Tokenization | **Reversibility** + fertility + UNK rate | **Yes — intrinsic** | see DEC-023 | Property tests, no gold data (exp 004) |
+| Morphological analysis | Consistency + coverage *(accuracy needs gold data)* | **Yes — intrinsic** | see DEC-023 | Property tests, no gold data (exp 004) |
 | Lemmatization | TBD | No | — | Not yet researched |
 | Spell correction | TBD | No | — | Not yet researched |
 | Grammar checking | TBD | No | — | Not yet researched |
-| Transliteration | TBD | No | — | Not yet researched |
+| Transliteration | **Determinism** + coverage + word-level alignment | **Yes — intrinsic** | see DEC-023 | Property tests, no gold data (exp 004) |
 | NER | TBD | No | — | Not yet researched |
 | Entity linking | TBD | No | — | Not yet researched |
 | Summarization | TBD | No | — | Not yet researched |

@@ -22,6 +22,45 @@ first service is deployed.
 
 ## [Unreleased]
 
+### DEC-021 answered: primitive evaluation; DEC-023 — 2026-08-03
+
+**Most of the primitives layer is evaluable with no annotated data at all.**
+Primitives differ from translation in a way that matters: much of their
+correctness is a property of the *function* — idempotence, determinism,
+reversibility, coverage, alignment integrity — rather than agreement with a
+human. Only **accuracy** needs gold data.
+
+Experiment 004 pre-committed four hypotheses; **three hold**: normalisation is
+idempotent (0 failures), transliteration is deterministic (0 failures),
+tokenization round-trips at **100.00%** with zero `[UNK]`. Coverage is **99.72%**
+of character tokens. **P-4 is therefore satisfiable for Tier 0 today**, without
+building the benchmark A-006 anticipated.
+
+**⚠️ The fourth hypothesis failed, and found a real error in two accepted
+decisions.** DEC-007 requires surface↔analysis alignment offsets and DEC-022 made
+them an API contract clause — **both assumed character-level alignment, which is
+measurably impossible at 23.89%.** `ር` transliterates to `r` alone but `rɨ`
+inside ሃገርነት, because Ge'ez 6th-order characters are ambiguous between
+"consonant + ɨ" and a bare consonant and epitran resolves that from neighbours.
+Context supplies **1,375 of 8,430 output symbols — 16.3%**.
+
+**The fix is granularity, not engineering — and the first reading was wrong.**
+I framed it as a tradeoff between exact offsets and faithful phonemes; a
+follow-up measurement refuted that **before it reached a decision record**: a
+word's transliteration is preserved inside a sentence **1,639/1,639 (100%)**, and
+prepending a character changes **0 of 1,635** tokens. Epenthesis resolves within
+a word. So **word-level spans give exact alignment *and* full fidelity** — the
+decisions asked for the wrong granularity, not the impossible.
+
+**DEC-023** records both: intrinsic-first evaluation, and word-level alignment
+correcting DEC-007 and DEC-022. `metrics.md` now has validated rows for
+tokenization, transliteration, and morphology.
+
+**Stated plainly:** intrinsic checks catch **broken, not wrong**. A
+deterministically incorrect transliterator passes all of them. **Morphology still
+needs gold data** — but it is now one capability needing annotation rather than
+four, which is what DEC-021 set out to establish. Embeddings remain untested.
+
 ### 07_api_mcp researched (partial); DEC-022 — 2026-08-03
 
 **Less was blocked than claimed — for the second time.** I said
