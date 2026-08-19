@@ -86,6 +86,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-021 | 2026-08-03 | Extend evaluation anchors to the MVP primitives; next research is Tier 0 evaluation | Accepted |
 | DEC-022 | 2026-08-03 | API response contract: code-point offsets, surface verbatim, variety label, tier disclosed | Accepted — **alignment clause corrected by DEC-023** |
 | DEC-023 | 2026-08-03 | Primitive evaluation is intrinsic-first; alignment is word-level (corrects DEC-007, DEC-022) | Accepted — **evidence corrected by Amendment 1** |
+| DEC-024 | 2026-08-19 | Load-bearing figures are registered; retired figures are machine-checked | Accepted |
 
 ---
 
@@ -1047,7 +1048,8 @@ cold start on every request.
 
 **Reason:**
 The cold-start tension is **only unresolvable if the tiers are merged**. Split,
-each tier takes the deployment mode that suits it: Tier 0 is cheap enough (72 MB)
+each tier takes the deployment mode that suits it: Tier 0 is cheap enough
+(113.4 MB measured; 72 MB was the estimate here)
 to stay warm and serves the latency-sensitive calls; Tier 2 may scale to zero
 because translation is a seconds-scale operation whose users already expect to
 wait. **An architectural problem becomes a deployment parameter.**
@@ -1500,7 +1502,8 @@ exactly what fixing Option A blindly would produce.
   survives changes in vendor, price, and model.
 - *Negative:* Cannot finalise deployment until **A-14** is measured.
 - *Does not affect DEC-013:* tiering itself stands on the 150× memory spread and
-  the 22× standing-cost saving. **Only Tier 2's mode is contingent.**
+  the standing-cost saving (**~14×** measured; 22× was the pre-build estimate).
+  **Only Tier 2's mode is contingent.**
 - *Newly constrained:* **A-14 blocks the deployment target choice**, which also
   waits on A-02.
 - *Revisit when:* cold start is measured, or the model or runtime changes enough
@@ -1797,12 +1800,17 @@ Option D deserves recording because **I proposed it and it was wrong.** The
 first reading of H3 framed a tradeoff between exact offsets and faithful
 phonemes. A follow-up measurement refuted it **before it reached this record**:
 
-- a word's transliteration is preserved inside a sentence: **1,639/1,639 (100%)**
-- prepending a character changes **0 of 1,635** tokens
+- ~~a word's transliteration is preserved inside a sentence: **1,639/1,639
+  (100%)**~~ ⚠️ **RETRACTED by Amendment 1 — the real figure is 95.47%.**
+- prepending a character changes **0 of 1,635** tokens *(holds; re-measured at
+  0 of 1,565)*
 
-Epenthesis resolves **within a word**; nothing crosses word boundaries. So
-word-by-word transliteration gives **full fidelity *and* exact alignment**. The
-decisions asked for the wrong granularity, not for something unachievable.
+~~Epenthesis resolves **within a word**; nothing crosses word boundaries. So
+word-by-word transliteration gives **full fidelity *and* exact alignment**.~~
+⚠️ **The fidelity half is retracted** — see Amendment 1. Word-by-word gives
+**exact alignment**, and is correct because the running-text form depends on
+arbitrarily distant text, not because the two agree. The decisions asked for the
+wrong granularity, not for something unachievable.
 
 **Consequences:**
 - *Positive:* **P-4 is satisfied for Tier 0 now**, without building a benchmark.
@@ -1889,6 +1897,74 @@ spans remain exact by construction.
   cannot recur silently.
 
 **Evidence:** `experiments/005-word-boundary-epenthesis/` `[verified]` 2026-08-18
+
+---
+
+## DEC-024 — Load-bearing figures are registered, and retired ones are checked
+
+**Decision ID:** DEC-024 · **Date:** 2026-08-19 · **Status:** Accepted
+**Enforces:** the correction discipline DEC-018 applies to rules
+
+**Decision:**
+Every load-bearing figure lives in **`docs/figures.json`** with its current
+value, its basis, and any **retired** predecessors. `scripts/check_figures.py`
+fails CI when a retired figure is quoted as current — that is, when it appears
+without a retraction marker within 8 lines.
+
+**Context:**
+**Three figures were corrected in one place and left standing in others.** Each
+was found by hand, weeks apart, and each sweep missed files the next one caught:
+
+| Figure | Retired to | Files still asserting it when found |
+| --- | --- | ---: |
+| Tier 0 footprint **72 MB** | 113.4 MB | **5** |
+| Tiering saving **22×** | ~14× | **4** |
+| Transliteration preserved **1,639/1,639** | 95.47% | **3** |
+| Coverage **99.72%** | 100.00% | **2** |
+
+The final sweep found live claims in `docs/architecture/system_overview.md`, a
+file never touched during any of the corrections that caused them. **Partial
+correction is worse than no correction**: a document asserting a withdrawn
+number reads as authoritative, and the reader has no way to know it is stale.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | Keep correcting by hand | No new machinery | **The measured failure rate is 4 for 4** — every figure corrected so far was left standing somewhere |
+| B | **Registry + CI check** | Catches the demonstrated failure; the registry doubles as a lookup table | Markers are heuristic; a determined author can satisfy them without retracting |
+| C | Single-source every figure and transclude it | No duplication possible | No transclusion in plain Markdown; would require a build step (**P-7**) |
+| D | Forbid quoting figures outside the registry | Airtight | Unreadable prose; nobody would comply |
+
+**Chosen:** Option B.
+
+**Reason:**
+The failure is **demonstrated and repeated**, not hypothetical — which is
+exactly the bar DEC-018 sets for turning a habit into a mechanism. Option A has
+a measured 100% failure rate. Option C is the correct answer in a system with a
+documentation build, and this project deliberately has none (**P-7**).
+
+The markers are generous on purpose. A noisy check gets switched off, and a
+switched-off check is the **DEC-008** failure this is meant to prevent. **The
+cost of that generosity is real and is not hidden: this catches oversight, not
+intent.**
+
+**Consequences:**
+- *Positive:* `docs/figures.json` is a single place to answer "what is the
+  current value of X, and what did it used to be?"
+- *Positive:* retiring a figure becomes a deliberate act with a place to record
+  the reason and date.
+- *Negative:* one more file to update, and the check can be satisfied
+  superficially by writing a marker word nearby.
+- *Newly constrained:* **a figure must be retired in the registry in the same
+  change that corrects it**, or CI fails on the very edit that fixes it.
+- *Limit:* the check does **not** verify that current figures are right —
+  nothing here re-derives a measurement.
+- *Revisit when:* the registry exceeds ~30 figures, or a documentation build
+  exists and Option C becomes available.
+
+**Evidence:** the four retirements above `[verified]` 2026-08-19; negative
+control planted and caught before commit.
 
 ---
 

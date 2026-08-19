@@ -71,7 +71,7 @@ compose.
 | --- | --- |
 | **Measured** | Ge'ez expansion 1.957× · BLEU 1.08× harsher on ti · chrF retains 1.80× at 30% corruption · tokenizer fertility (raw Ge'ez wins 10/10) · corpus 67,153 rows · TiQuAD contamination **confirmed** · 3 experiments reproduce byte-identically |
 | **Verified fact** | Every licence in the stack · MADLAD/NLLB parameter counts · CTranslate2 architecture support · 15,053 cleanly-licensed documents · **0** cleanly-licensed parallel sentences |
-| **Arithmetic** | Tier footprints (72/191/1,593 MB) · 22× standing-cost saving · LoRA 23× cheaper · break-even curves |
+| **Arithmetic** | Tier footprints (191/1,593 MB; Tier 0 measured 113.4 MB) · ~14× standing-cost saving · LoRA 23× cheaper · break-even curves |
 | **Designed, unbuilt** | Evaluation harness · service tiers · screening in CI · every service |
 | **Assumed, untested** | MADLAD's Tigrinya quality · Tier 2 cold start · 2 s service time · COMET's validity · that DEC-002's user model is right |
 

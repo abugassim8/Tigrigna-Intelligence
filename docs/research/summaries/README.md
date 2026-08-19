@@ -126,7 +126,7 @@ cheaper than a full fine-tune. From-scratch is foreclosed by A-002.
 
 ### 011 — Infrastructure: cost model and enforcement
 
-Tiering cuts standing resource cost **22×**. But **Tier 2's deployment mode is
+Tiering cuts standing resource cost **~14×** (22× was the pre-build estimate). But **Tier 2's deployment mode is
 not decidable yet** — break-even is as low as **~1 req/min** if cold start is
 slow, and it is unmeasured (**A-14**). CI now enforces the five decision-log
 rules that nothing was checking.

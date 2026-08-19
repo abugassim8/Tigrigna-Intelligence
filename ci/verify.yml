@@ -199,6 +199,9 @@ jobs:
           done
           exit $fail
 
+      - name: No retired figure is quoted as current (DEC-024)
+        run: python scripts/check_figures.py
+
       - name: Every decision names its rejected alternatives
         run: |
           set -euo pipefail

@@ -54,7 +54,7 @@ real corpus text.**
 | **H3 — character alignment recoverable** ⭐ | ≥ 99% | **23.89%** | ❌ |
 | H4 — tokenization losslessly reversible | ≥ 99% | **100.00%**, 0 `[UNK]` | ✅ |
 
-**Coverage: 99.72%** of character tokens transliterated (4,273/4,285). The only
+**Coverage: 99.72%** of character tokens transliterated (4,273/4,285). ⚠️ **Misleading denominator** — the five misses are **digits**, which should pass through. Over Ethiopic *letters* it is **100.00%**. The only
 five pass-through characters are **Latin digits** — correct behaviour.
 
 **Normalisation collapses 4 unique forms**, independently matching the 4/496

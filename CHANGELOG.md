@@ -22,6 +22,40 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Figures registered and machine-checked; 10 stale claims found — 2026-08-19
+
+**Correcting a figure in one place and leaving it standing in others has now
+happened four times out of four.** Each was found by hand, weeks apart, and each
+sweep missed files the next one caught:
+
+| Figure | Retired to | Files still asserting it |
+| --- | --- | ---: |
+| Tier 0 footprint **72 MB** | 113.4 MB | **5** |
+| Tiering saving **22×** | ~14× | **4** |
+| Preserved **1,639/1,639** | 95.47% | **3** |
+| Coverage **99.72%** | 100.00% | **2** |
+
+This sweep found live claims in `docs/architecture/system_overview.md` and
+`infrastructure_architecture.md` — **files never touched by any of the
+corrections that caused them**, still stating 72 MB and 22× as current. Ten live
+claims fixed in total, including one inside DEC-023's own body, where the
+retracted figure stood un-struck above its own amendment.
+
+**`docs/figures.json`** now registers every load-bearing figure with its value,
+basis, and retired predecessors; **`scripts/check_figures.py`** fails CI when a
+retired figure appears without a retraction marker nearby. `--list` prints the
+register, so it doubles as the answer to "what is X now, and what was it?"
+
+**A negative control was planted and caught** — three violations in a scratch
+file — before the check was trusted. A check nobody has seen fail is worth
+nothing, which is the lesson experiment 005 taught the hard way.
+
+**Stated limits, not buried:** the markers are heuristic and deliberately
+generous, because a noisy check gets switched off and a switched-off check is
+the DEC-008 failure this prevents. **It catches oversight, not intent**, and it
+does **not** verify that current figures are correct — nothing re-derives a
+measurement. → **DEC-024**
+
 ### Tier 0's latency measured; DEC-016 amended for experiments that measure time — 2026-08-19
 
 Two inputs to the DEC-019 break-even model were **assumed**: cold start (a free
@@ -311,7 +345,9 @@ unverifiable from this environment and volatile, so cost is modelled in
 
 **Tiering cuts standing resource cost 22×**: 52.6 GB-h/month for a warm Tier 0
 against 1,162.9 GB-h/month for one merged always-warm process. DEC-013 was
-decided on the memory spread and holds on cost too.
+decided on the memory spread and holds on cost too. ⚠️ **Superseded — Tier 0
+measured at 113.4 MB, so the saving is ~14× (82.8 vs 1,193.1 GB-h/month). The
+conclusion holds; 22× should not be quoted.**
 
 **⚠️ A correction.** A first pass concluded scale-to-zero for Tier 2 "wins across
 the whole plausible range." **That was wrong and contradicted the table it

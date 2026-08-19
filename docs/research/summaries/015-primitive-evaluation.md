@@ -32,7 +32,8 @@ must be **word-level, not character-level**.
   | **H3 — character alignment recoverable** ⭐ | ≥ 99% | **23.89%** | ❌ |
   | H4 — tokenization losslessly reversible | ≥ 99% | **100.00%**, 0 `[UNK]` | ✅ |
 
-  Coverage **99.72%**; the only 5 pass-through characters are Latin digits.
+  Coverage **100.00%** of Ethiopic letters. *(The 99.72% first reported was
+  diluted by 5 Latin digits, which correctly pass through.)*
   Normalisation collapses **4** unique forms — independently matching
   Experiment 003's 4/496 on different text.
 

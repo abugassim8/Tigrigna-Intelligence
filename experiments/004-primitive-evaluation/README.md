@@ -113,7 +113,7 @@ Deterministic. Emits `results.json` per **DEC-016**.
 
 Corpus: 4 cleanly-licensed files, 1,635 words, 1,034 unique.
 
-**Coverage:** 99.72% of character tokens transliterated (4,273/4,285). The only
+**Coverage:** 99.72% of character tokens transliterated (4,273/4,285). ⚠️ **This denominator is misleading** — the five misses are **digits**, which correctly pass through. Over Ethiopic *letters* coverage is **100.00%** (see `tigrinya_eval.primitives.check_coverage`). The only
 5 distinct pass-through characters are **Latin digits** (`1 9 6 0 7`) — correct
 behaviour.
 

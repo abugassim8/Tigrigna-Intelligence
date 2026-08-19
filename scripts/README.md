@@ -52,4 +52,13 @@ disentangle.
 
 ## Status
 
-**Empty.** No pipelines exist yet.
+Two scripts, both enforcement rather than pipeline.
+
+| Script | Purpose | Enforces |
+| --- | --- | --- |
+| `data_processing/screen_dataset.py` | Runs DEC-008's four screening gates over a corpus; fails closed with no licence or eval set | **DEC-015** |
+| `check_figures.py` | Fails when a retired figure is quoted as current; `--list` prints the register in `docs/figures.json` | **DEC-024** |
+
+Both run in CI (`ci/verify.yml`), which is **not yet installed** — see **A-15**.
+
+No data pipelines exist yet.

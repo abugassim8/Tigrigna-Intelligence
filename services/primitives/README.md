@@ -48,8 +48,12 @@ character, which is the structure BPE would otherwise have to learn.
 *measurably impossible*: only **23.89%** of words align, because Ge'ez 6th-order
 characters are ambiguous between "consonant + ɨ" and a bare consonant and epitran
 resolves that from neighbours — context supplies **16.3%** of output symbols. But
-epenthesis resolves *within* a word (a word's transliteration is preserved in a
-sentence **1,639/1,639** times), so word spans are exact *and* fully faithful.
+word spans are **exact by construction** — the analysis form *is* the
+concatenation. ⚠️ They are **not** fully faithful to epitran's running-text
+output: that claim rested on a containment test and is retracted (DEC-023
+Amendment 1). Measured by exact equality, word-by-word matches running text for
+**95.47%** of tokens; word-by-word is correct because the running-text form
+depends on text arbitrarily far away and so cannot be a stable contract.
 
 **Offsets are code points, and the unit is stated in the response** (DEC-022).
 Ethiopic Extended-B lies above the BMP, so JavaScript `.length` and Python `len`

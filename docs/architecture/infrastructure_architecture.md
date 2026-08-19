@@ -95,11 +95,11 @@ is modelled in **resource-hours**. The arithmetic survives price changes.
 
 | Tier | Footprint | Always-warm |
 | --- | ---: | ---: |
-| **0** — primitives | 0.072 GB | **52.6 GB-h/month** |
+| **0** — primitives | **0.113 GB** *(measured; 0.072 GB was the estimate)* | **82.8 GB-h/month** |
 | **1** — + embeddings | 0.191 GB | 139.4 GB-h/month |
 | **2** — + translation | 1.593 GB | **1,162.9 GB-h/month** |
 
-**Tiering (DEC-013) cuts standing resource-hours by 22×** versus one merged
+**Tiering (DEC-013) cuts standing resource-hours by ~14×** versus one merged
 always-warm process, while keeping the latency-sensitive path warm.
 
 ## Deployment mode — a rule, not a choice
@@ -171,4 +171,4 @@ CI. Everything else is premature.
 | --- | --- | --- | --- |
 | CI enforces checkable rules | DEC-018 | 2026-08-03 | Six rules implemented and locally verified — ⚠️ **not installed (A-15)** |
 | Tier 2 mode by measured duty cycle | DEC-019 | 2026-08-03 | Rule stated; input (**A-14**) still missing |
-| Tier by resource profile | DEC-013 | 2026-08-03 | 22× standing-cost saving confirms it |
+| Tier by resource profile | DEC-013 | 2026-08-03 | ~14× standing-cost saving confirms it (22× was the pre-build estimate) |

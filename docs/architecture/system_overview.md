@@ -53,11 +53,11 @@ Grouping by resource profile makes each tier scale on its own economics.
 
 | Tier | Components | Footprint | Backing |
 | --- | --- | ---: | --- |
-| **0** | normalisation · tokenization · transliteration · morphology | **72 MB** | pure computation + small tables |
+| **0** | normalisation · tokenization · transliteration · morphology | **113.4 MB** *(measured; 72 MB was the pre-build estimate)* | pure computation + small tables |
 | **1** | embeddings | **+119 MB** | `fgaim/tiroberta-bi-encoder` (Apache-2.0) |
 | **2** | translation | **+1,402 MB** | `google/madlad400-3b-mt` (Apache-2.0, DEC-011) |
 
-**Cumulative:** Tier 0 = 72 MB · Tier 0+1 = **191 MB** · Tier 0+1+2 = 1,593 MB.
+**Cumulative:** Tier 0 = **113.4 MB** (measured; the 72 MB estimate is superseded) · Tier 0+1 = **232 MB** · Tier 0+1+2 = 1,634 MB.
 
 **Tier 0 + Tier 1 is exactly the DEC-006 minimum viable platform.** Adding
 translation multiplies the footprint by **8.3×** — the boundary is a cost cliff,
@@ -123,7 +123,7 @@ Boundaries follow tiers, not domains (**DEC-013**). Consequences:
 
 | Tier | Mode | Rationale |
 | --- | --- | --- |
-| **0** (72 MB) | **Always warm**, trivially replicated | Cheap enough that idle cost is negligible; serves latency-sensitive calls |
+| **0** (113.4 MB measured; 72 MB estimated) | **Always warm**, trivially replicated | Cheap enough that idle cost is negligible; serves latency-sensitive calls. Call `warmup()` at boot — lazy loading defers 3.0 s onto the first caller |
 | **1** (191 MB) | Warm, moderate replication | Embedding calls are interactive |
 | **2** (1,593 MB) | **Lazily loaded; may scale to zero** | Translation is seconds-scale; users already expect to wait, so cold start is proportionally far less damaging |
 
