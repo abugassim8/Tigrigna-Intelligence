@@ -22,6 +22,49 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Tier 0's latency measured; DEC-016 amended for experiments that measure time — 2026-08-19
+
+Two inputs to the DEC-019 break-even model were **assumed**: cold start (a free
+parameter, 1–60 s) and service time (~2 s). Tier 0 is built, so
+`experiments/006-tier0-latency/` measured its half.
+
+| Input | Assumed | Measured (Tier 0) |
+| --- | --- | ---: |
+| Cold start | 1–60 s | **3.03 s** |
+| Service time | ~2 s | **0.045 ms** |
+| Break-even | 58–1,200 req/hour | **1,187 req/hour** |
+
+**98.7% of that cold start is `epitran` loading** — our own import is 40 ms. The
+same dependency is 107.4 MB of the 113.4 MB footprint, so footprint and latency
+independently point at one lever. The `lru_cache` is **238.7×**, which
+experiment 005 had already shown to be sound.
+
+⚠️ **This does not close A-14 and does not refute the 2 s figure.** A-14 asks
+for **Tier 2**, which needs a model this environment cannot fetch (**A-09**),
+and the 2 s was a Tier 2 assumption that Tier 0 says nothing about. What it
+shows is that **the model swings ~20× on a guessed parameter** — and Tier 2's
+is still guessed. Tier 0 is kept warm regardless, so nothing operational
+changes.
+
+**All four hypotheses confirmed, which is the weakest outcome so far.**
+Experiments 002, 003 and 005 each refuted something. Here the thresholds
+(< 5 s, < 50 ms, ≥ 10×) were cleared by one to four orders of magnitude — a
+prediction beaten by 44,000× was not a real test. The magnitudes carry the
+weight, not the verdicts.
+
+**Code change:** lazy loading defers all 3.0 s onto the first caller, so
+`tigrinya_primitives.warmup()` now exists for an always-warm service to call at
+boot rather than being warm-except-once.
+
+**DEC-016 Amendment 1** — a timing experiment cannot reproduce byte-identically,
+which the original rule did not anticipate. `results.json` now declares
+`"deterministic": true|false`; CI byte-compares the former and only requires the
+latter to run and emit an artefact. **The stated cost is that a
+non-deterministic experiment gets no drift detection**, so the flag is only for
+genuinely variable quantities. Gating CI on a timing-derived verdict was
+considered and rejected — a loaded runner would flip it, and a check that fails
+for unrelated reasons is one people learn to ignore.
+
 ### Intrinsic evaluation for Tier 0, and DEC-023's supporting measurement retracted — 2026-08-18
 
 **The evaluation service scored translation only — the one capability DEC-006

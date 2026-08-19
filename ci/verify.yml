@@ -101,6 +101,17 @@ jobs:
             cp "$dir/results.json" "/tmp/$name.expected.json"
             ( cd "$dir" && python run.py > /dev/null )
 
+            # DEC-016 Amendment 1: an experiment measuring a genuinely variable
+            # quantity declares itself non-deterministic. It still has to run
+            # and emit an artefact; it is not byte-compared, and it gets no
+            # drift detection in exchange.
+            if python -c "import json,sys; sys.exit(0 if json.load(open('$dir/results.json')).get('deterministic', True) else 1)"; then
+              :
+            else
+              echo "$name: declared non-deterministic — ran and emitted an artefact, not byte-compared"
+              continue
+            fi
+
             if diff -q "/tmp/$name.expected.json" "$dir/results.json" > /dev/null; then
               echo "$name: reproduced byte-identically"
             else

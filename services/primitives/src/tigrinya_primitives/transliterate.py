@@ -72,6 +72,22 @@ _UNMAPPED_BLOCKS = (
 )
 
 
+def warmup() -> None:
+    """Load the transliterator now, so the first real request does not.
+
+    `_epi()` below is lazy, which is right for a library — importing this
+    module should not cost a model load. But measurement showed what that
+    defers: **loading epitran takes ~3.0 s and is 98.7% of Tier 0's cold
+    start** (experiment 006). Lazily, the *first caller* pays all of it.
+
+    DEC-013 keeps Tier 0 always warm, so a service wrapping this should call
+    `warmup()` at boot and be genuinely warm rather than warm-except-once.
+
+    Idempotent and cheap after the first call.
+    """
+    _epi()
+
+
 @functools.lru_cache(maxsize=1)
 def _epi():
     """Load epitran lazily.

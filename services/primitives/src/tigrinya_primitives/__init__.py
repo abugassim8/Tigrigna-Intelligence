@@ -29,7 +29,7 @@ contract), DEC-023 (intrinsic evaluation, word-level spans).
 
 from .types import Analysis, OffsetUnit, Span, Variety
 from .normalise import NORMALISED_CHARS, is_normalised, normalisation_diff, normalise
-from .transliterate import transliterate, transliterate_word
+from .transliterate import transliterate, transliterate_word, warmup
 from .tokenize import DEFAULT_VOCAB_SIZE, Fertility, GeezTokenizer
 from . import morphology
 
@@ -38,7 +38,7 @@ __version__ = "0.1.0"
 __all__ = [
     "Analysis", "OffsetUnit", "Span", "Variety",
     "normalise", "is_normalised", "normalisation_diff", "NORMALISED_CHARS",
-    "transliterate", "transliterate_word",
+    "transliterate", "transliterate_word", "warmup",
     "GeezTokenizer", "Fertility", "DEFAULT_VOCAB_SIZE",
     "morphology",
 ]

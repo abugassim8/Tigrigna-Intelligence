@@ -1245,6 +1245,35 @@ abandoned within weeks at this scale.
   `CONTRIBUTING.md` and the experiment template both need this.
 - *Debt created:* **Experiment 001 needs a `results.json`** — DEC-007 depends on
   numbers nothing currently re-checks.
+
+### Amendment 1 — 2026-08-19: experiments that measure time cannot be byte-identical
+
+**The rule as written assumes every experiment is deterministic.** Experiment
+006 measures latency, and no timing measurement reproduces byte-identically —
+so under the original wording it would either fail CI forever or force the
+timings out of the artefact, which defeats the point of having one.
+
+**Amended rule.** `results.json` must declare `"deterministic": true|false`.
+
+| Declared | CI requires |
+| --- | --- |
+| `true` (default; omitted counts as true) | re-runs and **byte-compares**, exactly as before |
+| `false` | re-runs, requires **exit 0 and an artefact**; does **not** byte-compare |
+
+**The cost, stated plainly: a non-deterministic experiment gets no drift
+detection.** The reproducibility job is currently the only thing that would
+catch `epitran` or `tokenizers` changing behaviour, and an experiment that opts
+out is opting out of that too. So the flag is **not** a convenience for
+experiments that are merely awkward to make deterministic — it is only for
+those measuring a genuinely variable quantity, and their numbers are
+**indicative of the host that produced them**, never portable.
+
+Making CI gate on a *verdict* derived from timings was considered and rejected:
+a loaded shared runner would flip it, and a check that fails for reasons
+unrelated to the code is a check people learn to ignore — which is the DEC-008
+failure this rule exists to prevent.
+
+**Evidence:** `experiments/006-tier0-latency/` `[verified]` 2026-08-19
 - *Revisit when:* experiments become numerous enough that a real tracking system
   earns its cost.
 

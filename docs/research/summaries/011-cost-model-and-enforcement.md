@@ -30,10 +30,9 @@ checking — **though it is not yet installed (A-15)**.
   | Merged, always warm | **1,193.1 GB-h/month** |
   | Tier 0 warm + Tier 2 to zero | **82.8 GB-h/month** + per-request |
 
-  ⚠️ **Revised after Tier 0 was built.** The pre-build estimate put Tier 0 at
-  72 MB and the saving at 22×. **Measured, Tier 0 is 113.4 MB** — one dependency
-  (`epitran` → `panphon`) is the whole budget. Conclusion unchanged; **22×
-  should not be quoted.**
+  ⚠️ **Revised after Tier 0 was built.** The pre-build estimate gave 72 MB and
+  22×; **measured, Tier 0 is 113.4 MB** — `epitran` → `panphon` is the whole
+  budget. Conclusion unchanged; **22× should not be quoted.**
 
 
 - **⚠️ Tier 2's deployment mode is NOT decidable, and my first pass got it
@@ -46,14 +45,23 @@ checking — **though it is not yet installed (A-15)**.
   | 10 s | 300/hour | 5.0 |
   | **60 s** | **58/hour** | **1.0** |
 
-  At a 60 s cold start, break-even is **about one request per minute** — a rate a
-  modestly-used service exceeds easily. Above it, always-warm is **both cheaper
-  and faster**. At 1 req/min with slow cold start, Tier 2 is busy 100% of the
-  hour: warm in all but name, *and* paying cold-start latency every request —
-  the worst of both.
+  At a 60 s cold start, break-even is **about one request per minute** — a rate
+  a modestly-used service exceeds easily. Above it, always-warm is **both
+  cheaper and faster**, and at 1 req/min Tier 2 is busy 100% of the hour: warm
+  in all but name, *and* paying cold-start latency every request.
 
   **DEC-013's tiering is unaffected; only Tier 2's *mode* is contingent.**
   → **DEC-019**, and measuring cold start becomes **A-14**.
+
+- **Tier 0's half is now measured (experiment 006); Tier 2's is not.**
+  Cold start **3.03 s** (vs a 1–60 s free parameter) and service time
+  **0.045 ms** (vs ~2 s assumed), giving a Tier 0 break-even of **1,187
+  req/hour**. **98.7% of that cold start is `epitran` loading** — our own import
+  is 40 ms, and the same dependency is 107.4 MB of the 113.4 MB footprint.
+  ⚠️ **A-14 is not closed**: it asks for Tier 2, which needs a model this
+  environment cannot fetch (**A-09**). Nor is the 2 s assumption refuted — it
+  was a Tier 2 figure. What is shown is that **the model swings ~20× on a
+  guessed parameter**.
 
 - **⭐ The decision log has rules nothing checks — and that has already failed
   once.** DEC-008 spent three months as policy with no mechanism, silently
@@ -117,13 +125,12 @@ checking — **though it is not yet installed (A-15)**.
 
 ## Recommended Next Steps
 
-1. **Measure Tier 2 cold start (A-14).** It decides DEC-019 and nothing else can
-   settle it.
+1. **Measure Tier 2 cold start (A-14).** It decides DEC-019; Tier 0's
+   measurement does not, and nothing else can settle it.
 2. **Install the workflow (A-15)** — one command; until then six rules are
    enforced by nobody, and DEC-018 is policy without mechanism.
 3. **Choose a deployment target** once A-14 and A-02 resolve.
 4. **Add a screening-record check to CI** once datasets carry committed records.
-5. **Re-run the break-even model** with measured service time, not the assumed 2 s.
 
 ## References
 

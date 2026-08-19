@@ -214,3 +214,18 @@ def test_to_dict_is_json_shaped():
     assert d["variety"] == "unknown"
     assert d["analysis_is_phonemic"] is False
     json.dumps(d)  # must be serialisable
+
+
+# --------------------------------------------------------------- warmup
+
+def test_warmup_loads_the_transliterator_and_is_idempotent():
+    """Lazy loading defers ~3.0 s — 98.7% of Tier 0's cold start (exp 006) —
+    onto whoever calls first. An always-warm service should pay it at boot."""
+    from tigrinya_primitives import warmup
+    from tigrinya_primitives.transliterate import _epi
+
+    warmup()
+    assert _epi().transliterate("ሰላም")     # usable immediately
+    before = _epi.cache_info().currsize
+    warmup()                                # idempotent, no reload
+    assert _epi.cache_info().currsize == before == 1

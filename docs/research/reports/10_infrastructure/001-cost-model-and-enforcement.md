@@ -86,6 +86,31 @@ paying cold-start latency on every request. That is the worst of both.
 tiering is unaffected — only Tier 2's *mode* is contingent. → **DEC-019**, and
 measuring cold start becomes **A-14**.
 
+### Update 2026-08-19 — Tier 0 measured; Tier 2 still assumed
+
+`experiments/006-tier0-latency/` measured the half that was buildable:
+
+| Input | Assumed here | Measured (Tier 0) |
+| --- | --- | ---: |
+| Cold start | free parameter, 1–60 s | **3.03 s** |
+| Service time | ~2 s | **0.045 ms** |
+| Break-even | 58–1,200 req/hour | **1,187 req/hour** |
+
+**98.7% of that cold start is `epitran` loading** — our own import is 40 ms. The
+same dependency is 107.4 MB of the 113.4 MB footprint, so the footprint and
+latency measurements independently point at one lever.
+
+⚠️ **This does not close A-14 and does not refute the 2 s assumption.** That
+figure was for **Tier 2**, a 3B model on CPU; Tier 0 says nothing about it.
+What it does show is that **the model swings ~20× on a parameter that was
+guessed**, and Tier 2's value is still guessed. For Tier 0 specifically the
+model reduces to cold start alone, since service time rounds to zero against it
+— and DEC-013 keeps Tier 0 warm regardless, so nothing operational changes.
+
+**Consequence for the code:** lazy loading defers all 3.0 s onto the first
+caller, so `tigrinya_primitives.warmup()` now exists for a service to call at
+boot rather than being warm-except-once.
+
 ## Finding 3 — The decision log has rules nothing checks, and that has already failed once
 
 **DEC-008 spent three months as policy with no mechanism and was silently ignored
@@ -148,8 +173,10 @@ for weights, and CI.** Everything else is premature.
 
 - **No dollar figures**, deliberately. Vendor pricing is unverifiable here and
   volatile; GB-hours and break-even rates survive price changes.
-- **Cold start is unmeasured**, which is precisely why Finding 2 cannot conclude.
-  The 2 s service-time assumption is also unmeasured.
+- **Tier 2's cold start is unmeasured**, which is precisely why Finding 2 cannot
+  conclude, and the 2 s service-time assumption is unmeasured with it.
+  **Tier 0's are now measured** (3.03 s and 0.045 ms, experiment 006) — but Tier
+  0 is kept warm regardless, so that does not settle DEC-019. **A-14 stands.**
 - **⚠️ CI is written, verified locally, and NOT INSTALLED.** GitHub refused the
   push without `workflows` permission (**A-15**). The shell logic and tools were
   exercised by hand; GitHub Actions has never run it. **DEC-018 is unenforced

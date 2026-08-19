@@ -43,7 +43,7 @@ itself a research finding.
 | **A-11** | Licence clarification on `fidel` | 🟢 Low | Transliteration option | TODO |
 | ~~**A-12**~~ | ~~Choose the project licence~~ | ✅ **DONE** | Resolved by **DEC-020** | **DONE** |
 | **A-13** | **Native-speaker variety audit of our two evaluation anchors** | 🟠 High | Whether DEC-010 is a precaution or a live correction | TODO |
-| **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO |
+| **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO — *Tier 0 measured (exp 006); Tier 2 still blocked on A-09* |
 | **A-15** | **Activate the CI workflow** (one command) | 🟠 High | DEC-018 — every checkable rule is unenforced until this is done | TODO |
 | **A-16** | Report epitran's position-sensitive transliteration upstream | 🟢 Low | Nothing — we work around it; but the next user will not know | TODO |
 
@@ -416,6 +416,21 @@ in the model is assumed, not measured.
 
 **Why I could not do it:** model weights are behind egress policy (**A-09**), so
 neither the conversion nor the timing can run here.
+
+**Partial progress 2026-08-19 — Tier 0 only, and it does not close this.**
+`experiments/006-tier0-latency/` measured the tier that *is* built: cold start
+**3.03 s**, service time **0.045 ms**, break-even **1,187 req/hour**. **98.7% of
+that cold start is `epitran` loading**; our own import is 40 ms. Two things
+follow, neither of which settles A-14:
+
+- The method and the arithmetic are now exercised end to end, so the Tier 2
+  measurement is a matter of running the same script against a loaded model.
+- The model swings **~20×** on this parameter, which is the argument for
+  measuring rather than assuming it — **for Tier 2, where it decides the mode.**
+  Tier 0 is kept warm regardless, so its number changes nothing operationally.
+
+**Still needed:** MADLAD-400-3B under CTranslate2 int8, cold container to first
+translation.
 
 **Unblocks:** DEC-019's deployment mode, and the hosting-target choice.
 
