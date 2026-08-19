@@ -52,17 +52,25 @@ must be **word-level, not character-level**.
   neighbours. Correct linguistics — and it means context supplies **1,375 of
   8,430 symbols, 16.3% of all output**.
 
-- **⭐ The fix is granularity, and my first reading was wrong.** I framed it as a
-  tradeoff — exact offsets *or* faithful phonemes. **A follow-up measurement
-  refuted that before it reached a decision record:**
+- **⭐ The fix is granularity — but the measurement behind it was wrong.**
+  ⚠️ **Corrected 2026-08-18, experiment 005.** This summary recorded that
+  word-by-word transliteration loses nothing, citing "**1,639/1,639 (100%)**".
+  **That figure came from a containment test** (`alone in in_context`), which
+  cannot detect an *appended* character — and an appended word-final `ɨ` is
+  **92%** of the real failures.
 
-  - a word's transliteration is preserved inside a sentence: **1,639/1,639 (100%)**
-  - prepending a character changes **0 of 1,635** tokens
+  | Test | Result |
+  | --- | ---: |
+  | Containment — what was actually measured | **99.62%** |
+  | **Exact equality — what was claimed** | **95.47%** |
 
-  Epenthesis is resolved **within a word**, nothing crosses word boundaries. So
-  **word-by-word transliteration gives full fidelity *and* exact alignment by
-  construction.** DEC-007 and DEC-022 asked for the wrong granularity, not for
-  something unachievable. → **DEC-023**
+  **The decision survives on a better argument.** The running-text form is
+  deterministic but **not a function of local context** — for a word at index 72
+  of a 128-word line, replacing the line's *first* word flips the result. So it
+  cannot serve an API contract, and word-by-word is right because it makes the
+  answer depend on the word alone, **not** because the two agree. Prepending is
+  genuinely inert (**0 of 1,565**), which is what makes the cache sound.
+  → **DEC-023 Amendment 1**
 
 - **What intrinsic evaluation does NOT do.** It catches **broken, not wrong** — a
   transliterator returning deterministically wrong phonemes passes H2 perfectly.
@@ -89,7 +97,8 @@ must be **word-level, not character-level**.
 | --- | --- |
 | Build a Tigrinya primitives benchmark before evaluating anything | Months of work, when three of four properties are measurable today with no annotation |
 | Character-level surface↔analysis offsets | **Measurably impossible** — 23.89% alignable; context supplies 16.3% of output symbols |
-| Accepting a tradeoff between alignment and phonology | **Refuted by measurement** — word-level gives both; the tradeoff framing was my error |
+| Accepting a tradeoff between alignment and phonology | **Refuted by measurement** — word-level gives exact alignment; the tradeoff framing was my error |
+| Keeping the containment measurement | It cannot fail on an appended character, which is 92% of the failures — a check that cannot fail is not evidence (experiment 005) |
 | Treating intrinsic properties as sufficient | They catch *broken*, not *wrong*; morphological accuracy still needs gold data and a native speaker |
 | Skipping evaluation and building the primitives | Violates P-4 — and H3 shows exactly the kind of error that surfaces only when you check |
 
@@ -100,9 +109,10 @@ must be **word-level, not character-level**.
 | Intrinsic properties holding | **3 of 4** | `[verified]` |
 | **Character-level alignment rate** | **23.89%** | `[verified]` |
 | Output symbols supplied by context | **1,375 / 8,430 (16.3%)** | `[verified]` |
-| **Word transliteration preserved in context** | **1,639 / 1,639 (100%)** | `[verified]` |
+| **Word transliteration preserved in context** | **95.47%** (was wrongly recorded as 100%) | `[verified]` |
+| Prepending a character changes | **0 of 1,565** words | `[verified]` |
 | Tokenization round-trip | **100.00%**, 0 `[UNK]` | `[verified]` |
-| Transliteration coverage | **99.72%** of char tokens | `[verified]` |
+| Transliteration coverage | **100.00%** of Ethiopic letters (99.72% figure counted digits) | `[verified]` |
 | Forms collapsed by normalisation | **4** | `[verified]` |
 | Capabilities still needing gold data | **1** (morphology) | `[verified]` |
 

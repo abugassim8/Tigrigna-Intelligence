@@ -90,24 +90,52 @@ error; it would lose a sixth of the phonology.
 ## Finding 4 — The fix is granularity, not engineering — and my first reading was wrong
 
 I initially framed this as a **tradeoff**: exact offsets *or* faithful phonemes.
-**A follow-up measurement refuted that before it reached a decision record:**
+A follow-up measurement refuted that framing, and **the follow-up was itself
+wrong**. Both corrections belong in the record.
 
-- **A word's transliteration is preserved inside a sentence: 1,639/1,639
-  (100.00%).**
-- **Prepending a character changes 0 of 1,635 tokens.**
+⚠️ **Corrected 2026-08-18 by `experiments/005-word-boundary-epenthesis/`.**
+This section originally read:
 
-Epitran resolves epenthesis **within a word**, and nothing crosses word
-boundaries. So transliterating **word by word gives full phonological fidelity
-*and* exact alignment by construction** — the analysis form simply *is* the
-concatenation of per-word outputs.
+> A word's transliteration is preserved inside a sentence: 1,639/1,639 (100.00%).
+> Prepending a character changes 0 of 1,635 tokens.
+> […] the residual 9.6% line-level mismatch is a word-final `ɨ` […] a boundary
+> artefact, not a within-word difference.
 
-The residual 9.6% line-level mismatch is a **word-final `ɨ`** that whole-line
-transliteration adds at whitespace (`mɨɡutatɨ` vs `mɨɡutat`) — a boundary
-artefact, not a within-word difference.
+**The 100% came from a containment test** (`alone in in_context`), which cannot
+detect an appended character. Measured by exact equality:
 
-**So the correction is precise and cheap: character offsets are impossible;
-word-level spans are exact and lossless.** DEC-007 and DEC-022 asked for the
-wrong *granularity*, not for something unachievable. → **DEC-023**
+| Test | Result |
+| --- | ---: |
+| Containment — what was measured | **99.62%** (2,353/2,362) |
+| **Exact equality — what was claimed** | **95.47%** (2,255/2,362) |
+
+**The `ɨ` was seen and explained away.** The paragraph above noticed exactly the
+right anomaly and disposed of it as a "boundary artefact" — while the
+100% figure sitting three lines above said there was nothing to explain. Two
+numbers from two different tests were read as one consistent picture. That is
+the failure mode, more than the arithmetic.
+
+**Prepending is genuinely inert** — re-measured at **0 of 1,565** unique words.
+Left context does not matter, which is what makes the `lru_cache` on
+`transliterate_word` sound.
+
+**What is worse than a boundary effect.** Local context does not predict the
+`ɨ` either: the word alone, the word plus its next eight words, and six
+preceding words plus the word all give `ʔɨzom`; the full 128-word line gives
+`ʔɨzomɨ`. Replacing that line's *first* word — 72 words away — flips it. The
+behaviour is deterministic but is **not a function of local linguistic
+context**, so it cannot be stated as a phonological rule.
+
+**Word-by-word remains correct, on a different argument.** Not because it is
+lossless — it differs from running-text output on **4.53%** of word tokens — but
+because the running-text form depends on arbitrarily distant text and therefore
+cannot give an API a stable answer. Word-by-word makes the analysis form a
+function of the word alone, and keeps the spans exact by construction.
+
+**So the correction is precise: character offsets are impossible; word-level
+spans are exact by construction — though *not* lossless against running-text
+output.** DEC-007 and DEC-022 asked for the wrong *granularity*, not for
+something unachievable. → **DEC-023**, amended
 
 ## Finding 5 — What intrinsic evaluation does not do
 

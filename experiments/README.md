@@ -74,6 +74,7 @@ those are the ones nobody writes up, and the ones most likely to be repeated.
 | `003-metric-validity` | Are standard MT metrics valid for Tigrinya? | **BLEU is ~8% harsher, not catastrophic.** All 4 hypotheses refuted, all 4 directions correct. chrF adopted primary (DEC-009) |
 
 | `004-primitive-evaluation` | Can the MVP primitives be evaluated without a gold standard? | **Yes — 3 of 4 intrinsic properties hold.** The 4th refuted character-level alignment (23.89%), correcting DEC-007 and DEC-022 to word-level spans |
+| `005-word-boundary-epenthesis` | Does a word's transliteration survive being put in a sentence? | **No — 95.47%, not the 100% DEC-023 recorded.** That figure came from a containment test that cannot fail on an appended character. Retracts DEC-023's evidence; the decision survives on a stronger argument |
 
-**All four emit `results.json` and reproduce byte-identically** (DEC-016,
-verified 2026-08-03).
+**All five emit `results.json` and reproduce byte-identically** (DEC-016,
+verified 2026-08-18).

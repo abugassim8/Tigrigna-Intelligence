@@ -39,9 +39,9 @@ next research is evaluation for the primitives, and it is blocked by nothing.
 
   | Layer | Examples |
   | --- | --- |
-  | **Measured** | 1.957× expansion · BLEU 1.08× harsher · raw Ge'ez wins 10/10 · TiQuAD contamination confirmed · 3/3 experiments reproduce |
+  | **Measured** | 1.957× expansion · BLEU 1.08× harsher · raw Ge'ez wins 10/10 · TiQuAD contamination confirmed · 5/5 experiments reproduce |
   | **Verified fact** | Every licence in the stack · **0** cleanly-licensed parallel sentences |
-  | **Arithmetic** | Tiers 72/191/1,593 MB · 22× saving · LoRA 23× cheaper |
+  | **Arithmetic** | Tiers 191/1,593 MB · LoRA 23× cheaper *(Tier 0 now measured at 113.4 MB; saving ~14×, not the 22× first computed)* |
   | **Designed, unbuilt** | Harness · tiers · services — **all of it** |
   | **Assumed** | MADLAD's quality · cold start · COMET · DEC-002's user model |
 
@@ -49,30 +49,30 @@ next research is evaluation for the primitives, and it is blocked by nothing.
   almost all paper-derived figures behind the egress block.
 
 - ~~**Nothing has been built.**~~ ⚠️ **Superseded 2026-08-03.** Tier 0 and the
-  evaluation harness are now built: **two packages, 75 tests passing**.
+  evaluation harness are now built: **two packages, 96 tests passing**.
 
   | Package | Status |
   | --- | --- |
   | `services/primitives` | ✅ normalisation, tokenization, transliteration. **Morphology blocked on A-07** |
-  | `services/evaluation` | ✅ chrF+BLEU, variety-scoped, CIs by default. **No model run through it (A-09)** |
+  | `services/evaluation` | ✅ chrF+BLEU **and** Tier 0 intrinsic evaluation (DEC-023a). **No model run through it (A-09)** |
 
   **The tests caught two shipping bugs**: byte-level BPE emitted `[UNK]` on
   unseen text (breaking DEC-022's verbatim-surface guarantee), and sacrebleu's
   numpy `float32` broke JSON persistence. Both would have surfaced in
   production.
 
-- **The critical path does not start where you would guess:**
+- **⭐ The evaluation service scored only the capability the MVP excludes** —
+  DEC-021's structural error, reproduced in code. Fixed 2026-08-18: the MVP
+  primitives now have a harness, and building it retracted **DEC-023's central
+  measurement**. "A word's transliteration is preserved in a sentence,
+  1,639/1,639 (100%)" came from a **containment** test that cannot detect an
+  appended character; by exact equality it is **95.47%**. The decision survives
+  on a better argument — running-text output depends on text 72 words away, so
+  only the per-word form can serve a contract. → **DEC-023 Amendment 1**
 
-  | # | Step | Blocked by |
-  | --- | --- | --- |
-  | ~~1~~ | ~~Evaluation for the MVP primitives~~ ✅ **done** (DEC-023) | — |
-  | 2 | Confirm DEC-002 (**A-02**) | a human |
-  | 3 | `fgaim` licences (**A-01**) | a human |
-  | 4 | HornMorpho (**A-07**) | a human |
-  | 5 | Build Tier 0 | steps 1, 4 |
-
-  **Step 1 needs no permission, licence, egress, or decision** — and gates
-  everything.
+- **The critical path is now entirely human-gated.** Its two research steps —
+  primitive evaluation (DEC-023) and Tier 0 itself — are **done**. What remains
+  is A-02, A-01 and A-07: **all need a person, none needs research.**
 
 - **The blockers are not technical.** Three blocking actions — **A-01**, **A-02**,
   **A-05** — all need a person; **none is resolvable by research.** Plus **A-15**,
@@ -115,20 +115,19 @@ next research is evaluation for the primitives, and it is blocked by nothing.
 | **Capabilities with a validated metric** | **1** | `[verified]` |
 | **…inside DEC-006's MVP** | **0** | `[verified]` |
 | Verified share of summary claims | **80%** | `[verified]` |
-| Experiments reproducing byte-identically | **3 of 3** | `[verified]` |
+| Experiments reproducing byte-identically | **5 of 5** | `[verified]` |
 | Blocking actions, all needing a human | **3** | `[verified]` |
-| **Packages built** | **2** (75 tests passing) | `[verified]` |
+| **Packages built** | **2** (96 tests passing) | `[verified]` |
 | Shipping bugs caught by those tests | **2** | `[verified]` |
+| **Recorded measurements later retracted** | **1** (DEC-023's, by experiment 005) | `[verified]` |
 
 ## Recommended Next Steps
 
-1. **Research evaluation for the MVP primitives** (DEC-021) — blocked by nothing,
-   gates everything.
-2. **Send A-01 and A-05, and answer A-02.** Three messages and one decision
-   unblock the rest.
-3. **Install CI (A-15)** — one command.
-4. **`07_api_mcp`** once A-02 lands; it is the last unresearched domain.
-5. **Then build Tier 0** — 72 MB, and everything above depends on it.
+1. **Send A-01 and A-05, and answer A-02.** Three messages and one decision
+   unblock everything still open.
+2. **Install CI (A-15)** — one command; until then the rules are unenforced.
+3. **Resolve A-07**, the last capability gap inside the MVP.
+4. **Run a model through the harness (A-09)** — nothing has been scored yet.
 
 ## References
 

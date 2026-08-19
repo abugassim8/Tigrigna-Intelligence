@@ -45,6 +45,7 @@ itself a research finding.
 | **A-13** | **Native-speaker variety audit of our two evaluation anchors** | 🟠 High | Whether DEC-010 is a precaution or a live correction | TODO |
 | **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO |
 | **A-15** | **Activate the CI workflow** (one command) | 🟠 High | DEC-018 — every checkable rule is unenforced until this is done | TODO |
+| **A-16** | Report epitran's position-sensitive transliteration upstream | 🟢 Low | Nothing — we work around it; but the next user will not know | TODO |
 
 ---
 
@@ -448,6 +449,40 @@ exactly that state** — and so are DEC-015, DEC-016, and DEC-001's summary rule
 The reproducibility job also doubles as a **dependency regression test**: it is
 currently the only thing that would catch `epitran`, `tokenizers`, or
 `sacrebleu` changing behaviour under DEC-007's amended numbers.
+
+---
+
+## 🟢 A-16 — Report epitran's position-sensitive transliteration upstream
+
+**Who:** the `epitran` maintainers (David R. Mortensen et al.), via a GitHub
+issue on `dmort27/epitran`.
+
+**Blocks:** nothing. We work around it by transliterating word by word, and
+`tigrinya_eval.primitives.check_context_divergence` pins the behaviour so a
+change is visible. This is courtesy, not a dependency.
+
+**What to report:** with `tir-Ethi`, a word's transliteration depends on text
+arbitrarily far away in the input string. For a word at index 72 of a 128-word
+line, replacing the line's **first** word changes the output for that word:
+
+| First word | Token 72 |
+| --- | --- |
+| `ልኡላውነት` | `ʔɨzomɨ` |
+| `ኩሉ` | `ʔɨzom` |
+
+The behaviour is deterministic — byte-identical across calls and across a fresh
+`Epitran` instance — and local context does not predict it: the word alone, the
+word plus the next eight words, and six preceding words plus the word all give
+`ʔɨzom`. Across our corpus it affects **4.53%** of word tokens (107 of 2,362),
+and **92%** of those are a word-final epenthetic `ɨ` appearing only in the
+longer string.
+
+**Reproduce:** `experiments/005-word-boundary-epenthesis/run.py`, section 5.
+Version tested: `epitran==1.35.2`.
+
+**Worth mentioning:** we have **not** determined which output is
+phonologically correct — that needs a Tigrinya speaker, so the report should
+describe the inconsistency, not assert a bug in the phonology.
 
 ---
 

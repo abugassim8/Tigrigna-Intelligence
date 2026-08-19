@@ -50,7 +50,7 @@ morphology service, NER service) but **by resource profile**:
 
 | Tier | Contents | Cumulative | Scaling behaviour |
 | --- | --- | ---: | --- |
-| **0** | normalisation, tokenization, transliteration, morphology | **72 MB** | always warm; trivially replicated |
+| **0** | normalisation, tokenization, transliteration, morphology | **72 MB** *(estimate; **113.4 MB** measured once built)* | always warm; trivially replicated |
 | **1** | + embeddings | **191 MB** | warm; moderate replication |
 | **2** | + translation | **1,593 MB** | lazily loaded; may scale to zero |
 
@@ -142,7 +142,7 @@ for a 1.4 GB model:
 Neither is acceptable *for the platform as a whole*. Both are acceptable *for the
 right tier*:
 
-- **Tier 0 (72 MB) stays warm.** Cheap enough that idle cost is negligible, and
+- **Tier 0 (113.4 MB measured, 72 MB estimated here) stays warm.** Cheap enough that idle cost is negligible, and
   it serves the latency-sensitive operations.
 - **Tier 2 (1.4 GB) may scale to zero.** Translation is a
   seconds-scale operation whose users already expect to wait; a cold start is

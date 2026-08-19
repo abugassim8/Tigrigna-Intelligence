@@ -22,6 +22,56 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Intrinsic evaluation for Tier 0, and DEC-023's supporting measurement retracted — 2026-08-18
+
+**The evaluation service scored translation only — the one capability DEC-006
+excludes.** That reproduced DEC-021's structural error in code: the MVP
+primitives had a decision saying how to evaluate them (DEC-023a) and nothing
+that did it. `tigrinya_eval.primitives` now implements all five intrinsic
+properties over real text — idempotence, determinism, alignment integrity,
+reversibility, coverage — plus a sixth that pins the finding below. It runs as
+`python -m tigrinya_eval.primitives <corpus>`, exits non-zero on failure, and
+CI runs it (**DEC-023a job**). **21 new tests; 96 across both packages.**
+
+**Half those tests are negative controls** — each check is fed a broken
+primitive and watched failing. That is not ceremony. The finding that prompted
+this module was a verification that *could not fail*:
+
+**DEC-023's central measurement was wrong, and experiment 005 retracts it.**
+The decision recorded that a word's transliteration survives a sentence
+**1,639/1,639 (100%)**. That came from a **containment** test
+(`alone in in_context`), blind to an *appended* character — and an appended
+word-final `ɨ` is **92%** of the actual failures. By exact equality it is
+**95.47%** (2,255/2,362); containment reports 99.62%.
+
+Worse than a boundary effect: the running-text form is **not a function of
+local context**. The word alone, the word plus its next eight words, and six
+preceding words plus the word all give `ʔɨzom`; the full 128-word line gives
+`ʔɨzomɨ`, and replacing that line's *first* word — 72 words away — flips it.
+Deterministic, but not statable as a phonological rule.
+
+**The decision survives on a better argument.** Word-by-word is right not
+because it is lossless (it differs on **4.53%** of tokens) but because
+running-text output depends on arbitrarily distant text and so cannot give an
+API a stable answer. Prepending is genuinely inert (**0 of 1,565**), which is
+what makes the `lru_cache` sound. → **DEC-023 Amendment 1**
+
+**The evidence had been seen and explained away.** The original report noticed
+the word-final `ɨ` and dismissed it as "a boundary artefact" — three lines below
+a 100% figure that said there was nothing to explain. Two numbers from two
+different tests read as one consistent picture.
+
+**Also corrected, same error twice more:** coverage was reported at **99.72%**,
+diluted by five **digits**; restricted to Ethiopic characters it was 96.86%,
+diluted by 197 **punctuation** marks. Over Ethiopic letters and marks — the
+characters that should be transliterated — it is **100.00%**. And Tier 0's
+footprint in the package docstring still read the pre-build estimate of 72 MB
+against the measured **113.4 MB**.
+
+Withdrawn figures were corrected **in place** in DECISIONS.md, the report, the
+summary, `transliterate.py` and `types.py` — not appended, so nothing reads as
+self-contradictory. **A-16** files the epitran behaviour upstream.
+
 ### CI extended to the packages; stale cost figures fixed in place — 2026-08-03
 
 `ci/verify.yml` predated both packages and did not test either. It now runs
@@ -92,11 +142,11 @@ Context supplies **1,375 of 8,430 output symbols — 16.3%**.
 
 **The fix is granularity, not engineering — and the first reading was wrong.**
 I framed it as a tradeoff between exact offsets and faithful phonemes; a
-follow-up measurement refuted that **before it reached a decision record**: a
-word's transliteration is preserved inside a sentence **1,639/1,639 (100%)**, and
-prepending a character changes **0 of 1,635** tokens. Epenthesis resolves within
-a word. So **word-level spans give exact alignment *and* full fidelity** — the
-decisions asked for the wrong granularity, not the impossible.
+follow-up measurement refuted that **before it reached a decision record**.
+⚠️ **That follow-up was itself wrong — corrected 2026-08-18, see below.** It
+reported the word transliteration preserved in a sentence **1,639/1,639 (100%)**;
+measured by exact equality it is **95.47%**. Word-level spans give exact
+alignment; they do **not** give full fidelity against running-text output.
 
 **DEC-023** records both: intrinsic-first evaluation, and word-level alignment
 correcting DEC-007 and DEC-022. `metrics.md` now has validated rows for

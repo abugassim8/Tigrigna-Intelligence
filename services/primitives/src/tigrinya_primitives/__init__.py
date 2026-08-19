@@ -1,7 +1,9 @@
 """Tigrinya language primitives — Tier 0 of the platform.
 
 Normalisation, tokenization, and transliteration for Ge'ez-script Tigrinya.
-Pure computation over small data: ~72 MB resident, no model weights, no GPU.
+Pure computation over small data: **113.4 MB measured**, no model weights, no
+GPU. (DEC-013 estimated 72 MB before this was built; `epitran`'s `panphon`
+dependency is 107.4 MB of the total. The measured figure is the one to quote.)
 
 This is a **library first** (DEC-012). Services wrap it; no capability logic
 lives only behind a network call, and the primitives are usable with no

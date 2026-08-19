@@ -151,21 +151,44 @@ it loses a sixth of the phonology.
 An initial reading framed this as "exact offsets *or* faithful phonemes."
 **That was wrong.** Measured:
 
-- **A word's transliteration is preserved inside a sentence: 1,639/1,639
-  (100.00%).**
-- **Prepending a character changes 0 of 1,635 tokens.**
+- ~~**A word's transliteration is preserved inside a sentence: 1,639/1,639
+  (100.00%).**~~ ⚠️ **RETRACTED — see below.**
+- **Prepending a character changes 0 of 1,635 tokens.** *(Holds: re-measured at
+  0 of 1,565.)*
+
+> ### ⚠️ Retraction — 2026-08-18
+>
+> **Neither figure above came from `run.py`.** They were produced by an ad-hoc
+> probe that was never committed, which is a **DEC-016 violation** and the
+> reason `experiments/005-word-boundary-epenthesis/` exists.
+>
+> The preservation figure came from a **containment** test
+> (`alone in in_context`), which cannot detect an *appended* character — and an
+> appended word-final `ɨ` is **92%** of the real failures. Re-measured by exact
+> equality: **95.47%** (2,255/2,362), against 99.62% for containment.
+>
+> The paragraph below spotted exactly the right anomaly — the word-final `ɨ` —
+> and **dismissed it as a "boundary artefact"** while a 100% figure three lines
+> above said there was nothing to explain. Experiment 005 shows it is not a
+> boundary effect at all: local context does not predict it, and replacing a
+> word **72 positions away** flips the result.
+>
+> **`run.py` and `results.json` here are unaffected** and still reproduce
+> byte-identically. H1–H4 stand. Only the uncommitted follow-up was wrong.
 
 So epitran sees a whole word and resolves epenthesis within it. Transliterating
-**word by word gives full phonological fidelity AND exact alignment by
-construction** — the analysis form simply *is* the concatenation.
+**word by word gives exact alignment by construction** — the analysis form
+simply *is* the concatenation.
 
-The residual 9.6% line-level mismatch is a **word-final `ɨ`** that whole-line
+~~The residual 9.6% line-level mismatch is a **word-final `ɨ`** that whole-line
 transliteration adds at whitespace boundaries (`mɨɡutatɨ` vs `mɨɡutat`) — a
-boundary artefact, not a within-word difference.
+boundary artefact, not a within-word difference.~~ ⚠️ **This dismissal was the
+error.** It is not a boundary artefact; see the retraction above.
 
 **So the correction is precise:** character offsets are impossible; **word-level
-spans are exact and lossless.** DEC-007 and DEC-022 asked for the wrong
-granularity, not for something unachievable.
+spans are exact by construction, though not lossless** against running-text
+output. DEC-007 and DEC-022 asked for the wrong granularity, not for something
+unachievable.
 
 ### Intrinsic evaluation works, with one honest caveat
 

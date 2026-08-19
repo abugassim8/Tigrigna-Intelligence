@@ -52,11 +52,18 @@ class OffsetUnit(str, enum.Enum):
 class Span:
     """A word-level span linking surface text to its analysis.
 
-    Word-level rather than character-level is not a limitation we settled for —
-    it is exact. Epitran resolves epenthesis within a word and nothing crosses
-    word boundaries (measured: a word's transliteration is preserved inside a
-    sentence 1,639/1,639 times), so per-word analysis is both fully faithful and
-    alignable by construction.
+    Word-level rather than character-level is exact by construction: the
+    analysis form simply *is* the concatenation of its spans' analyses.
+
+    ⚠️ **Corrected 2026-08-18 (experiment 005).** This docstring previously
+    claimed per-word analysis was also *fully faithful* — that a word's
+    transliteration is preserved inside a sentence "1,639/1,639 times". That
+    figure came from a containment test that could not detect an appended
+    character. By exact equality it is **95.47%**: the rest gain a word-final
+    `ɨ` in running text. Word-by-word is chosen because the in-context form is
+    **not a function of local context** (a distant edit changes it), so only the
+    per-word form is stable enough to put in a contract — not because the two
+    agree.
     """
 
     start: int

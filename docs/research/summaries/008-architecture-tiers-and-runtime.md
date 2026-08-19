@@ -32,7 +32,7 @@ system decomposes **by resource profile, not by domain** — and one MIT runtime
 
   | Tier | Cumulative | Behaviour |
   | --- | ---: | --- |
-  | 0 — primitives | **72 MB** | always warm |
+  | 0 — primitives | **72 MB** *(est; measured 113.4 MB)* | always warm |
   | 1 — + embeddings | **191 MB** | warm |
   | 2 — + translation | **1,593 MB** | lazily loaded; may scale to zero |
 
@@ -99,7 +99,7 @@ system decomposes **by resource profile, not by domain** — and one MIT runtime
 | Metric | Value | Basis |
 | --- | --- | --- |
 | **Memory spread, tokenize → translate** | **~150×** | arithmetic |
-| Tier 0 (primitives) | **72 MB** | arithmetic |
+| Tier 0 (primitives) | **72 MB** estimate — **113.4 MB measured** after build | arithmetic → measured |
 | **Tier 0+1 = DEC-006 minimum viable platform** | **191 MB** | arithmetic |
 | Tier 0+1+2 (with translation) | 1,593 MB | arithmetic |
 | **Cost of adding translation** | **8.3×** | arithmetic |
@@ -113,8 +113,8 @@ system decomposes **by resource profile, not by domain** — and one MIT runtime
 3. **Verify CTranslate2 conversion actually works** on MADLAD-3B and
    `tiroberta-bi-encoder`. Support is verified; conversion is an experiment
    needing the weights.
-4. **Build Tier 0 first** — it is 72 MB, unblocked, and everything above depends
-   on it.
+4. **Build Tier 0 first** — unblocked, and everything above depends on it.
+   *(Done 2026-08-03; it measured **113.4 MB**, not the 72 MB estimated here.)*
 5. **Resolve HornMorpho (A-07)** — its ~48 MB is an estimate, and if it is
    unusable Tier 0 loses morphology.
 

@@ -33,11 +33,39 @@ jobs:
         with:
           python-version: "3.11"
 
+      # tigrinya-primitives is not published, so the evaluation package's
+      # `primitives` extra cannot resolve from PyPI. Install it from the tree
+      # first and the extra is already satisfied.
+      - name: Install tigrinya-primitives from the tree
+        run: pip install --quiet -e services/primitives
+
       - name: Install ${{ matrix.package }}
         run: pip install --quiet -e "services/${{ matrix.package }}[dev]"
 
       - name: Test ${{ matrix.package }}
         run: pytest -q services/${{ matrix.package }}/tests
+
+  intrinsic:
+    name: DEC-023a — Tier 0 intrinsic properties hold on real text
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install the packages
+        run: |
+          pip install --quiet -e services/primitives
+          pip install --quiet -e services/evaluation
+
+      # The property tests above run on fixtures. This runs the same checks
+      # over the committed corpus, which is where real text breaks properties
+      # that curated input satisfies easily.
+      - name: Evaluate the primitives over the committed corpus
+        run: python -m tigrinya_eval.primitives
+          experiments/002-tokenizer-fertility/corpus
+          experiments/003-metric-validity/data
 
   reproducibility:
     name: DEC-016 — experiments reproduce byte-identically

@@ -16,13 +16,35 @@ Both assumed character-level alignment. Measurement refuted it:
   - context supplies **16.3%** of all output symbols (1,375 of 8,430)
 
 So character offsets cannot be derived by summing per-character output lengths.
-But epenthesis resolves *within* a word and nothing crosses word boundaries:
 
-  - a word's transliteration is preserved inside a sentence: **1,639/1,639**
-  - prepending a character changes **0 of 1,635** tokens
+Why word-by-word, given that it is *not* lossless
+-------------------------------------------------
+⚠️ **Corrected 2026-08-18 (experiment 005).** DEC-023 originally justified this
+by claiming word-by-word transliteration loses nothing — "a word's
+transliteration is preserved inside a sentence: 1,639/1,639". **That figure was
+wrong.** It came from a *containment* test (`alone in in_context`), which cannot
+detect an appended character — and an appended character is what 92% of the
+failures are. Measured by exact equality, a word's standalone transliteration
+matches its in-context form for only **95.47%** of tokens; the rest gain a
+word-final `ɨ`.
 
-Transliterating word by word therefore gives full phonological fidelity *and*
-exact alignment, because the analysis form simply *is* the concatenation.
+The real justification is stronger than the one it replaces. The in-context form
+is **deterministic but not a function of local context**: for a word at index 72
+of a 128-word line, replacing the line's *first* word flips `ʔɨzom` to `ʔɨzomɨ`
+— an edit 72 words away. Whole-text output therefore cannot give an API a stable
+answer for a word, because it changes when unrelated parts of the input change.
+
+Going word by word makes the analysis form **a function of the word alone**,
+which is what a contract requires, and makes the spans exact by construction.
+What it does *not* do is reproduce epitran's running-text output. `[verified]`
+`experiments/005-word-boundary-epenthesis/`
+
+**Which form is phonologically correct is unknown** — that needs a speaker, not
+a measurement.
+
+One claim from DEC-023 did survive re-measurement: prepending a character
+changes **0 of 1,565** words, so left context is genuinely inert. That is what
+makes the cache below sound.
 
 What this does not give you
 ---------------------------

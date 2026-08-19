@@ -85,7 +85,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-020 | 2026-08-03 | Licence by artefact class: Apache-2.0 code, CC-BY-4.0 docs, inherit for data | Accepted — closes A-12 |
 | DEC-021 | 2026-08-03 | Extend evaluation anchors to the MVP primitives; next research is Tier 0 evaluation | Accepted |
 | DEC-022 | 2026-08-03 | API response contract: code-point offsets, surface verbatim, variety label, tier disclosed | Accepted — **alignment clause corrected by DEC-023** |
-| DEC-023 | 2026-08-03 | Primitive evaluation is intrinsic-first; alignment is word-level (corrects DEC-007, DEC-022) | Accepted |
+| DEC-023 | 2026-08-03 | Primitive evaluation is intrinsic-first; alignment is word-level (corrects DEC-007, DEC-022) | Accepted — **evidence corrected by Amendment 1** |
 
 ---
 
@@ -950,7 +950,7 @@ require low-volume economy; **P-11** and `CONTRIBUTING.md` require services to b
 independently runnable and testable.
 
 Tier 0 is the decisive case. Normalisation, tokenization, transliteration and
-morphology are pure computation over small data (72 MB total, DEC-013).
+morphology are pure computation over small data (72 MB estimated here; **113.4 MB measured** once built — DEC-013, amended).
 
 **Options:**
 
@@ -1796,6 +1796,70 @@ decisions asked for the wrong granularity, not for something unachievable.
 
 **Evidence:** `../research/summaries/015-primitive-evaluation.md`;
 `experiments/004-primitive-evaluation/` `[verified]` 2026-08-03
+
+### Amendment 1 — 2026-08-18: the supporting measurement was wrong; the decision survives
+
+**The decision stands. The evidence given for it does not.**
+
+This record justified word-level alignment by claiming word-by-word
+transliteration is *lossless*, citing two figures:
+
+> a word's transliteration is preserved inside a sentence: **1,639/1,639 (100%)**
+> prepending a character changes **0 of 1,635** tokens
+
+**Neither figure came from a committed script** — they were produced by an
+ad-hoc probe during the session that recorded this decision, which is a
+**DEC-016 violation**. `experiments/005-word-boundary-epenthesis/` re-measures
+both.
+
+**What was wrong.** The preservation figure came from a **containment** test
+(`alone in in_context`). Containment cannot detect an *appended* character, and
+an appended character is what **92%** of the failures are:
+
+| Test | Result |
+| --- | ---: |
+| Containment — what was measured | **99.62%** (2,353/2,362) |
+| **Exact equality — what was claimed** | **95.47%** (2,255/2,362) |
+
+98 of 107 mismatches are the in-context form carrying one extra word-final `ɨ`
+(`ʔɨzom` → `ʔɨzomɨ`). **The test could not fail in the direction that mattered.**
+
+**What was right.** Prepending is genuinely inert — **0 of 1,565** unique words
+change. Left context does not matter. This is what makes the `lru_cache` on
+`transliterate_word` sound, so that claim is load-bearing and it holds.
+
+**What is worse than expected.** The natural reading — "the final character is
+sensitive to the next word" — is also false. Local context does not predict it:
+the word alone, the word plus the next eight words, and six preceding words plus
+the word all give `ʔɨzom`. **The full 128-word line gives `ʔɨzomɨ`.** Replacing
+that line's *first* word — 72 words away — flips the result. The behaviour is
+deterministic (byte-identical across calls and across a fresh instance) but is
+**not a function of local linguistic context**, so it cannot be stated as a
+phonological rule.
+
+**Why the decision survives, on a better argument.** The original reasoning was
+"word-by-word loses nothing." That is false. The correct reasoning is that
+**whole-text output cannot serve an API contract**: a word's transliteration
+would depend on text arbitrarily far away, so the same word in the same sentence
+could return different answers as unrelated parts of a request changed.
+Word-by-word makes the analysis form a function of the word alone. Word-level
+spans remain exact by construction.
+
+**Consequences added:**
+- *Corrected:* the shipped analysis form is **not** what epitran produces on
+  running text; it differs on **4.53%** of word tokens. Documented in
+  `transliterate.py` and `types.py`, which both quoted the withdrawn figure.
+- *New:* **which form is phonologically correct is unknown.** Word-final
+  6th-order characters are usually bare consonants in Tigrinya, which would
+  favour the shipped form — but that is a claim about the language, and it needs
+  a speaker. Folded into the standing native-speaker validation gap.
+- *New:* the position sensitivity is plausibly an upstream defect. Recorded as
+  **A-16** (report to epitran), non-blocking.
+- *Method:* a verification check must use **exact equality, never containment**.
+  `tigrinya_eval.primitives` implements it that way, so this specific error
+  cannot recur silently.
+
+**Evidence:** `experiments/005-word-boundary-epenthesis/` `[verified]` 2026-08-18
 
 ---
 

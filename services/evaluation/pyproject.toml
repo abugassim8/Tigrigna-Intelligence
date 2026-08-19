@@ -15,7 +15,11 @@ license = "Apache-2.0"
 dependencies = ["sacrebleu==2.6.0"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "tigrinya-primitives"]
+# Intrinsic evaluation of Tier 0 (DEC-023a) needs the primitives themselves.
+# Kept optional so translation scoring stays installable without epitran's
+# 107 MB of panphon data (DEC-013).
+primitives = ["tigrinya-primitives"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
