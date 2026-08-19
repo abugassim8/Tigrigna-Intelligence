@@ -176,16 +176,25 @@ scripts/            Operational tooling
 
 ## Current status
 
-**Four research domains complete.**
+**13 research domains complete** — every planned domain. **24** decisions
+recorded, **6** reproducible experiments, **15** summaries.
 
 - `00_project_definition` → scope, users, dialect (DEC-002, DEC-004, DEC-006)
 - `01_ecosystem` → the Tigrinya NLP landscape mapped (DEC-003, DEC-005)
 - `02_linguistics` → morphology, Ge'ez script, tokenization (DEC-007), plus a
   Ge'ez tooling survey and the project's first experiment
 - `03_data_strategy` → the corpus measured; contamination risk found (DEC-008)
+- `04`–`12` → model strategy, architecture, ML pipeline, API/MCP, evaluation,
+  training, infrastructure, business, and the master blueprint
+  (DEC-009 … DEC-024)
+
+**Tier 0 is built.** `services/primitives` (normalisation, tokenization,
+transliteration) and `services/evaluation` (chrF/BLEU plus intrinsic primitive
+evaluation), both test suites passing. Morphology is a deliberate stub —
+**A-07**.
 
 **Read [`docs/research/summaries/`](docs/research/summaries/) before doing
-anything else.** Five summaries, ~2 pages each, and they change the plan.
+anything else.** ~2 pages each, and they change the plan.
 Then read [`docs/research/RESEARCH_ACCESS.md`](docs/research/RESEARCH_ACCESS.md)
 before searching for anything — it maps which sources are reachable.
 

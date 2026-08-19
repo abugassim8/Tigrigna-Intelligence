@@ -1963,8 +1963,58 @@ intent.**
 - *Revisit when:* the registry exceeds ~30 figures, or a documentation build
   exists and Option C becomes available.
 
-**Evidence:** the four retirements above `[verified]` 2026-08-19; negative
-control planted and caught before commit.
+### Extension, same day — derived counts
+
+The registry handles figures that were *measured*. It does nothing for counts
+that are **derived from the repository**, and those had rotted worse:
+
+| Document | Claimed | Actual |
+| --- | --- | ---: |
+| `README.md` | "four research domains complete", "Eight decisions recorded" | **13**, **24** |
+| `PROJECT_CONTEXT.md` | "Four research domains complete" | **13** |
+| `summaries/README.md` | "5 summaries, 1 experiment" | **15**, **6** |
+| `013-state-of-play.md` | "11 of 12" domains, "21" decisions | **13**, **24** |
+
+The README also still said **"no service code written"** with two packages in
+the tree. That is the first paragraph a reader sees.
+
+**These need no registry** — the true value is computed from the tree, so a
+document either agrees with it or does not. `check_figures.py` now derives four
+counts and flags any claim that contradicts them.
+
+**Volatile counts are deliberately excluded.** Test totals change on almost
+every commit, so living documents say "both suites passing" and exact numbers
+appear only in dated CHANGELOG entries, which are snapshots and stay true.
+
+**⭐ The negative control earned its keep immediately.** The first planted
+violation caught `**3** reproducible experiments` and **sailed straight past**
+`four research domains complete` and `Eight decisions recorded` — spelled as
+words, which is *verbatim* what the README said. **The check would have missed
+the exact instance it was built for.** `_digitise()` normalises spelled-out
+numbers before matching; the control then caught all three.
+
+Then it happened **again**, in the same hour. Sharing one marker vocabulary
+between both checks put `recorded` in scope for counts — and the claim being
+checked is literally "N decisions recorded". **Every counts violation was
+suppressed and the control went green.** The marker sets are now separate, and
+neither may overlap the phrasings it guards.
+
+So: **three checks in two days that looked correct and could not have failed on
+the case that motivated them** — DEC-023's containment test, the
+spelled-out-numbers gap, and the shared marker list. **Planting a failure is
+not optional diligence; it is the only way to find out whether a check checks
+anything.**
+
+**One limitation is left in, knowingly.** A marker on a neighbouring line
+suppresses a genuine violation within the 8-line window — verified: a bare
+"72 MB" went unflagged eight lines below an unrelated sentence containing
+"recorded". Narrowing the window would trade this for false positives on the
+retraction blocks that already exist, and a noisy check gets switched off.
+**This is a net, not a proof.**
+
+**Evidence:** the four retirements and four count corrections above
+`[verified]` 2026-08-19; negative controls planted and caught for both checks
+before commit.
 
 ---
 

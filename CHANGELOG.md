@@ -22,6 +22,46 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Derived counts checked too; the README was badly wrong — 2026-08-19
+
+The figures register covers numbers that were *measured*. It does nothing for
+counts **derived from the repository**, and those had rotted further:
+
+| Document | Claimed | Actual |
+| --- | --- | ---: |
+| `README.md` | "four research domains complete", "Eight decisions recorded" | **13**, **24** |
+| `PROJECT_CONTEXT.md` | "Four research domains complete" | **13** |
+| `summaries/README.md` | "5 summaries, 1 experiment" | **15**, **6** |
+| `013-state-of-play.md` | "11 of 12" domains, "21" decisions | **13**, **24** |
+
+The README also still said **"no service code written"** with two tested
+packages in the tree — the first paragraph a reader sees. All fixed, and
+`check_figures.py` now derives four counts from the tree and flags any claim
+that contradicts them. **Volatile counts are deliberately excluded**: test
+totals change on almost every commit, so living documents say "both suites
+passing" and exact numbers stay in dated CHANGELOG entries.
+
+**⭐ The negative controls caught the check failing twice, in the same hour.**
+
+1. The first control caught `**3** reproducible experiments` and **sailed past**
+   `four research domains complete` and `Eight decisions recorded` — spelled as
+   words, which is *verbatim* what the README said. The check would have missed
+   the exact instance it was built for. → `_digitise()`
+2. Sharing one marker vocabulary between both checks put `recorded` in scope for
+   counts — and the claim is literally "N decisions recorded". **Every counts
+   violation was suppressed and the control went green.** → separate
+   `FIGURE_MARKERS` and `COUNT_MARKERS`, neither overlapping the phrasings it
+   guards.
+
+That makes **three checks in two days that looked correct and could not have
+failed** on the case that motivated them, counting DEC-023's containment test.
+
+**One limitation left in knowingly:** a marker on a neighbouring line suppresses
+a genuine violation inside the 8-line window — verified with a bare "72 MB"
+eight lines under an unrelated "recorded". Narrowing the window trades it for
+false positives on existing retraction blocks, and a noisy check gets switched
+off. **A net, not a proof.**
+
 ### Figures registered and machine-checked; 10 stale claims found — 2026-08-19
 
 **Correcting a figure in one place and leaving it standing in others has now

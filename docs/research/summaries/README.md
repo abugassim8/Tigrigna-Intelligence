@@ -180,8 +180,9 @@ tells the next person that the question is harder than it looks.
 
 ## Status
 
-**5 summaries, 1 experiment.** Four research domains complete:
-`00_project_definition`, `01_ecosystem`, `02_linguistics`, `03_data_strategy`.
+**15 summaries, 6 reproducible experiments.** 13 research domains complete —
+every planned domain, `00_project_definition` through `12_master_blueprint`.
+**24** decisions recorded.
 
 **Summary 004 supersedes part of 003's build plan:** the decomposition layer
 003 said to build already exists (Epitran). Read 003 for *why* the problem
@@ -192,5 +193,7 @@ exists, 004 for *what to do about it*.
 dataset advertised for pretraining **verifiably contains** our evaluation anchor's
 data. → **DEC-008**: screen everything, quarantine unlicensed data.
 
-Next: `08_evaluation` (build the harness on FLORES-200 + TiQuAD) or
-`04_model_strategy`. Both are now unblocked by the data picture.
+**Next: nothing here is blocked on research.** Every remaining step needs a
+person — `A-01` (model licences), `A-02` (confirm the user model, which gates
+the API surface), `A-07` (morphology), `A-09` (egress, to run any model),
+`A-15` (install CI). See [`ACTIONS.md`](../../../ACTIONS.md).

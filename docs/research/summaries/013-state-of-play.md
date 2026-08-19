@@ -42,14 +42,14 @@ next research is evaluation for the primitives, and it is blocked by nothing.
   | **Measured** | 1.957× expansion · BLEU 1.08× harsher · raw Ge'ez wins 10/10 · TiQuAD contamination confirmed · 5/5 experiments reproduce |
   | **Verified fact** | Every licence in the stack · **0** cleanly-licensed parallel sentences |
   | **Arithmetic** | Tiers 191/1,593 MB · LoRA 23× cheaper *(Tier 0 now measured at 113.4 MB; saving ~14×, not the 22× first computed)* |
-  | **Designed, unbuilt** | Harness · tiers · services — **all of it** |
+  | **Designed, unbuilt** | Tier 1 · Tier 2 · morphology · the API surface |
   | **Assumed** | MADLAD's quality · cold start · COMET · DEC-002's user model |
 
   **80% of summary claims carry `[verified]`**, 20% `[reported]` — the latter
   almost all paper-derived figures behind the egress block.
 
 - ~~**Nothing has been built.**~~ ⚠️ **Superseded 2026-08-03.** Tier 0 and the
-  evaluation harness are now built: **two packages, 96 tests passing**.
+  evaluation harness are now built: **two packages, both suites passing**.
 
   | Package | Status |
   | --- | --- |
@@ -110,14 +110,14 @@ next research is evaluation for the primitives, and it is blocked by nothing.
 
 | Metric | Value | Basis |
 | --- | --- | --- |
-| Research domains complete | **11 of 12** | `[verified]` |
-| Decisions recorded | **21** — 1 proposed, 1 refuted, 1 not in force | `[verified]` |
+| Research domains complete | **13** of 13 | `[verified]` |
+| Decisions recorded | **24** — 1 proposed, 1 refuted, 1 not in force | `[verified]` |
 | **Capabilities with a validated metric** | **1** | `[verified]` |
 | **…inside DEC-006's MVP** | **0** | `[verified]` |
 | Verified share of summary claims | **80%** | `[verified]` |
 | Experiments reproducing byte-identically | **5 of 5** | `[verified]` |
 | Blocking actions, all needing a human | **3** | `[verified]` |
-| **Packages built** | **2** (96 tests passing) | `[verified]` |
+| **Packages built** | **2**, both suites passing | `[verified]` |
 | Shipping bugs caught by those tests | **2** | `[verified]` |
 | **Recorded measurements later retracted** | **1** (DEC-023's, by experiment 005) | `[verified]` |
 
@@ -132,7 +132,7 @@ next research is evaluation for the primitives, and it is blocked by nothing.
 ## References
 
 1. `docs/benchmarks/metrics.md` — the readiness audit's source
-2. `docs/decisions/DECISIONS.md` — DEC-001…DEC-021
+2. `docs/decisions/DECISIONS.md` — DEC-001…DEC-024
 3. `ACTIONS.md` — the real risk register
 
 ---

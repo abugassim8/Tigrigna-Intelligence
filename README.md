@@ -8,11 +8,18 @@ the language technology that speakers of high-resource languages take for
 granted. This project exists to build that missing layer — not as an
 application, but as infrastructure that others can build on.
 
-> **Status: four research domains complete** — `00_project_definition`,
-> `01_ecosystem`, `02_linguistics`, `03_data_strategy`. Eight decisions recorded,
-> one reproducible experiment. No architecture designed and no service code
-> written. See
-> [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
+> **Status: 13 research domains complete** — every planned domain, from
+> `00_project_definition` through `12_master_blueprint`. **24** decisions
+> recorded and **6** reproducible experiments. **Tier 0 is built**: two Python
+> packages (`services/primitives`, `services/evaluation`), both test suites
+> passing.
+> See [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
+>
+> **What is not built:** morphology (blocked on **A-07**), embeddings (**A-01**),
+> the API surface (**A-02**), and no model has been run through the evaluation
+> harness yet (**A-09**). CI is written but **not installed** (**A-15**). Every
+> remaining blocker needs a person, not more research — see
+> [`ACTIONS.md`](ACTIONS.md).
 >
 > **The research changed the plan.** Most of the Tigrinya model layer already
 > exists and is largely openly licensed. Our differentiator is the **primitives
