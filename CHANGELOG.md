@@ -22,6 +22,35 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Four architecture documents were empty scaffolds — 2026-08-19
+
+`api_`, `mcp_`, `data_` and `ml_architecture.md` were still the original
+templates — "Sections to be completed", and a decision log reading
+***No decisions recorded*** — while their domains had **completed research and
+accepted decisions**. Each closes with the line "an architecture document that
+has drifted from reality is worse than none, because people trust it."
+
+All four now record what is decided, drawn from the decision log and the
+research, with blocked areas named rather than invented:
+
+| Document | Now records | Still open |
+| --- | --- | --- |
+| `api_architecture` | DEC-022's contract with the **real implemented JSON**, the UTF-16/BMP offset trap, latency as part of the contract | Endpoint surface (**A-02**) |
+| `ml_architecture` | Model inventory with licences, CTranslate2, the adaptation ladder, evaluation gates | Nothing measured (**A-09**) |
+| `data_architecture` | The four screening gates, why they fail closed, the TiQuAD contamination, licence-by-artefact | Parallel data (**A-05**) |
+| `mcp_architecture` | What DEC-012/022/023 already bind, and why uncertainty is **sharper** for MCP than HTTP | Whether MCP ships early (**A-02**) |
+
+**The MCP point is worth keeping:** an application developer calling the HTTP API
+can inspect a response; **a model calling an MCP tool cannot evaluate Tigrinya
+output, and neither can the person reading its answer.** Degraded output has to
+be structurally visible, not merely documented.
+
+`infrastructure_architecture.md` had **two** decision logs — an empty template
+one above its real content, and a populated one below. The empty one is gone and
+the scaffold replaced with the areas genuinely still undone.
+
+CI now fails if any architecture document carries an empty decision log.
+
 ### Derived counts checked too; the README was badly wrong — 2026-08-19
 
 The figures register covers numbers that were *measured*. It does nothing for

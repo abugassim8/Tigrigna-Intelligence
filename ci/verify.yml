@@ -202,6 +202,21 @@ jobs:
       - name: No retired figure is quoted as current (DEC-024)
         run: python scripts/check_figures.py
 
+      # Four architecture documents sat as empty scaffolds while their domains
+      # had completed research and accepted decisions. Their own closing line
+      # says a drifted architecture document is worse than none.
+      - name: Architecture documents record their decisions
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in docs/architecture/*.md; do
+            if grep -q "No decisions recorded" "$f"; then
+              echo "::error file=$f::$(basename "$f") has an empty decision log — 24 decisions exist"
+              fail=1
+            fi
+          done
+          exit $fail
+
       - name: Every decision names its rejected alternatives
         run: |
           set -euo pipefail

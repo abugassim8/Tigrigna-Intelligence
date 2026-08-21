@@ -33,60 +33,20 @@ Low operating cost is a stated priority and infrastructure is where it is honour
 
 **P-6** optimise for low volume · **P-7** prefer boring technology · **P-12** write it down
 
-## Sections to be completed
+## Still to be designed
 
-### Deployment targets
-Where things run, and what the realistic options are at this budget.
+Covered below: the cost model, deployment mode, CI, orchestration, and compute
+profile. **These are genuinely undone**, and are listed rather than left implied:
 
-### Containerisation
-Image strategy, build pipeline, size and cold-start implications.
-
-### Orchestration
-Whether Kubernetes is justified at our size, or something simpler is better —
-see **N-8**, **P-6**.
-
-### Compute profile
-CPU vs GPU per capability, and what each actually requires.
-
-### Cost model
-Monthly cost at realistic volume, broken down by component, with assumptions
-stated.
-
-### Scale-to-zero and cold starts
-Behaviour and tradeoffs per capability.
-
-### Networking and ingress
-
-### Secrets and configuration management
-Environments, rotation, and what never enters git.
-
-### Monitoring, logging, and alerting
-The cheapest adequate option, not the most complete one.
-
-### Backup and disaster recovery
-
-### Scaling path
-What we would do when load is real — documented, not built.
-
-## Open questions
-
-To be populated by research. Record questions here as they surface, even before
-they can be answered — a written open question is worth more than one someone is
-carrying around in their head.
-
-## Decision log for this area
-
-| Decision | ID | Date | Summary |
-| --- | --- | --- | --- |
-| — | — | — | *No decisions recorded* |
-
-## What future contributors should add
-
-The actual design, once research supports it. Diagrams where they clarify.
-Rationale linked to decision records. Keep it current — an architecture document
-that has drifted from reality is worse than none, because people trust it.
-
----
+| Area | Blocked on |
+| --- | --- |
+| **Deployment target** | **A-14** (Tier 2 cold start) and **A-02** — nothing can be chosen without them |
+| **Containerisation** | The target. Image size matters directly: Tier 0's 3.03 s cold start is 98.7% one dependency |
+| Networking and ingress | The target |
+| Secrets and configuration | Nothing is deployed and no secret exists yet |
+| Monitoring, logging, alerting | The target. **The cheapest adequate option, not the most complete one** |
+| Backup and disaster recovery | Data lives in git at present, which is the whole story at this size |
+| Scaling path | **Documented, not built**, when load is real |
 
 ## Cost model — GB-hours, not dollars
 
@@ -172,3 +132,13 @@ CI. Everything else is premature.
 | CI enforces checkable rules | DEC-018 | 2026-08-03 | Six rules implemented and locally verified — ⚠️ **not installed (A-15)** |
 | Tier 2 mode by measured duty cycle | DEC-019 | 2026-08-03 | Rule stated; input (**A-14**) still missing |
 | Tier by resource profile | DEC-013 | 2026-08-03 | ~14× standing-cost saving confirms it (22× was the pre-build estimate) |
+| Single model runtime | DEC-014 | 2026-08-03 | CTranslate2 (MIT), CPU int8 — no GPU tier, no second runtime |
+| Machine-checkable experiment artefacts | DEC-016 | 2026-08-03 | The reproducibility job doubles as a dependency regression test |
+| Library-first | DEC-012 | 2026-08-03 | Services are thin wrappers, so a tier is a deployment unit rather than a capability boundary |
+
+## What future contributors should add
+
+The deployment target, once **A-14** (Tier 2 cold start) and **A-02** resolve.
+Keep the cost model in GB-hours — vendor pricing is unverifiable from here and
+volatile, while the arithmetic survives price changes. An architecture document
+that has drifted from reality is worse than none, because people trust it.
