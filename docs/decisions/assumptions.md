@@ -24,6 +24,12 @@ An assumption that has been validated should say so and link the evidence.
 
 ---
 
+> ⚠️ **This register was frozen from 2026-07-29 to 2026-08-19** — through six
+> experiments and sixteen decisions — while its stated purpose is recording
+> "updates to the status of existing ones as evidence arrives." A-006 and A-007
+> were corrected on 2026-08-19; **the remaining entries have not been re-audited
+> against the experimental record** and should be read with that in mind.
+
 ## Status values
 
 | Status | Meaning |
@@ -139,8 +145,24 @@ base models and Tigrinya's script or morphology that adaptation cannot bridge.
 
 ### A-006 — Tigrinya-specific evaluation data is scarce and will need to be built
 
-**Status:** **Partially invalidated — refined** · **Confidence:** Medium
-**Since:** 2026-07-29 · **Updated:** 2026-07-29
+**Status:** **Partially invalidated — refined twice** · **Confidence:** Medium
+**Since:** 2026-07-29 · **Updated:** 2026-08-19
+
+> ⚠️ **Second refinement, 2026-08-19.** Two things changed after the text below
+> was written, and neither was recorded until an audit found this file frozen.
+>
+> **1. Most of Tier 0 needs no annotation at all.** DEC-023 established that
+> primitives are evaluated **intrinsically** — idempotence, determinism,
+> reversibility, coverage and alignment integrity are properties of the
+> function. Three of four held on real text, so **P-4 is satisfiable for Tier 0
+> today without building a benchmark.** The gold-standard requirement narrowed
+> from four capabilities to **one: morphology**, which is also unimplemented
+> (**A-07**). ⚠️ Intrinsic checks catch *broken*, not *wrong*.
+>
+> **2. TiQuAD is less available than this entry implies.** Its contamination in
+> a third-party pretraining corpus is **confirmed** `[verified]`, its test set is
+> **not public** (**A-04**), and its copyright position is **unresolved**
+> (**A-06**). Counting it as available evaluation data overstates the position.
 
 ~~We assume there is little high-quality Tigrinya evaluation data~~ — **this was
 too pessimistic.** More human-annotated evaluation data exists than assumed:
@@ -185,8 +207,30 @@ primitives and retrieval, and adopt existing sets elsewhere (DEC-005).
 
 ### A-007 — Morphological complexity is a first-order design constraint
 
-**Status:** **Supported** · **Confidence:** High (raised from Medium)
-**Since:** 2026-07-29 · **Updated:** 2026-07-29
+**Status:** **Supported for retrieval/embeddings (untested); REFUTED for
+tokenization (measured)** · **Confidence:** Medium (lowered from High)
+**Since:** 2026-07-29 · **Updated:** 2026-08-19
+
+> ⚠️ **Updated 2026-08-19 after an audit found this register frozen.**
+> Confidence had been *raised to High* on `[reported]` paper evidence — including
+> MoVoC's "21 BPE tokens versus 6" — and **our own `[verified]` measurement
+> points the other way on the one dimension we tested.**
+>
+> `experiments/002-tokenizer-fertility/` trained BPE on identical text at matched
+> vocabulary sizes, varying only whether the input was morphologically
+> decomposed. **Raw Ge'ez won 10 of 10 configurations and 5 of 5 folds**, mean
+> **+0.190 tokens/word (~8% worse)** for decomposition. DEC-007's
+> token-efficiency rationale was withdrawn on that evidence.
+>
+> **What survives:** the assumption's *scope beyond tokenization*. Retrieval,
+> embeddings and search were never tested here, and the underlying linguistic
+> fact — that Tigrinya is morphologically rich — is not in dispute. What is
+> refuted is the inference that morphology-aware segmentation therefore helps
+> tokenization, which is the form the assumption was being used in.
+>
+> **Limit on the refutation:** 991 words. The *direction* is robust (10/10, 5/5,
+> with an explicable mechanism — Ge'ez already encodes consonant+vowel per
+> character, so BPE need not learn it); the *magnitude* is indicative.
 
 We assume Tigrinya's morphology materially affects tokenization, retrieval,
 embeddings, and search quality — and that approaches designed around analytic

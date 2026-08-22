@@ -22,6 +22,64 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Gap audit: 12 findings, one shipping bug, four checks that could not fail — 2026-08-19
+
+A deliberate adversarial audit across seven dimensions. **Every check was
+re-tested by planting a violation**, rather than read.
+
+**⭐ A live bug in shipped code.** `score(..., confidence_interval=False)`
+returned an **inverted interval** — `ci_low=60.33, ci_high=58.33` around a score
+of 59.33. sacrebleu sets `_ci = -1` as a "not computed" sentinel, and `if ci:`
+is true for -1, so `score - (-1)` became the *lower* bound. The fallback path
+declines bootstrapping on any backend error, so this was reachable in normal
+operation. Found by an audit test asserting `ci_low <= score <= ci_high`.
+
+**Four checks that could not fail:**
+
+| Check | Defect |
+| --- | --- |
+| Contamination gate | An eval segment shorter than 8 words yields no n-grams. **A byte-identical copy of a 2-line eval set was reported `CLEARED for use`.** TiQuAD is QA; questions are routinely under 8 words |
+| "Every report has a summary" | Fell back to matching the *domain* name, so one summary satisfied every report in its directory. A planted orphan report passed |
+| DEC-015 "datasets carry a screening record" | **Zero records existed** for five committed corpora, and the CI job was *named* for the rule while only testing that the tool fails closed |
+| Contamination detection | No positive control anywhere — the gate could regress to always-pass with CI green |
+
+**Two gates that rejected legitimate data:**
+
+- `screen_dataset.py` omitted **Ethiopic Extended-B**, so real Tigrinya carrying
+  those characters failed the quality gate as *"likely mojibake"* at 1.444%.
+  Three definitions of "is Ethiopic" existed; one was wrong.
+- **Our own evaluation anchor failed its own gate.** `flores_ti.txt` scored
+  0.629% "foreign" — the offending characters were **Latin letters in proper
+  nouns**. Mojibake detection is now a separate signature test (replacement
+  chars, C1 controls, Latin-1/Extended), so legitimate Latin passes while the
+  known-corrupted sample still fails on its stray `ñ`.
+
+**A false validation claim in the register P-4 gates on.** `metrics.md` listed
+**morphological analysis** as `Validated: Yes — intrinsic`, citing experiment
+004. Experiment 004 never tested morphology — `grep -ci morph` returns **0** —
+and DEC-023 itself records its intrinsic properties as untested. The capability
+is not implemented (**A-07**).
+
+**A decided contract clause never implemented.** DEC-022 requires the serving
+tier in every response; six of seven clauses were enforced and `tier` silently
+was not. Worse, the previous commit's `api_architecture.md` asserted it as part
+of the contract — a doc/code divergence introduced by the documentation pass.
+
+**The assumptions register was frozen** from 2026-07-29 through six experiments
+and sixteen decisions, while its stated purpose is recording status updates as
+evidence arrives. **A-007** was marked Supported with confidence *raised to High*
+on `[reported]` paper evidence — MoVoC's "21 BPE tokens versus 6" — that our own
+`[verified]` measurement contradicts: experiment 002 found decomposition **~8%
+worse**, 10/10 configurations. Now scoped and lowered to Medium. **A-006** still
+counted TiQuAD as available evaluation data despite confirmed contamination, no
+public test set, and unresolved copyright.
+
+**Not everything suspected was real.** Experiment 004's normalisation figures
+looked irreproducible until it turned out the experiment strips punctuation and
+includes the English file — its numbers are internally consistent. Its private
+`normalise()` agrees with the shipped one on every core-block character.
+`GeezTokenizer.save`/`load` were untested but correct.
+
 ### Four architecture documents were empty scaffolds — 2026-08-19
 
 `api_`, `mcp_`, `data_` and `ml_architecture.md` were still the original

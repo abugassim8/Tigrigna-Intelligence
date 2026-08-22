@@ -1,0 +1,65 @@
+{
+  "corpus": [
+    "experiments/003-metric-validity/data/flores_en.txt"
+  ],
+  "corpus_files": 1,
+  "total_chars": 4584,
+  "gates": [
+    {
+      "gate": "licence",
+      "pass": true,
+      "declared": "cc-by-sa-4.0",
+      "detail": "usable for shipped artefacts"
+    },
+    {
+      "gate": "quality",
+      "pass": false,
+      "worst_foreign_pct": 0.026,
+      "threshold_pct": 0.1,
+      "mojibake": {
+        "experiments/003-metric-validity/data/flores_en.txt": [
+          "ğ (U+011F LATIN SMALL LETTER G WIT)"
+        ]
+      },
+      "per_file": {
+        "experiments/003-metric-validity/data/flores_en.txt": {
+          "chars": 3874,
+          "ethiopic_pct": 0.0,
+          "foreign_pct": 0.03,
+          "foreign_sample": [
+            "ğ(LATIN SMALL LETTER G)"
+          ]
+        }
+      },
+      "review_flags": [],
+      "detail": "DECODING FAILURE — replacement or Latin-1/Extended characters inside Ge'ez text"
+    },
+    {
+      "gate": "variety",
+      "pass": true,
+      "label": "unknown",
+      "signal": "no signal",
+      "eritrean_markers": 0,
+      "ethiopian_markers": 0,
+      "lexeme_counts": {},
+      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010)."
+    },
+    {
+      "gate": "contamination",
+      "pass": true,
+      "ngram_size": 8,
+      "overlaps": 0,
+      "exact_segment_matches": 0,
+      "eval_segments_below_ngram_size": 0,
+      "per_eval_set": {
+        "experiments/002-tokenizer-fertility/corpus/tlt_000_clean.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
+        }
+      },
+      "detail": "no shared n-grams or exact segments with the supplied evaluation sets"
+    }
+  ],
+  "verdict": "BLOCKED — quality"
+}

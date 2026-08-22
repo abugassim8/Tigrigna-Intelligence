@@ -1,0 +1,70 @@
+{
+  "corpus": [
+    "experiments/002-tokenizer-fertility/corpus/tlt_001_CORRUPTED_sample.txt"
+  ],
+  "corpus_files": 1,
+  "total_chars": 1743,
+  "gates": [
+    {
+      "gate": "licence",
+      "pass": true,
+      "declared": "mit",
+      "detail": "usable for shipped artefacts"
+    },
+    {
+      "gate": "quality",
+      "pass": false,
+      "worst_foreign_pct": 0.072,
+      "threshold_pct": 0.1,
+      "mojibake": {
+        "experiments/002-tokenizer-fertility/corpus/tlt_001_CORRUPTED_sample.txt": [
+          "ñ (U+00F1 LATIN SMALL LETTER N WIT)"
+        ]
+      },
+      "per_file": {
+        "experiments/002-tokenizer-fertility/corpus/tlt_001_CORRUPTED_sample.txt": {
+          "chars": 1382,
+          "ethiopic_pct": 98.77,
+          "foreign_pct": 0.07,
+          "foreign_sample": [
+            "ñ(LATIN SMALL LETTER N)"
+          ]
+        }
+      },
+      "review_flags": [],
+      "detail": "DECODING FAILURE — replacement or Latin-1/Extended characters inside Ge'ez text"
+    },
+    {
+      "gate": "variety",
+      "pass": true,
+      "label": "unknown",
+      "signal": "eritrean-leaning",
+      "eritrean_markers": 62,
+      "ethiopian_markers": 0,
+      "lexeme_counts": {
+        "ክሳብ(ER) vs እስካብ(ET)": [
+          2,
+          0
+        ]
+      },
+      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010)."
+    },
+    {
+      "gate": "contamination",
+      "pass": true,
+      "ngram_size": 8,
+      "overlaps": 0,
+      "exact_segment_matches": 0,
+      "eval_segments_below_ngram_size": 0,
+      "per_eval_set": {
+        "experiments/003-metric-validity/data/flores_ti.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
+        }
+      },
+      "detail": "no shared n-grams or exact segments with the supplied evaluation sets"
+    }
+  ],
+  "verdict": "BLOCKED — quality"
+}

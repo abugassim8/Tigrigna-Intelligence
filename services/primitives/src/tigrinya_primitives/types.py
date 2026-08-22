@@ -14,6 +14,9 @@ three of them were arrived at by measurement rather than convention:
   - variety is mandatory and `unknown` is a first-class value, never null
     (DEC-010). Most Tigrinya resources do not state their variety, and a null
     invites callers to ignore the distinction.
+  - the serving tier is disclosed (DEC-013, DEC-022), because the tiers differ
+    by ~150x in memory and far more in latency, and a client cannot set a
+    sensible timeout without knowing which one answered.
 """
 
 from __future__ import annotations
@@ -98,6 +101,16 @@ class Analysis:
     #: which with the current transliterator is always. Declared rather than
     #: implied, so a consumer expecting IPA cannot be silently wrong.
     analysis_is_phonemic: bool = False
+    #: Which resource tier served this (DEC-013, DEC-022). Primitives are
+    #: Tier 0; embeddings Tier 1; translation Tier 2.
+    #:
+    #: In the contract because the tiers differ by ~150x in memory and far more
+    #: in time: `transliterate` is 0.04 ms warm, while Tier 2 is seconds plus a
+    #: possible cold start. Presenting them uniformly is a lie the client pays
+    #: for — one timeout either aborts valid translations or hangs on a
+    #: tokenize call. DEC-022 named this clause and it went unimplemented until
+    #: an audit compared the decision against the payload.
+    tier: int = 0
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
     def to_dict(self) -> dict[str, Any]:

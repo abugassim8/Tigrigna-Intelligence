@@ -6,34 +6,34 @@
     "warm": 200
   },
   "cold_start_ms": {
-    "bare_interpreter": 12.7,
-    "import_only": 52.2,
-    "first_transliterate": 3132.1,
-    "first_normalise": 52.6,
-    "ours_only": 39.4,
-    "epitran_load": 3080.0,
-    "total_excluding_interpreter": 3119.4,
+    "bare_interpreter": 11.6,
+    "import_only": 48.6,
+    "first_transliterate": 2889.5,
+    "first_normalise": 47.5,
+    "ours_only": 37.0,
+    "epitran_load": 2840.9,
+    "total_excluding_interpreter": 2877.9,
     "epitran_share_pct": 98.7
   },
   "service_ms": {
     "sentence_words": 20,
     "normalise": 0.0086,
-    "transliterate": 0.0495,
-    "encode": 0.046,
-    "slowest": 0.0495
+    "transliterate": 0.0438,
+    "encode": 0.0457,
+    "slowest": 0.0457
   },
   "cache": {
     "unique_words": 20,
-    "cached_ms": 0.0014,
-    "uncached_ms": 0.2954,
-    "speedup": 217.8
+    "cached_ms": 0.0021,
+    "uncached_ms": 0.2833,
+    "speedup": 133.9
   },
   "breakeven": {
     "tier0_gb": 0.1134,
     "always_warm_gb_h_month": 82.8,
-    "per_request_s": 3.119,
-    "req_per_month": 842451,
-    "req_per_hour": 1154
+    "per_request_s": 2.878,
+    "req_per_month": 913167,
+    "req_per_hour": 1251
   },
   "H1_epitran_dominates_cold_start": true,
   "H2_cold_start_under_5s": true,

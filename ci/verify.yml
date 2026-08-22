@@ -144,6 +144,68 @@ jobs:
           fi
           echo "screening correctly fails closed"
 
+      # The job is named for DEC-015 but tested only that the tool fails closed.
+      # Nothing asserted the contamination gate DETECTS anything, so it could
+      # regress to always-pass with CI green.
+      - name: Contamination is actually detected (positive control)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/screentest
+          head -3 experiments/003-metric-validity/data/flores_ti.txt > /tmp/screentest/leak.txt
+          if python scripts/data_processing/screen_dataset.py /tmp/screentest/leak.txt \
+               --licence mit \
+               --eval-set experiments/003-metric-validity/data/flores_ti.txt \
+               > /dev/null 2>&1; then
+            echo "::error::a verbatim copy of eval data PASSED screening"
+            exit 1
+          fi
+          echo "contamination gate detects verbatim eval data"
+
+      # An evaluation segment shorter than the n-gram size produces no n-grams.
+      # A byte-identical copy of a short eval set was reported CLEARED.
+      - name: Short evaluation segments are not invisible
+        run: |
+          set -euo pipefail
+          printf 'ሰላም ዓለም ከመይ ኣለኻ\nጽቡቕ እየ የቐንየለይ\n' > /tmp/screentest/short_eval.txt
+          cp /tmp/screentest/short_eval.txt /tmp/screentest/short_leak.txt
+          if python scripts/data_processing/screen_dataset.py /tmp/screentest/short_leak.txt \
+               --licence mit --eval-set /tmp/screentest/short_eval.txt > /dev/null 2>&1; then
+            echo "::error::verbatim copy of a SHORT eval set passed screening"
+            exit 1
+          fi
+          echo "short evaluation segments are covered by exact matching"
+
+      # Legitimate Tigrinya carries Latin proper nouns; flores_ti.txt failed
+      # its own quality gate at 0.629% before mojibake detection was split out.
+      - name: Committed corpora pass their own quality gate
+        run: |
+          set -euo pipefail
+          for f in experiments/003-metric-validity/data/flores_ti.txt \
+                   experiments/002-tokenizer-fertility/corpus/tlt_000_clean.txt; do
+            if ! python scripts/data_processing/screen_dataset.py "$f" \
+                 --licence cc-by-sa-4.0 \
+                 --eval-set experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt \
+                 2>&1 | grep -q "\[PASS\] QUALITY"; then
+              echo "::error file=$f::committed corpus fails our own quality gate"
+              exit 1
+            fi
+          done
+          echo "committed corpora pass the quality gate"
+
+      - name: Every committed corpus carries a screening record (DEC-015)
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in experiments/*/corpus/*.txt experiments/*/data/*.txt; do
+            [ -e "$f" ] || continue
+            rec="$(dirname "$f")/screening/$(basename "$f" .txt).json"
+            if [ ! -f "$rec" ]; then
+              echo "::error file=$f::no screening record at $rec (DEC-015)"
+              fail=1
+            fi
+          done
+          exit $fail
+
       - name: Known-corrupted sample is still detected
         run: |
           set -euo pipefail
@@ -163,21 +225,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # A report is covered only if a summary names THAT report's file.
+      # The previous version also accepted any summary mentioning the report's
+      # DOMAIN, which meant one summary satisfied every report in its directory
+      # — an orphan report with no summary anywhere passed. Verified before the
+      # fix by planting one.
       - name: Every research report has a summary
         run: |
           set -euo pipefail
           fail=0
           for report in docs/research/reports/*/[0-9]*.md; do
             [ -e "$report" ] || continue
-            num=$(basename "$report" | cut -d- -f1)
-            domain=$(basename "$(dirname "$report")")
-            if ! ls docs/research/summaries/*.md >/dev/null 2>&1; then
-              echo "::error::no summaries directory"; exit 1
-            fi
-            # A report is covered if any summary references its path.
-            if ! grep -rqF "$(basename "$report")" docs/research/summaries/ \
-               && ! grep -rqF "$domain" docs/research/summaries/; then
-              echo "::error::$report has no corresponding summary (DEC-001)"
+            if ! grep -rqF "$(basename "$report")" docs/research/summaries/; then
+              echo "::error file=$report::no summary names this report (DEC-001)"
               fail=1
             fi
           done

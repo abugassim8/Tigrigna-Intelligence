@@ -143,9 +143,17 @@ def score(hypotheses: list[str], references: list[str],
 
 def _to_score(name, result, metric) -> MetricScore:
     lo = hi = None
-    # sacrebleu exposes the interval as _ci when bootstrapping was requested.
+    # sacrebleu exposes the interval as _ci when bootstrapping was requested,
+    # and sets it to **-1 as a sentinel** when it was not.
+    #
+    # `if ci:` is true for -1, so the sentinel used to be treated as a real
+    # half-width: score - (-1) became the LOWER bound and score + (-1) the
+    # upper, producing an inverted interval like [60.33, 58.33] around a score
+    # of 59.33. Every caller that declined bootstrapping — and the fallback
+    # path below, which declines it on any backend error — got that instead of
+    # `None`. Found by an audit test asserting ci_low <= score <= ci_high.
     ci = getattr(result, "_ci", None)
-    if ci:
+    if ci is not None and ci > 0:
         lo, hi = result.score - ci, result.score + ci
     # sacrebleu returns numpy float32. Coerce to builtin float: the harness
     # persists results as JSON, and float32 is not serialisable — caught by

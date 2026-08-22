@@ -229,3 +229,60 @@ def test_warmup_loads_the_transliterator_and_is_idempotent():
     before = _epi.cache_info().currsize
     warmup()                                # idempotent, no reload
     assert _epi.cache_info().currsize == before == 1
+
+
+# ------------------------------------------------- contract and API surface
+
+def test_response_discloses_the_serving_tier():
+    """DEC-022 names a `tier` clause. It went unimplemented until an audit
+    compared the decision text against the actual payload — six of seven
+    clauses were enforced and this one silently was not.
+
+    It matters because the tiers differ by ~150x in memory and far more in
+    latency; a client cannot set a sensible timeout without knowing which
+    answered."""
+    from tigrinya_primitives import transliterate
+    d = transliterate("ሰላም ዓለም").to_dict()
+    assert "tier" in d, "DEC-022 requires the serving tier in the response"
+    assert d["tier"] == 0, "primitives are Tier 0 (DEC-013)"
+
+
+def test_span_rejects_impossible_offsets():
+    """The validation branch that makes a misaligned span unrepresentable."""
+    from tigrinya_primitives.types import Span
+    with pytest.raises(ValueError, match="invalid span"):
+        Span(start=-1, end=2, surface="ab", analysis="x")
+    with pytest.raises(ValueError, match="invalid span"):
+        Span(start=5, end=2, surface="", analysis="")
+
+
+def test_tokenizer_survives_save_and_load(tmp_path):
+    """`save`/`load` are public API and were entirely untested.
+
+    The [UNK] bug this project already shipped was a round-trip failure, and
+    serialisation is where a byte-level decoder is most easily lost."""
+    from tigrinya_primitives import GeezTokenizer
+    corpus = ["ሰላም ዓለም ከመይ ኣለኻ", "ትግርኛ ቋንቋ እዩ", "ሃገርነት ኤርትራ"]
+    tok = GeezTokenizer.train(corpus, vocab_size=500, min_frequency=1)
+    unseen = "እዚ ዘይተራእየ ጽሑፍ እዩ፣ ምስ ኣሃዛት 1960።"
+
+    path = tmp_path / "tok.json"
+    tok.save(path)
+    loaded = GeezTokenizer.load(path)
+
+    assert loaded.vocab_size == tok.vocab_size
+    assert loaded.encode(unseen) == tok.encode(unseen)
+    assert loaded.round_trips(unseen), "reloaded tokenizer lost round-trip fidelity"
+    assert "[UNK]" not in loaded.tokens(unseen)
+
+
+def test_fertility_counts_tokens_per_word():
+    from tigrinya_primitives import GeezTokenizer
+    corpus = ["ሰላም ዓለም ከመይ ኣለኻ", "ትግርኛ ቋንቋ እዩ"]
+    tok = GeezTokenizer.train(corpus, vocab_size=500, min_frequency=1)
+    f = tok.fertility(corpus)
+    assert f.words == 7           # 4 + 3 whitespace-delimited words
+    assert f.tokens >= f.words    # never fewer tokens than words
+    assert f.tokens_per_word == f.tokens / f.words
+    assert GeezTokenizer.train(["ሰላም"], vocab_size=300,
+                               min_frequency=1).fertility([]).tokens_per_word == 0.0

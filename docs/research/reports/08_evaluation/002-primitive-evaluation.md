@@ -152,7 +152,7 @@ What still needs gold data and a native speaker:
 | Normalisation | idempotence, collapse rate | **is the collapse right?** |
 | Transliteration | determinism, coverage, alignment | **are the phonemes right?** |
 | Tokenization | reversibility, fertility, UNK rate | **are the boundaries useful?** |
-| **Morphology** | consistency, coverage | **almost everything** |
+| **Morphology** | *(would be)* consistency, coverage — ⚠️ **none of it measured; exp 004 did not test morphology** | **almost everything** |
 
 **Morphology is the honest gap.** Its accuracy is what A-006 anticipated needing
 to build, and nothing here removes that. But it is now **one capability needing

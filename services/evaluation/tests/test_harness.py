@@ -171,3 +171,23 @@ def test_chrf_degrades_more_gracefully_than_bleu():
         f"chrF {s.chrf.score:.1f} should exceed BLEU {s.bleu.score:.1f} "
         "under inflectional near-misses"
     )
+
+
+def test_confidence_intervals_are_actually_produced():
+    """DEC-009 requires spread on small evaluation sets.
+
+    `score()` catches TypeError/ValueError and falls back to point estimates
+    with no interval. Nothing asserted the interval exists, so a sacrebleu API
+    change would have silently removed CIs with every test still green."""
+    s = score(HYPS, REFS, confidence_interval=True)
+    for m in (s.chrf, s.bleu):
+        assert m.ci_low is not None, f"{m.name} lost its confidence interval"
+        assert m.ci_high is not None
+        assert m.ci_low <= m.score <= m.ci_high, f"{m.name} score outside its own CI"
+    assert "[" in s.summary(), "summary must show the interval"
+
+
+def test_confidence_intervals_can_be_declined():
+    s = score(HYPS, REFS, confidence_interval=False)
+    assert s.chrf.ci_low is None and s.bleu.ci_low is None
+    assert s.chrf.score > 0

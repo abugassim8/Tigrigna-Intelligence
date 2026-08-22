@@ -26,10 +26,16 @@ from collections import Counter
 # --------------------------------------------------------------------- script
 
 ETHIOPIC_RANGES = [
-    (0x1200, 0x137F),  # Ethiopic
-    (0x1380, 0x139F),  # Ethiopic Supplement
-    (0x2D80, 0x2DDF),  # Ethiopic Extended
-    (0xAB00, 0xAB2F),  # Ethiopic Extended-A
+    (0x1200, 0x137F),   # Ethiopic
+    (0x1380, 0x139F),   # Ethiopic Supplement
+    (0x2D80, 0x2DDF),   # Ethiopic Extended
+    (0xAB00, 0xAB2F),   # Ethiopic Extended-A
+    # Extended-B was MISSING here until 2026-08-19, while the two other
+    # definitions in the repo included it. Consequence, measured: a corpus of
+    # real Tigrinya carrying 21 Extended-B characters failed the quality gate
+    # at 1.444% "foreign" — legitimate Ge'ez rejected as mojibake. It is also
+    # the one block above the BMP, which DEC-022 singles out as the offset trap.
+    (0x1E7E0, 0x1E7FF),  # Ethiopic Extended-B
 ]
 PUNCT = set("።፡፣፤፥፦፧፨፠-–—''\"\"()[]{}/\\.,;:!?'\"«»%“”‘’፥")
 
@@ -90,23 +96,57 @@ def gate_licence(licence):
     }
 
 
+def is_mojibake(ch):
+    """True for characters that indicate a decoding failure, not Tigrinya.
+
+    Basic ASCII Latin is deliberately NOT here. Real Tigrinya carries Latin
+    proper nouns and acronyms, and treating them as corruption made our own
+    FLORES+ evaluation anchor fail this gate at 0.629% — the "foreign"
+    characters were C, Q, V, P in proper nouns.
+
+    What is left is what genuinely signals misdecoding: the replacement
+    character, C1 controls, and Latin-1 Supplement / Latin Extended letters,
+    which is what UTF-8 read as Latin-1 produces. The known-corrupted sample is
+    caught by exactly this — a stray `ñ`.
+    """
+    cp = ord(ch)
+    return (ch == "\ufffd"
+            or 0x80 <= cp <= 0x9F                    # C1 controls
+            or 0x00C0 <= cp <= 0x024F)               # Latin-1 Supplement, Latin Ext-A/B
+
+
 def gate_quality(texts):
     """Gate 2 — encoding corruption and extraction damage.
 
-    Foreign-character rate is a verdict; the scramble signal is a flag for
-    human review, because distinguishing scrambled columns from unusual prose
-    is not reliably automatable and a false verdict would be worse than none.
+    Two separate tests, because one number could not separate them:
+
+      - **Mojibake signatures** are a hard verdict. Any replacement character,
+        C1 control, or Latin-1/Extended letter is a decoding failure.
+      - **Foreign-character rate** excludes basic ASCII Latin, which is
+        legitimate in Tigrinya (proper nouns, acronyms). Counting it made
+        `flores_ti.txt` — one of DEC-005's two evaluation anchors — fail its
+        own quality gate.
+
+    The scramble signal stays a flag for human review, because distinguishing
+    scrambled columns from unusual prose is not reliably automatable and a false
+    verdict would be worse than none.
     """
     per_file, worst = {}, 0.0
     scramble_flags = []
+    mojibake_hits = {}
     for name, text in texts.items():
         chars = [c for c in text if not c.isspace()]
         if not chars:
             continue
         foreign = [c for c in chars
-                   if not is_ethiopic(c) and not c.isdigit() and c not in PUNCT]
+                   if not is_ethiopic(c) and not c.isdigit() and c not in PUNCT
+                   and not (c.isascii() and c.isalpha())]
         rate = 100 * len(foreign) / len(chars)
         worst = max(worst, rate)
+        moji = sorted({c for c in chars if is_mojibake(c)})
+        if moji:
+            mojibake_hits[name] = [f"{c} (U+{ord(c):04X} {unicodedata.name(c, '?')[:24]})"
+                                   for c in moji[:8]]
 
         # Digit-bearing tokens wedged mid-prose are characteristic of PDF
         # multi-column extraction pulling mastheads into body text.
@@ -125,16 +165,23 @@ def gate_quality(texts):
                                for c, _ in Counter(foreign).most_common(5)],
         }
 
-    ok = worst < 0.1  # anything above this carried real mojibake in practice
+    ok = worst < 0.1 and not mojibake_hits
+    if mojibake_hits:
+        detail = ("DECODING FAILURE — replacement or Latin-1/Extended characters "
+                  "inside Ge'ez text")
+    elif not ok:
+        detail = "unexpected non-Latin foreign characters inside Ge'ez text"
+    else:
+        detail = "no encoding corruption detected"
     return {
         "gate": "quality",
         "pass": ok,
         "worst_foreign_pct": round(worst, 3),
         "threshold_pct": 0.1,
+        "mojibake": mojibake_hits,
         "per_file": per_file,
         "review_flags": scramble_flags,
-        "detail": ("no encoding corruption detected" if ok else
-                   "foreign characters inside Ge'ez text — likely mojibake"),
+        "detail": detail,
     }
 
 
@@ -178,10 +225,18 @@ def gate_variety(texts):
 
 
 def gate_contamination(texts, eval_paths, n=8):
-    """Gate 4 — n-gram overlap against evaluation sets (DEC-008).
+    """Gate 4 — overlap against evaluation sets (DEC-008).
 
-    Word 8-grams are long enough that incidental collision is implausible, so a
-    hit is evidence of shared provenance rather than shared topic.
+    **Two tests, because one was not enough.** Word 8-grams are long enough that
+    incidental collision is implausible, so a hit is evidence of shared
+    provenance rather than shared topic. But an evaluation segment shorter than
+    8 words produces **no n-grams at all** and is therefore invisible to that
+    test: a corpus that was a byte-identical copy of a 2-line evaluation set
+    (4 and 3 words) was reported `[PASS] ... CLEARED for use`.
+
+    That is not hypothetical — **TiQuAD is extractive QA, and questions are
+    routinely under 8 words.** So exact whole-segment matching runs alongside,
+    and short segments are counted and reported rather than silently skipped.
     """
     if not eval_paths:
         return {
@@ -196,25 +251,48 @@ def gate_contamination(texts, eval_paths, n=8):
         ws = words(t)
         return {tuple(ws[i:i + n]) for i in range(len(ws) - n + 1)}
 
-    corpus_ng = set()
+    def segments(t):
+        """Normalised non-empty lines, for exact whole-segment matching."""
+        return {" ".join(words(line)) for line in t.splitlines() if line.strip()}
+
+    corpus_ng, corpus_seg = set(), set()
     for t in texts.values():
         corpus_ng |= ngrams(t)
+        corpus_seg |= segments(t)
 
-    hits, per_eval = 0, {}
+    hits, exact, short_unseen, per_eval = 0, 0, 0, {}
     for name, t in load(eval_paths).items():
         shared = corpus_ng & ngrams(t)
-        per_eval[name] = len(shared)
+        seg = segments(t)
+        shared_seg = corpus_seg & seg
+        # Segments too short to produce any n-gram are invisible to the n-gram
+        # test; exact matching is the only thing that can see them.
+        too_short = {s for s in seg if len(s.split()) < n}
         hits += len(shared)
+        exact += len(shared_seg)
+        short_unseen += len(too_short - corpus_seg)
+        per_eval[name] = {"shared_ngrams": len(shared),
+                          "exact_segments": len(shared_seg),
+                          "segments_below_ngram_size": len(too_short)}
+
+    contaminated = hits > 0 or exact > 0
+    detail = "no shared n-grams or exact segments with the supplied evaluation sets"
+    if contaminated:
+        detail = (f"{hits} shared {n}-grams and {exact} EXACT segment matches — "
+                  f"CONTAMINATED, do not train on this")
+    elif short_unseen:
+        detail = (f"no overlap found, but {short_unseen} evaluation segment(s) are "
+                  f"shorter than {n} words and are only covered by exact matching")
 
     return {
         "gate": "contamination",
-        "pass": hits == 0,
+        "pass": not contaminated,
         "ngram_size": n,
         "overlaps": hits,
+        "exact_segment_matches": exact,
+        "eval_segments_below_ngram_size": short_unseen,
         "per_eval_set": per_eval,
-        "detail": ("no shared n-grams with the supplied evaluation sets"
-                   if hits == 0 else
-                   f"{hits} shared {n}-grams — CONTAMINATED, do not train on this"),
+        "detail": detail,
     }
 
 

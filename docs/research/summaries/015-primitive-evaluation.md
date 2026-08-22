@@ -81,7 +81,7 @@ must be **word-level, not character-level**.
   | Normalisation | idempotence, collapse rate | is the collapse right? |
   | Transliteration | determinism, coverage, alignment | are the phonemes right? |
   | Tokenization | reversibility, fertility, UNK | are the boundaries useful? |
-  | **Morphology** | consistency, coverage | **almost everything** |
+  | **Morphology** | *(would be)* consistency, coverage — **none of it measured** | **almost everything** |
 
   **Morphology is the honest gap** — but it is now **one capability needing
   annotation, not four.**
