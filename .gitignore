@@ -169,6 +169,10 @@ datasets/terminology/**
 
 # Data formats, wherever they appear
 *.csv
+# ...except the native-speaker validation sheets, which ARE the deliverable.
+# Without this the instrument would be committed except the part you actually
+# send to a reviewer, and CI's determinism check would fail on a fresh clone.
+!validation/sheets/*.csv
 *.tsv
 *.jsonl
 *.ndjson

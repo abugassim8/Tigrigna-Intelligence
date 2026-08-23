@@ -269,6 +269,25 @@ jobs:
       # Four architecture documents sat as empty scaffolds while their domains
       # had completed research and accepted decisions. Their own closing line
       # says a drifted architecture document is worse than none.
+      # The instrument two reviewers may be given must be provably identical.
+      # An earlier version was not: `words` is a set, so equal-count entries in
+      # the pronunciation key ordered by hash and the manifest drifted between
+      # runs. Both hash seeds are exercised because that is how it was found.
+      - name: Validation instrument regenerates identically (A-13)
+        run: |
+          set -euo pipefail
+          pip install --quiet -e services/primitives
+          cp -r validation/sheets /tmp/v-sheets
+          cp validation/manifest.json /tmp/v-manifest.json
+          cp validation/key.json /tmp/v-key.json
+          for seed in 1 99; do
+            PYTHONHASHSEED=$seed python validation/generate.py > /dev/null
+            diff -r /tmp/v-sheets validation/sheets
+            diff /tmp/v-manifest.json validation/manifest.json
+            diff /tmp/v-key.json validation/key.json
+          done
+          echo "validation instrument is deterministic"
+
       - name: Architecture documents record their decisions
         run: |
           set -euo pipefail

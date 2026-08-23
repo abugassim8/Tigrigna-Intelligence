@@ -54,7 +54,7 @@ itself a research finding.
 | **A-10** | Introduce the project to GeezLab / L3S | 🟢 Low | Collaboration (G-11) | TODO |
 | **A-11** | Licence clarification on `fidel` | 🟢 Low | Transliteration option | TODO |
 | ~~**A-12**~~ | ~~Choose the project licence~~ | ✅ **DONE** | Resolved by **DEC-020** | **DONE** |
-| **A-13** | **Native-speaker variety audit of our two evaluation anchors** | 🟠 High | Whether DEC-010 is a precaution or a live correction | TODO |
+| **A-13** | **Find a Tigrinya speaker to review our output** — sheets are built and ready to send | 🔴 **Blocking v0.1** | **Whether any of our Tigrinya is correct** (G-1); DEC-025; whether DEC-010 is precaution or live correction | **READY TO SEND** |
 | **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO — *Tier 0 measured (exp 006); Tier 2 still blocked on A-09* |
 | **A-15** | **Activate the CI workflow** (one command) | 🟠 High | DEC-018 — every checkable rule is unenforced until this is done | TODO |
 | **A-16** | Report epitran's position-sensitive transliteration upstream | 🟢 Low | Nothing — we work around it; but the next user will not know | TODO |
@@ -369,7 +369,34 @@ A-01, A-05, and A-06 resolve. Owned by `11_business`.
 
 ---
 
-## 🟠 A-13 — Native-speaker variety audit of the evaluation anchors
+## 🔴 A-13 — Find a Tigrinya speaker to review our output
+
+> **The instrument is built and waiting.** Send them `validation/PROTOCOL.md`
+> and the `validation/sheets/` directory — **134 items, about 25 minutes.**
+> ⚠️ **Never send `validation/key.json`**; it records which answer is ours, and
+> the design depends on the reviewer not knowing.
+>
+> **Widened 2026-08-19.** This action used to cover only a variety audit of the
+> evaluation anchors. That was too narrow. What actually needs a speaker:
+>
+> | Sheet | Question |
+> | --- | --- |
+> | **1** | **Is the word-final `ɨ` real?** Experiment 005 found two forms differing on 4.53% of tokens and **could not tell which is correct** |
+> | 2, 4 | Are the phonemes right at all? DEC-007 records that we cannot detect systematic errors in `tir-Ethi` |
+> | 3 | Does collapsing ጸ/ፀ read as a **correction** of how someone chose to write? |
+> | 5 | Is our evaluation material Eritrean, Ethiopian, or mixed? *(the original scope)* |
+>
+> **If they only have ten minutes, sheet 1 is the one.** It settles a question
+> nothing else can, and the answer changes shipped code.
+>
+> **Please offer to pay.** Expert judgement in a low-resource language is scarce
+> and routinely extracted for free. `PROTOCOL.md` invites them to raise it —
+> that invitation should be genuine.
+>
+> See `validation/README.md` for the design and what the results will and will
+> not establish.
+
+### Original scope — variety audit
 
 **A measurement I cannot make, and it changes what our scores mean.**
 

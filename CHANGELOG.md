@@ -22,6 +22,58 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Native-speaker validation instrument built — 2026-08-19
+
+**A-13 goes from "find someone and work out what to ask" to "send them these
+five sheets."** `validation/` holds a **134-item instrument, ~25 minutes**,
+closing plan steps 1.1 and 1.2 — the only part of the correctness gap that could
+be built without a speaker.
+
+**Stratified, because a random sample wastes scarce expert time.** Each stratum
+settles one open question and is independently analysable, so **partial
+completion is still useful**:
+
+| Sheet | Items | Settles |
+| --- | ---: | --- |
+| **1 · which is right** | 25 | **The word-final `ɨ`** — experiment 005 found two forms differing on 4.53% of tokens and could not tell which is correct → **DEC-025** |
+| 2 · common words | 35 | Accuracy where it has the widest blast radius |
+| 3 · spelling variants | 14 | Is collapsing ጸ/ፀ a matching aid or a **correction** of how someone chose to write? |
+| 4 · random sample | 40 | **The only unbiased accuracy estimate** |
+| 5 · which variety | 20 | Eritrean, Ethiopian or mixed → tests **DEC-010** |
+
+**⭐ Forced choice with the answer hidden.** Sheet 1 shows both candidate forms
+in randomised order with no indication of which we produce — asking "is our
+output right?" invites agreement, asking "which is right?" does not. Verified:
+our form sits in position 1 for 11 items and position 2 for 14. `key.json` holds
+the mapping and **is never sent to the reviewer**.
+
+**IPA was a barrier, so the key is generated from the corpus.** Our output uses
+`ʔ ɨ ə ħ ʕ t͡sʼ`; a fluent speaker who is not a linguist has no reason to read
+those. Every symbol is anchored to a real Ge'ez character that produces it. An
+earlier version **omitted `ɨ` entirely** — the symbol appearing **1,419 times**
+and the one sheet 1 is entirely about — because it is epenthetic and has no
+single-character anchor. It now falls back to the shortest word containing it.
+
+**`analyse.py` refuses the tempting number.** Accuracy is computed from sheet 4
+only; sheets 1–3 select hard cases on purpose, so a rate over them would
+describe our sampling rather than the transliterator. `unsure` is reported
+separately and never folded into agreement. Tested end to end against a
+simulated response, including an unparseable answer, which is reported rather
+than dropped.
+
+**Stratum D is empty by measurement, not omission** — coverage over Ethiopic
+letters is 100% on this corpus, so there are no unmapped-letter words to review.
+Recorded as an empty stratum in the manifest.
+
+**The instrument was not reproducible at first.** `words` is a set, so
+equal-count entries in the pronunciation key ordered by hash and the manifest
+drifted between runs — two reviewers could not have been given provably
+identical material. Fixed with a deterministic tie-break and now verified in CI
+across two `PYTHONHASHSEED` values.
+
+**A-13 is re-scoped and upgraded to blocking**, and `PROTOCOL.md` invites the
+reviewer to say if this should be paid work rather than a favour.
+
 ### Readiness plan of record; README claimed no licence was chosen — 2026-08-19
 
 **`docs/roadmap/READINESS_PLAN.md`** is now the execution plan. The horizon

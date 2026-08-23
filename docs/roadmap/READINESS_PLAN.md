@@ -118,7 +118,7 @@ Ordered by **leverage per minute of your time.**
 | **0.2** | **A-02 — confirm DEC-002** | Read a 3-min summary, decide | The entire API/MCP/SDK surface |
 | **0.3** | **A-01 — email `fgaim`** | Send a drafted email | Tier 1, and DEC-003's reuse plan |
 | **0.4** | **A-05 — email re parallel data** | Send a drafted email | The training ladder; 1.4M sentences |
-| **0.5** | **A-13 — find a Tigrinya speaker** | Ask around; a few hours of their time | **G-1 — the correctness gap** |
+| **0.5** | **A-13 — find a Tigrinya speaker** | Ask around; **~25 min of their time** — sheets are built and ready | **G-1 — the correctness gap** |
 | **0.6** | **A-09 — a session with egress** | Config change | Every model measurement |
 | **0.7** | A-07 — HornMorpho licence | One email | Morphology, completing Tier 0 |
 
@@ -133,23 +133,29 @@ parallel whenever convenient. A-16 (reporting the epitran behaviour upstream) is
 courtesy; A-03 (reporting the TiQuAD contamination) is an ecosystem obligation
 we have been sitting on.
 
-### ⚠️ A-13 needs widening before you send it
+### A-13 is ready to send
 
-**A-13 is currently scoped to "variety audit of the evaluation anchors."** That
-is too narrow for what we actually need validated:
+**Widened and built, 2026-08-19.** A-13 used to be scoped to a variety audit of
+the evaluation anchors, which was too narrow, and it had no instrument. Both are
+fixed: send `validation/PROTOCOL.md` and `validation/sheets/` — **134 items,
+about 25 minutes.**
 
-1. **Transliteration phonemes** — are `səlam`, `ʔɨzom` right? DEC-007 records
-   that we *cannot detect systematic errors in `tir-Ethi`*.
-2. **The word-final `ɨ` question** — experiment 005 found word-by-word and
-   running-text output disagree on 4.53% of tokens. **We do not know which is
-   correct.** A speaker settles it in minutes.
-3. **Normalisation direction** — we collapse ፀ→ጸ and አ→ኣ toward the Eritrean
-   standard. Is that acceptable to Ethiopian-variety users, or does it read as
-   a correction of their spelling?
-4. **Variety labels** on the anchors — the original A-13 scope.
+| Sheet | What it settles |
+| --- | --- |
+| **1 · which is right** | **The word-final `ɨ`.** Experiment 005 found two forms differing on 4.53% of tokens and could not tell which is correct → **DEC-025** |
+| 2, 4 · readings | Are the phonemes right at all? DEC-007 records that we cannot detect systematic `tir-Ethi` errors |
+| 3 · spelling variants | Does collapsing ፀ→ጸ read as a **correction** of how someone chose to write? |
+| 5 · variety | Eritrean, Ethiopian, or mixed — the original scope, testing DEC-010 |
 
-**This is the highest-value hour anyone will spend on this project.** Everything
-downstream inherits these answers.
+⚠️ **Never send `validation/key.json`** — it records which option is ours, and
+sheet 1's design depends on the reviewer not knowing. Our form sits in position
+1 for 11 items and position 2 for 14, so position carries no signal either.
+
+**If they have only ten minutes, sheet 1 is the one.** It answers a question
+nothing else can, and the answer changes shipped code.
+
+**Offer to pay.** Expert judgement in a low-resource language is scarce and
+routinely extracted for free.
 
 ---
 
@@ -160,15 +166,15 @@ downstream inherits these answers.
 
 | Step | Deliverable | Exit criterion |
 | --- | --- | --- |
-| 1.1 | **Validation set**: 200–300 words + 50 sentences spanning both varieties, registers, and the ambiguous 6th-order cases | Committed, with a screening record |
-| 1.2 | **Speaker review protocol** — a form, not a conversation, so results are countable | Per-item verdict: correct / wrong / disputed |
+| ~~1.1~~ | ~~Validation set~~ ✅ **DONE** — `validation/sheets/`, **134 items** in 5 strata, deterministic | Reproduces byte-identically across hash seeds |
+| ~~1.2~~ | ~~Review protocol~~ ✅ **DONE** — `validation/PROTOCOL.md` + `analyse.py` | Constrained vocabularies; forced choice with the answer hidden |
 | 1.3 | **Measured accuracy** for transliteration and normalisation | A number in `metrics.md`, replacing "intrinsic only" |
 | 1.4 | **Resolve the `ɨ` question** → DEC-025 | Decision recorded, `transliterate.py` updated if it changes |
 | 1.5 | **Variety audit** of E-01 and any TiQuAD sample | DEC-010 confirmed as precaution or upgraded to live correction |
 
-**I can build 1.1 and 1.2 now** — the sample and the protocol do not need a
-speaker, only their review does. **That is the single most useful thing I can do
-while blocked**, and I recommend starting it immediately.
+**1.1 and 1.2 are built** (2026-08-19). A-13 is no longer "find someone and work
+out what to ask" — it is "send these five sheets to a speaker." Everything from
+1.3 down now waits on one person's ~25 minutes.
 
 ---
 

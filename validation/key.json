@@ -1,0 +1,206 @@
+{
+  "_warning": "ANSWER KEY — do not send to the reviewer.",
+  "seed": 20260819,
+  "A": {
+    "A01": {
+      "word": "ሊብያን",
+      "word_alone": "libɨjan",
+      "in_context": "libɨjanɨ",
+      "option_1_is": "word_alone",
+      "option_2_is": "in_context",
+      "shipped": "word_alone"
+    },
+    "A02": {
+      "word": "ላዕለዎት",
+      "word_alone": "laʕɨləwot",
+      "in_context": "laʕɨləwotɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A03": {
+      "word": "ልዕሊአን",
+      "word_alone": "lɨʕɨliʔən",
+      "in_context": "lɨʕɨliʔənɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A04": {
+      "word": "ሕጋውን",
+      "word_alone": "ħɨɡawɨn",
+      "in_context": "ħɨɡawɨnɨ",
+      "option_1_is": "word_alone",
+      "option_2_is": "in_context",
+      "shipped": "word_alone"
+    },
+    "A05": {
+      "word": "መሰረት",
+      "word_alone": "məsərət",
+      "in_context": "məsərətɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A06": {
+      "word": "ምላስ",
+      "word_alone": "mɨlas",
+      "in_context": "mɨlasɨ",
+      "option_1_is": "word_alone",
+      "option_2_is": "in_context",
+      "shipped": "word_alone"
+    },
+    "A07": {
+      "word": "ምስ",
+      "word_alone": "mɨs",
+      "in_context": "mɨsɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A08": {
+      "word": "ምትብባዕን",
+      "word_alone": "mɨtɨbɨbaʕɨn",
+      "in_context": "mɨtɨbɨbaʕɨnɨ",
+      "option_1_is": "word_alone",
+      "option_2_is": "in_context",
+      "shipped": "word_alone"
+    },
+    "A09": {
+      "word": "ርጉጽን",
+      "word_alone": "rɨɡut͡sʼɨn",
+      "in_context": "rɨɡut͡sʼɨnɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A10": {
+      "word": "ብውድብ",
+      "word_alone": "bɨwɨdɨb",
+      "in_context": "bɨwɨdɨbɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A11": {
+      "word": "ብድሌት",
+      "word_alone": "bɨdɨlet",
+      "in_context": "bɨdɨletɨ",
+      "option_1_is": "word_alone",
+      "option_2_is": "in_context",
+      "shipped": "word_alone"
+    },
+    "A12": {
+      "word": "ተወፋይነት",
+      "word_alone": "təwəfajɨnət",
+      "in_context": "təwəfajɨnətɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A13": {
+      "word": "ንምድሓን",
+      "word_alone": "nɨmɨdɨħan",
+      "in_context": "nɨmɨdɨħanɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A14": {
+      "word": "ኣብዘን",
+      "word_alone": "ʔabɨzən",
+      "in_context": "ʔabɨzənɨ",
+      "option_1_is": "word_alone",
+      "option_2_is": "in_context",
+      "shipped": "word_alone"
+    },
+    "A15": {
+      "word": "ኣንጻር",
+      "word_alone": "ʔanɨt͡sʼar",
+      "in_context": "ʔanɨt͡sʼarɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A16": {
+      "word": "ኤርትራውን",
+      "word_alone": "ʔerɨtɨrawɨn",
+      "in_context": "ʔerɨtɨrawɨnɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A17": {
+      "word": "ኪዳን",
+      "word_alone": "kidan",
+      "in_context": "kidanɨ",
+      "option_1_is": "word_alone",
+      "option_2_is": "in_context",
+      "shipped": "word_alone"
+    },
+    "A18": {
+      "word": "ክግበር",
+      "word_alone": "kɨɡɨbər",
+      "in_context": "kɨɡɨbərɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A19": {
+      "word": "ውጽኢት",
+      "word_alone": "wɨt͡sʼɨʔit",
+      "in_context": "wɨt͡sʼɨʔitɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A20": {
+      "word": "ዘውሕስ",
+      "word_alone": "zəwɨħɨs",
+      "in_context": "zəwɨħɨsɨ",
+      "option_1_is": "word_alone",
+      "option_2_is": "in_context",
+      "shipped": "word_alone"
+    },
+    "A21": {
+      "word": "ዘይሕጋውን",
+      "word_alone": "zəjɨħɨɡawɨn",
+      "in_context": "zəjɨħɨɡawɨnɨ",
+      "option_1_is": "word_alone",
+      "option_2_is": "in_context",
+      "shipped": "word_alone"
+    },
+    "A22": {
+      "word": "ዝግበር",
+      "word_alone": "zɨɡɨbər",
+      "in_context": "zɨɡɨbərɨ",
+      "option_1_is": "word_alone",
+      "option_2_is": "in_context",
+      "shipped": "word_alone"
+    },
+    "A23": {
+      "word": "ዝጥምት",
+      "word_alone": "zɨtʼɨmɨt",
+      "in_context": "zɨtʼɨmɨtɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    },
+    "A24": {
+      "word": "ዲሞክራስያውን",
+      "word_alone": "dimokɨrasɨjawɨn",
+      "in_context": "dimokɨrasɨjawɨnɨ",
+      "option_1_is": "word_alone",
+      "option_2_is": "in_context",
+      "shipped": "word_alone"
+    },
+    "A25": {
+      "word": "ግን",
+      "word_alone": "ɡɨn",
+      "in_context": "ɡɨnɨ",
+      "option_1_is": "in_context",
+      "option_2_is": "word_alone",
+      "shipped": "word_alone"
+    }
+  }
+}

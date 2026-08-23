@@ -1,0 +1,16 @@
+﻿# We treat these two spellings as the same word for searching. same_word: yes/no/unsure. acceptable: yes/no/unsure.
+id,as_written,we_treat_it_as,same_word,acceptable,comment
+C01,ህላውአን,ህላውኣን,,,
+C02,ልዕሊአን,ልዕሊኣን,,,
+C03,ሕፀታት,ሕጸታት,,,
+C04,መረፃት,መረጻት,,,
+C05,መግለፂ,መግለጺ,,,
+C06,ብሉፅ,ብሉጽ,,,
+C07,ብፀሓፊ,ብጸሓፊ,,,
+C08,ተዋሳአይን,ተዋሳኣይን,,,
+C09,አብ,ኣብ,,,
+C10,ክርአ,ክርኣ,,,
+C11,ወፃኢ,ወጻኢ,,,
+C12,ዝረአ,ዝረኣ,,,
+C13,ዝኸፍአ,ዝኸፍኣ,,,
+C14,ገሊፁ።,ገሊጹ።,,,
