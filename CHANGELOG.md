@@ -22,6 +22,51 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Contract conformance suite; last three doc trees audited — 2026-08-19
+
+Plan items 2 and 3. **The audit found a coverage claim that had been quoted as
+"zero gaps" for three weeks while 19 characters were unmapped.**
+
+**⭐ The conformance suite reads the decision, not my memory of it.** DEC-022
+clause 5 — "the serving tier is disclosed" — was decided on 2026-08-03 and still
+unimplemented on 2026-08-19, surviving a build, a test suite, two audits and a
+documentation pass that asserted it. Testing the clauses I happened to recall
+would reproduce exactly that. So `test_contract.py` **counts the numbered
+clauses in DEC-022 itself** and fails if its map falls behind — verified by
+planting a sixth clause — and **pins the payload's exact field set**, so drift
+fails in both directions. It found one immediately: `to_dict()` normalised
+`spans` to a list but left `warnings` a tuple, so the payload was **not equal to
+its own JSON round-trip**.
+
+**⚠️ "384/384 core Ethiopic characters mapped, zero gaps" was wrong.**
+Experiment 001 counted **non-empty output**, not phonemes. Only **310 of 384**
+transliterate; of the 74 pass-throughs, 26 are unassigned and 29 are
+punctuation/digits (both correct), but **16 real syllables and 3 combining marks
+come back as raw Ge'ez**. DEC-022 had already drawn the implication; the tooling
+survey, its summary and the CHANGELOG had not. Registering the figure surfaced
+**five** live occurrences at once.
+
+**`success_metrics.md` marked every capability "Not measured"** — including
+transliteration and tokenization, which experiment 004 measured, and
+translation, whose metric DEC-009 validated. Same class as `metrics.md` claiming
+morphology was validated. Corrected, with the caveat that "measured — intrinsic"
+means *self-consistent*, not *correct*, until **A-13** returns.
+
+**`references/models.md` omitted MADLAD-400-3B** — the model DEC-011 adopted —
+and listed **NLLB-200 without its CC-BY-NC-4.0 constraint**. That is a licensing
+trap in the document someone consults when choosing a model, in a project where
+licensing is the binding constraint.
+
+**`goals.md` still said "these goals are pre-research"** with all 13 domains
+complete. Updated with what research did to each: G-1 partly delivered, G-2
+redefined by DEC-023, G-3 deprioritised by DEC-006, G-8 harder than assumed
+(~99% unlicensed), G-11 overdue.
+
+**The five horizon roadmaps now carry supersession banners.** The finding in
+`30_days.md` is that **its blocking items are still blocking**: A-01, A-07,
+A-02 and A-09 were open on day one and are open now. They were never engineering
+problems.
+
 ### Native-speaker validation instrument built — 2026-08-19
 
 **A-13 goes from "find someone and work out what to ask" to "send them these
@@ -901,7 +946,7 @@ four requirements. It ships **`tir-Ethi`**, a dedicated Tigrinya map.
 | Criterion | Result |
 | --- | --- |
 | Decomposition | ✅ ካተበ → `katəbə` → root `[k,t,b]`, pattern `[a,ə,ə]` |
-| Coverage | ✅ 384/384 core Ethiopic characters |
+| Coverage | ✅ 384/384 core Ethiopic characters ⚠️ *superseded — counts non-empty output; phoneme coverage is 310/384 (DEC-022)* |
 | Tigrinya-specific | ✅ 59/384 (15.4%) differ from Amharic, correctly |
 | Lossless reversibility | ❌ 384 chars → 362 outputs; **22 collisions** |
 

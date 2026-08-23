@@ -23,7 +23,10 @@ alongside for output, and build only the alignment between them.
   - **Decomposition ✅** ካተበ → `katəbə` → consonants `[k,t,b]`, vowels
     `[a,ə,ə]`. **The discontinuous K-T-B root becomes extractable** — exactly
     what DEC-007 required.
-  - **Coverage ✅** 384/384 core Ethiopic characters, zero gaps.
+  - **Coverage ⚠️** — ~~384/384, zero gaps~~ **corrected 2026-08-19.** That counted
+  *non-empty output*. Only **310 of 384** produce phonemes; **16 real syllables
+  and 3 combining marks** come back as raw Ge'ez, and three whole blocks are
+  unmapped. This is why DEC-022 declares the analysis form non-phonemic.
   - **Language-specific ✅** 59/384 (15.4%) differ from Amharic, *correctly*:
     ሐ → `ħə` (Tigrinya pharyngeal) vs Amharic `hə`; ቀ → `qə` (uvular) vs `kʼə`
     (ejective). Real Tigrinya phonology, not an Amharic alias.
@@ -69,7 +72,7 @@ alongside for output, and build only the alignment between them.
 
 | Metric | Value | Basis |
 | --- | --- | --- |
-| Epitran Ethiopic coverage | **384/384** chars | `[verified]` measured |
+| Epitran Ethiopic **phoneme** coverage | **310 of 384** chars — *corrected; the 384/384 figure counted non-empty output* | `[verified]` measured |
 | Distinct IPA outputs | **362** (22 collisions) | `[verified]` measured |
 | tir vs amh divergence | **59/384 = 15.4%** | `[verified]` measured |
 | Mean symbol expansion | **1.97×** | `[verified]` measured, n=7 |

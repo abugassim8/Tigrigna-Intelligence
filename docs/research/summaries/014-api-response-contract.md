@@ -109,7 +109,7 @@ found an offset trap above the BMP, a favourable normalisation property, and tha
 ## Recommended Next Steps
 
 1. **Answer A-02** — it is the only thing between here and a designed surface.
-2. **Correct DEC-007's coverage wording** so "384/384" is not read as full
+2. **Corrected DEC-007's coverage wording** so the superseded "384/384" is not read as full
    phonemic coverage. *(Done in this pass.)*
 3. **Add a test fixture containing Extended-B** before any client exists, so the
    offset contract is exercised rather than assumed.

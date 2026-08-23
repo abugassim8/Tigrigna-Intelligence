@@ -101,7 +101,7 @@ variants). Tested against DEC-007's four requirements:
 | Criterion | Result | Detail |
 | --- | --- | --- |
 | **Decomposition** | ✅ **PASS** | ካተበ → `katəbə`; consonants `[k,t,b]`, vowels `[a,ə,ə]`. **The discontinuous K-T-B root becomes extractable.** |
-| **Coverage** | ✅ **PASS** | **384/384** core Ethiopic characters mapped, zero gaps |
+| **Coverage** | ⚠️ **QUALIFIED** | **384/384** produce output, but that is **not phoneme coverage** — corrected 2026-08-19. Only **310 of 384** transliterate to phonemes; 74 pass through, of which **16 real syllables and 3 combining marks** are genuinely unmapped (DEC-022). "Zero gaps" was wrong |
 | **Language specificity** | ✅ **PASS** | **59/384 (15.4%)** differ from Amharic, and correctly: ሐ → `ħə` (Tigrinya pharyngeal) vs `hə`; ቀ → `qə` (uvular) vs `kʼə` (ejective) |
 | **Reversibility** | ❌ **FAIL** | 384 chars → **362** distinct outputs. **22 collisions.** Round-trip is lossy |
 

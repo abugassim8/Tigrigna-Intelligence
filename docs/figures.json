@@ -131,6 +131,21 @@
       ]
     },
     {
+      "id": "epitran-phoneme-coverage",
+      "name": "epitran tir-Ethi phoneme coverage of the core block",
+      "current": "310 of 384 characters",
+      "basis": "DEC-022; 74 pass through — 26 unassigned, 29 punctuation/digits (both correct), 16 real syllables and 3 combining marks unmapped",
+      "note": "this is why DEC-022 declares the analysis form non-phonemic",
+      "retired": [
+        {
+          "value": "384/384 coverage",
+          "patterns": ["384/384"],
+          "reason": "experiment 001 counted non-empty output, not phonemes; quoted as full coverage it hid 19 genuinely unmapped characters",
+          "superseded": "2026-08-19"
+        }
+      ]
+    },
+    {
       "id": "character-alignment-rate",
       "name": "Character-level alignment rate",
       "current": "23.89%",

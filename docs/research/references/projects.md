@@ -58,12 +58,31 @@
 - **Relevance:** **Direct — the DEC-007 analysis substrate**
 - **Summary:** Transcribes orthography to IPA across 158 language maps,
   **including a dedicated `tir-Ethi` Tigrinya map** (plus `-pp`, `-red`).
-- **Measured** (`experiments/001`): 384/384 Ethiopic coverage; 59/384 characters
-  differ from Amharic and do so correctly (pharyngeal ħ, uvular q); ካተበ →
-  `katəbə` yields root `[k,t,b]`; **22 collisions → not reversible**; 1.97× mean
-  expansion.
-- **Verdict:** **Very useful — adopted.** Replaces a layer we planned to build.
-  ⚠️ Not reversible; must be paired with surface-form preservation.
+- **Measured** (`experiments/001`): 59/384 characters differ from Amharic and do
+  so correctly (pharyngeal ħ, uvular q); ካተበ → `katəbə` yields root `[k,t,b]`;
+  **22 collisions → not reversible**; 1.97× mean expansion.
+- ⚠️ **"384/384 Ethiopic coverage" was recorded here and is misleading**
+  (corrected 2026-08-19). Experiment 001 counted **non-empty output**. Of the 384
+  core characters, **310 transliterate to phonemes and 74 pass through** — 26
+  unassigned and 29 punctuation/digits, both correct, but **16 real syllables and
+  3 combining marks come back as raw Ge'ez**. Supplement, Extended-A and
+  Extended-B are **entirely unmapped**. This is why DEC-022 declares the analysis
+  form **non-phonemic**.
+- ⚠️ **Do not decompose for tokenization** (`experiments/002`). BPE on
+  epitran-decomposed text produced **worse** fertility than raw Ge'ez in **10 of
+  10** configurations — mean **+0.190 tokens/word, ~8% worse**. DEC-007's
+  token-efficiency rationale was withdrawn on that evidence.
+- ⚠️ **Output depends on text arbitrarily far away** (`experiments/005`).
+  Transliterating a whole line differs from transliterating word by word on
+  **4.53%** of tokens, and the trigger is not local context — for a word at index
+  72 of a 128-word line, replacing the line's **first** word flips the result.
+  Deterministic, but not statable as a phonological rule, so we transliterate
+  **word by word** to get an answer that is a function of the word alone.
+  Reporting this upstream is **A-16**.
+- **Verdict:** **Very useful — adopted**, with three caveats above. Replaces a
+  layer we planned to build. ⚠️ Not reversible; must be paired with surface-form
+  preservation. **Whether its phonemes are correct is unknown** — that needs a
+  speaker (**A-13**), and no automated check can substitute.
 
 ### abyssinica
 

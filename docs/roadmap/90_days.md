@@ -1,5 +1,11 @@
 # Roadmap — 90 Days
 
+> ⚠️ **Superseded as a plan, kept as a record.** This was written **before any
+> research** — when the research phases were still hypothetical. All 13 research domains are now complete, two packages are
+> built, and **[`READINESS_PLAN.md`](READINESS_PLAN.md) is the plan of record.**
+>
+> **The research it projected over a quarter completed faster**, and produced 24 decisions plus six experiments. What it did not anticipate is that finishing the research would leave the project gated almost entirely on human actions rather than on further work.
+
 ## Purpose of this document
 
 The quarter-scale plan: the research phases expected to complete in the first

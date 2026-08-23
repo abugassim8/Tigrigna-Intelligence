@@ -1,5 +1,11 @@
 # Roadmap — 6 Months
 
+> ⚠️ **Superseded as a plan, kept as a record.** This was written **before any
+> research** — before it was known what would be buildable. All 13 research domains are now complete, two packages are
+> built, and **[`READINESS_PLAN.md`](READINESS_PLAN.md) is the plan of record.**
+>
+> **Tier 0 arrived early** — normalisation, tokenization and transliteration are built and tested. The API it expected at this horizon is still blocked on **A-02**, and morphology on **A-07**.
+
 ## Purpose of this document
 
 The half-year horizon: where research should be complete, where design should

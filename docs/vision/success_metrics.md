@@ -18,10 +18,19 @@ self-deception.
 establishes what is achievable. Baselines, once measured. Replace the
 placeholders below with real numbers — and record the basis for each target.
 
-> **Status:** No targets are set. Setting numeric targets before knowing the
-> current state of the art for Tigrinya would produce numbers with no basis —
-> either trivially achievable or impossible, with no way to tell which. Targets
-> get set after `08_evaluation` research establishes baselines.
+> **Status:** **No targets are set, and that is still deliberate** — but four
+> capabilities are now measured, which this table denied until 2026-08-19.
+>
+> Setting numeric targets before knowing the state of the art for Tigrinya would
+> produce numbers with no basis, either trivially achievable or impossible with
+> no way to tell which. **A baseline is not a target**, and the rows below now
+> distinguish the two.
+>
+> ⚠️ **Every row read `TBD / Unknown / Unset / Not measured` — including
+> transliteration and tokenization, which experiment 004 measured, and
+> translation, whose metric DEC-009 validated.** Found by audit, the same class
+> of error as `metrics.md` claiming morphology was validated when nothing had
+> tested it.
 
 ---
 
@@ -36,21 +45,28 @@ do not count.
 
 | Capability | Metric | Baseline | Target | Status |
 | --- | --- | --- | --- | --- |
-| Translation (→ Tigrinya) | TBD — see `08_evaluation` | Unknown | Unset | Not measured |
-| Translation (Tigrinya →) | TBD | Unknown | Unset | Not measured |
-| Embeddings / semantic similarity | TBD | Unknown | Unset | Not measured |
-| Semantic search | TBD | Unknown | Unset | Not measured |
-| Cross-language retrieval | TBD | Unknown | Unset | Not measured |
-| Morphological analysis | TBD | Unknown | Unset | Not measured |
-| Lemmatization | TBD | Unknown | Unset | Not measured |
-| Tokenization quality | TBD | Unknown | Unset | Not measured |
-| Spell correction | TBD | Unknown | Unset | Not measured |
-| Grammar checking | TBD | Unknown | Unset | Not measured |
-| Transliteration | TBD | Unknown | Unset | Not measured |
-| Named entity recognition | TBD | Unknown | Unset | Not measured |
-| Entity linking | TBD | Unknown | Unset | Not measured |
-| Summarization | TBD | Unknown | Unset | Not measured |
-| Question answering | TBD | Unknown | Unset | Not measured |
+| **Tokenization** | **Reversibility + fertility + `[UNK]` rate** (DEC-023) | **100.00%** round-trip, **0** `[UNK]` | Unset | ✅ **measured — intrinsic** |
+| **Transliteration** | **Determinism + coverage + word-level alignment** (DEC-023) | **100%** deterministic, **100.00%** letter coverage | Unset | ✅ **measured — intrinsic** |
+| **Normalisation** | **Idempotence + collapse rate** | **0** non-idempotent, **4** forms collapsed | Unset | ✅ **measured — intrinsic** |
+| **Translation (→ Tigrinya)** | **chrF primary, BLEU alongside** (DEC-009) | ⚠️ **none — no model has been scored** (A-09) | Unset | ⚠️ **metric validated, nothing measured** |
+| Translation (Tigrinya →) | chrF primary, BLEU alongside (DEC-009) | ⚠️ none — no model scored | Unset | ⚠️ metric validated, nothing measured |
+| **Morphological analysis** | Consistency + coverage; accuracy needs gold data | — | Unset | ❌ **not implemented** (A-07) and **not measured** |
+| Embeddings / semantic similarity | ⚠️ **TBD and genuinely unsolved** — `tiroberta-bi-encoder` is monolingual, so FLORES+ bitext retrieval does not apply | — | Unset | ❌ Tier 1, unbuilt (A-01) |
+| Semantic search | TBD | — | Unset | ❌ not researched |
+| Cross-language retrieval | TBD | — | Unset | ❌ not researched |
+| Lemmatization | TBD | — | Unset | ❌ not researched |
+| Spell correction | TBD | — | Unset | ❌ not researched |
+| Grammar checking | TBD | — | Unset | ❌ not researched |
+| Named entity recognition | TBD | — | Unset | ❌ not researched |
+| Entity linking | TBD | — | Unset | ❌ not researched |
+| Summarization | TBD | — | Unset | ❌ not researched |
+| Question answering | TBD | — | Unset | ❌ not researched |
+
+⚠️ **"Measured — intrinsic" is a weaker claim than it looks.** Intrinsic checks
+catch *broken*, not *wrong*: a transliterator returning deterministically
+incorrect phonemes passes every one of them. **No baseline here has been seen by
+a Tigrinya speaker** — `validation/` holds the instrument for that, awaiting
+**A-13**. Until it returns, "measured" means *self-consistent*, not *correct*.
 
 **Metric selection is itself a research question.** Standard metrics were mostly
 validated on high-resource, morphologically simple languages. Whether they mean

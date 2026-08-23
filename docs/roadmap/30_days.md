@@ -1,5 +1,11 @@
 # Roadmap — 30 Days
 
+> ⚠️ **Superseded as a plan, kept as a record.** This was written **before any
+> research** — in the project's first days. All 13 research domains are now complete, two packages are
+> built, and **[`READINESS_PLAN.md`](READINESS_PLAN.md) is the plan of record.**
+>
+> **Its blocking items are still blocking**, which is the finding: `fgaim` licences (**A-01**), HornMorpho (**A-07**), confirming DEC-002 (**A-02**) and egress (**A-09**) were open on day one and are open now. They were never engineering problems.
+
 ## Purpose of this document
 
 The near-term plan: what happens in the first month.

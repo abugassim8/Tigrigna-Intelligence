@@ -17,10 +17,20 @@ should not be done.
 is achievable. Move goals to `../roadmap/` once they have dates. Retire goals
 that are met or abandoned, with a note on which.
 
-> **Status:** These goals are pre-research. They express intent, not commitment.
-> Several will change once Phase 1 research establishes what is actually
-> feasible. Nothing here is dated, deliberately — dating goals before research
-> produces fiction.
+> **Status:** ⚠️ **Written pre-research; all 13 research domains are now
+> complete** (updated 2026-08-19). The goals themselves held up — none was
+> abandoned — but research changed what each costs, and two changed shape:
+>
+> | Goal | What research did to it |
+> | --- | --- |
+> | **G-1** primitives | **Partly delivered.** Normalisation, tokenization and transliteration are built; morphology is a stub (**A-07**) |
+> | **G-2** evaluation | **Delivered for translation, and redefined for the rest.** DEC-023 established that primitives are evaluated *intrinsically*, so most of this needs no annotated data — the gold-standard requirement shrank from four capabilities to one |
+> | **G-3** translation | **Deprioritised by DEC-006**, which excludes translation from the minimum platform. A model is adopted (DEC-011) but has never been scored |
+> | **G-8** data foundation | ⚠️ **Harder than assumed.** Licensing, not scarcity, is the binding constraint: **~99%** of discovered Tigrinya data carries no stated licence |
+> | **G-11** contribute back | **Overdue.** A confirmed contamination finding in someone else's dataset is still unreported (**A-03**) |
+>
+> Nothing here is dated, deliberately. `../roadmap/READINESS_PLAN.md` carries
+> the sequence.
 
 ---
 

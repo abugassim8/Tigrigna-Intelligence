@@ -114,10 +114,20 @@ class Analysis:
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
     def to_dict(self) -> dict[str, Any]:
+        """The wire form. Every value here is a JSON primitive, list or dict.
+
+        `warnings` is converted to a list for the same reason `spans` is:
+        `asdict` preserves tuples, so the payload was **not equal to its own
+        JSON round-trip** — `spans` normalised to a list and `warnings` did
+        not. Harmless in transit, but it means a consumer comparing a response
+        to re-parsed JSON gets inequality on a field that never changed. Found
+        by the DEC-022 conformance suite.
+        """
         d = asdict(self)
         d["variety"] = self.variety.value
         d["offset_unit"] = self.offset_unit.value
         d["spans"] = [asdict(s) for s in self.spans]
+        d["warnings"] = list(self.warnings)
         return d
 
     def verify_offsets(self) -> None:
