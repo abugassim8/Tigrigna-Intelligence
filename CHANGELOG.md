@@ -22,6 +22,49 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Duplicate definitions checked; the harness gets its first consumer — 2026-08-19
+
+The last two cross-cutting debt items.
+
+**`is_ethiopic` exists five times and two copies were wrong.**
+`experiments/002-tokenizer-fertility/run.py` omitted **Ethiopic Extended-B**
+exactly as `screen_dataset.py` had — the defect whose measured consequence was
+real Tigrinya failing the quality gate as *"likely mojibake"* at 1.444%. Fixed,
+after verifying the experiment's artefact still reproduces byte-identically.
+
+**The duplicates stay, deliberately.** `screen_dataset.py` is stdlib-only
+because it decides whether data may enter the project and should run anywhere;
+experiments are frozen records whose dependency surface is part of their meaning
+as evidence. So `scripts/check_definitions.py` compares every copy over **606
+codepoints** and every Ethiopic character, and CI runs it. Negative control:
+reintroducing the historical omission is caught on all 32 Extended-B codepoints.
+
+**⭐ `experiments/007-harness-fidelity` is the evaluation harness's first
+consumer.** It had tests and nothing else used it — and its own tests are not
+independent evidence, having already missed a live inverted-CI bug.
+
+| Hypothesis | Verdict |
+| --- | --- |
+| **H1 — the harness does not change the number** | ✅ **bit-identical to raw sacrebleu, 4/4 corruption levels** |
+| H2 — BLEU never obtainable alone | ✅ |
+| H3 — `aggregate()` raises rather than warns | ✅ |
+| **H4 — CIs widen as *n* falls** | ❌ **widening breaks at n=3** |
+
+**H4's refutation is the finding.** Median 95% chrF interval width over 20
+random subsets: **2.69 (n=30) → 3.06 → 3.87 → 5.02 (n=5) → 4.59 (n=3)**.
+Bootstrap resampling of 3 items has only **27 distinct multisets**, so the
+interval cannot express the uncertainty it should. **A CI below roughly n=5
+understates uncertainty exactly where uncertainty is greatest** — live rather
+than theoretical, since our evaluation anchor is 30 sentences and any
+per-variety breakdown lands in that range. → **DEC-009 Amendment 1**
+
+**Two of four hypotheses first produced wrong verdicts through defects in the
+experiment, not the subject**, and both are recorded rather than quietly fixed:
+H2 flagged `sacrebleu_version` because the name contains "bleu"; H4's first
+design took `refs[:n]`, varying sentence **content** along with sample size and
+producing a false non-monotonic refutation. **Correcting the design changed the
+answer** — from "CIs do not widen" to "CIs widen down to n=5 and then break."
+
 ### Contract conformance suite; last three doc trees audited — 2026-08-19
 
 Plan items 2 and 3. **The audit found a coverage claim that had been quoted as

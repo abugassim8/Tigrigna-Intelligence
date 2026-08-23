@@ -71,7 +71,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-006 | 2026-07-29 | Minimum viable platform is the primitives layer, not translation | Accepted |
 | DEC-007 | 2026-07-29 | Consonant–vowel decomposition as the substrate beneath tokenization | Accepted — **amended twice; token-efficiency rationale REFUTED 2026-08-03** |
 | DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
-| DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted |
+| DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted — **caveat added by Amendment 1** |
 | DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted |
 | DEC-011 | 2026-08-03 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted |
 | DEC-012 | 2026-08-03 | Library-first; services are thin wrappers over libraries | Accepted |
@@ -781,6 +781,38 @@ incomparable to the field for no measured gain.
 
 **Evidence:** `experiments/003-metric-validity/`;
 `../research/summaries/006-metric-validity-and-harness.md`
+
+---
+
+### Amendment 1 — 2026-08-19: the interval itself stops being trustworthy below ~n=5
+
+**DEC-009 requires confidence intervals on small evaluation sets** because a
+point estimate hides how little is known. `experiments/007-harness-fidelity/`
+measured whether the interval actually delivers that, over 20 random subsets per
+size:
+
+| n | Median 95% chrF CI width |
+| ---: | ---: |
+| 30 | **2.69** |
+| 20 | 3.06 |
+| 10 | 3.87 |
+| **5** | **5.02** |
+| **3** | **4.59** ⚠️ *narrower than n=5* |
+
+Widening holds from 30 down to 5 and then **reverses**. Bootstrap resampling of
+3 items has only **27 distinct multisets**, many yielding identical scores, so
+the interval cannot express the uncertainty it should.
+
+**The requirement stands; a caveat is added.** Report intervals as DEC-009
+already requires, and **do not treat an interval below roughly n=5 as
+meaningful** — it understates uncertainty exactly where uncertainty is greatest.
+This is live rather than theoretical: our evaluation anchor is **30 sentences**,
+so any per-variety or per-domain breakdown of it lands in that range.
+
+*(Mechanism inferred from the resample-space arithmetic, not independently
+proven.)*
+
+**Evidence:** `experiments/007-harness-fidelity/` `[verified]` 2026-08-19
 
 ---
 

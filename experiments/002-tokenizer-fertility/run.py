@@ -31,7 +31,12 @@ ETHIOPIC_RANGES = [
     (0x1200, 0x137F),  # Ethiopic
     (0x1380, 0x139F),  # Ethiopic Supplement
     (0x2D80, 0x2DDF),  # Ethiopic Extended
-    (0xAB00, 0xAB2F),  # Ethiopic Extended-A
+    (0xAB00, 0xAB2F),   # Ethiopic Extended-A
+    # Added 2026-08-19. Extended-B was missing here and in screen_dataset.py,
+    # while three other copies included it. Verified not to change this
+    # experiment's results: the corpus contains no Extended-B characters, so
+    # the artefact still reproduces byte-identically (DEC-016).
+    (0x1E7E0, 0x1E7FF),  # Ethiopic Extended-B
 ]
 # Ge'ez punctuation and ASCII punctuation both legitimately appear.
 PUNCT = set("።፡፣፤፥፦፧፨፠-–—''\"\"()[]{}/\\.,;:!?'\"«»%")

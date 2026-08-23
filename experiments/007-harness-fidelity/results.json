@@ -1,0 +1,62 @@
+{
+  "reference_sentences": 30,
+  "seed": 20260819,
+  "sacrebleu": "2.6.0",
+  "H1_harness_is_transparent": true,
+  "H1_comparisons": [
+    {
+      "corruption": 0.0,
+      "harness_chrf": 100.0,
+      "raw_chrf": 100.0,
+      "harness_bleu": 100.00000000000004,
+      "raw_bleu": 100.00000000000004,
+      "identical": true
+    },
+    {
+      "corruption": 0.1,
+      "harness_chrf": 94.17976496233312,
+      "raw_chrf": 94.17976496233312,
+      "harness_bleu": 84.78072437895533,
+      "raw_bleu": 84.78072437895533,
+      "identical": true
+    },
+    {
+      "corruption": 0.2,
+      "harness_chrf": 85.98414817516252,
+      "raw_chrf": 85.98414817516252,
+      "harness_bleu": 63.9786780314494,
+      "raw_bleu": 63.9786780314494,
+      "identical": true
+    },
+    {
+      "corruption": 0.3,
+      "harness_chrf": 78.10697980619811,
+      "raw_chrf": 78.10697980619811,
+      "harness_bleu": 46.12023384163971,
+      "raw_bleu": 46.12023384163971,
+      "identical": true
+    }
+  ],
+  "H2_bleu_never_alone": true,
+  "H3_aggregate_raises": true,
+  "H3_outcomes": {
+    "single variety": "raised",
+    "unknown": "raised"
+  },
+  "H4_ci_widens_as_n_falls": false,
+  "H4_ci_widths_median": {
+    "30": 2.694443,
+    "20": 3.063675,
+    "10": 3.866486,
+    "5": 5.021896,
+    "3": 4.585739
+  },
+  "H4_subsets_per_n": 20,
+  "H4_monotonic_to_n5": true,
+  "report_caveats": {
+    "chrF is primary": true,
+    "states the 1.08 BLEU penalty": true,
+    "refuses cross-variety aggregation": true,
+    "marks the NC model unshippable": true
+  }
+}

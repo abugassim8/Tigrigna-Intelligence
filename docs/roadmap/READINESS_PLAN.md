@@ -242,11 +242,11 @@ Small, unblocked, and worth clearing between phases.
 
 | Item | Effort | Why |
 | --- | --- | --- |
-| Audit `docs/vision`, `docs/roadmap`, `docs/research/references` | Half a day | The last three unaudited trees. Every audited tree has produced real defects — including this README's "Licence: Not yet selected" |
-| Reconcile the horizon roadmaps with reality | Short | `30_days.md` still lists completed research as upcoming |
-| Retire duplicate `is_ethiopic` / `normalise` definitions | Short | Three copies of one; the audit found one wrong. They agree **today** |
-| Contract conformance test suite | Short | Generalises the `tier` fix — assert every clause, not the ones we remember |
-| `tigrinya_eval` used by an experiment | Short | The harness is tested but no experiment consumes it, so drift is possible |
+| ~~Audit `docs/vision`, `docs/roadmap`, `docs/research/references`~~ ✅ **DONE** | — | Found "384/384, zero gaps" (real coverage 310/384), every capability marked "Not measured", and NLLB listed without its NC constraint |
+| ~~Reconcile the horizon roadmaps~~ ✅ **DONE** | — | All five carry supersession banners. The finding: `30_days.md`'s blocking items are **still blocking** |
+| ~~Retire duplicate `is_ethiopic` / `normalise`~~ ✅ **DONE** | — | **Five copies, two wrong** — `experiments/002` omitted Extended-B exactly as `screen_dataset` had. `scripts/check_definitions.py` compares every copy over 606 codepoints in CI |
+| ~~Contract conformance suite~~ ✅ **DONE** | — | `test_contract.py` counts the clauses in DEC-022 **itself**, so a clause added to the decision fails the build until implemented |
+| ~~`tigrinya_eval` used by an experiment~~ ✅ **DONE** | — | `experiments/007` — the harness is **bit-identical** to raw sacrebleu, and found CIs stop widening below n≈5 |
 
 ---
 
@@ -269,9 +269,9 @@ Small, unblocked, and worth clearing between phases.
 
 1. **Build the native-speaker validation set and review protocol** (1.1, 1.2).
    Highest value: it converts A-13 from "find someone" into "send them this."
-2. **Audit the last three doc trees.** Every previous audit found real defects.
-3. **Contract conformance tests** — generalise the `tier` fix.
-4. **Reconcile the horizon roadmaps** with what actually happened.
+2. ~~**Audit the last three doc trees.**~~ ✅ **done** — found "384/384, zero gaps" (real coverage 310/384) and NLLB listed without its NC constraint.
+3. ~~**Contract conformance tests**~~ ✅ **done.**
+4. ~~**Reconcile the horizon roadmaps**~~ ✅ **done** — all five carry supersession banners.
 5. **Design embeddings evaluation** (4.1) — research, not building; the
    monolingual problem is real and unsolved.
 

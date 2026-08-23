@@ -266,6 +266,16 @@ jobs:
       - name: No retired figure is quoted as current (DEC-024)
         run: python scripts/check_figures.py
 
+      # `is_ethiopic` exists five times and two copies were wrong: both
+      # screen_dataset.py and experiments/002 omitted Ethiopic Extended-B, and
+      # real Tigrinya carrying it failed the quality gate as "likely mojibake".
+      # The duplicates are deliberate — screen_dataset is stdlib-only, and
+      # experiments are frozen records — so this checks they agree instead.
+      - name: Duplicate definitions agree
+        run: |
+          pip install --quiet -e services/primitives -e services/evaluation
+          python scripts/check_definitions.py
+
       # Four architecture documents sat as empty scaffolds while their domains
       # had completed research and accepted decisions. Their own closing line
       # says a drifted architecture document is worse than none.
