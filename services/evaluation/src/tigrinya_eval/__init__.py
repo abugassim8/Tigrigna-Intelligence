@@ -35,6 +35,10 @@ DEC-023(a), with no annotated data:
     >>> print(evaluate_primitives(load_corpus(["corpus/"])).report())
 
 Importing it requires `tigrinya-primitives` (the `primitives` extra).
+
+`tigrinya_eval.embeddings` does the same for Tier 1 (DEC-026) — six properties
+measurable without annotation, plus the lexical baseline a neural model has to
+beat before it earns its footprint.
 """
 
 from .metrics import (

@@ -147,3 +147,7 @@ means the alternatives were not actually explored.
 | Correcting figures by hand as they are found | DEC-024 | 2026-08-19 | Measured failure rate of 4 in 4 — every figure corrected so far was left standing in 2–5 other files, found only by later sweeps |
 | Single-sourcing every figure and transcluding it | DEC-024 | 2026-08-19 | Plain Markdown has no transclusion; would require a documentation build, which P-7 rules out at this scale |
 | Forbidding figures outside the registry entirely | DEC-024 | 2026-08-19 | Unreadable prose and nobody would comply — a rule people route around is worse than none |
+| FLORES+ bitext retrieval for embeddings | DEC-026 | 2026-08-19 | **Impossible, not merely unavailable** — `tiroberta-bi-encoder` is monolingual, so embedding English measures tokenizer collisions rather than meaning |
+| Building a Tigrinya STS set before evaluating embeddings | DEC-026 | 2026-08-19 | Months of annotation (A-006) when six properties are measurable today with none |
+| Adopting a multilingual encoder instead | DEC-026 | 2026-08-19 | Would enable G-4, but is an undecided Tier 1 scope change and abandons a cleared Apache-2.0 model. Recorded as open, not rejected outright |
+| Shipping embeddings unevaluated | DEC-026 | 2026-08-19 | Violates P-4 on the capability where failure is least visible — retrieval degrades silently for users who chose the other spelling |

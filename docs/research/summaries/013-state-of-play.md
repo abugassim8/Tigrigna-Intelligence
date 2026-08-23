@@ -111,11 +111,11 @@ next research is evaluation for the primitives, and it is blocked by nothing.
 | Metric | Value | Basis |
 | --- | --- | --- |
 | Research domains complete | **13** of 13 | `[verified]` |
-| Decisions recorded | **24** — 1 proposed, 1 refuted, 1 not in force | `[verified]` |
+| Decisions recorded | **25** — 1 proposed, 1 refuted, 1 not in force | `[verified]` |
 | **Capabilities with a validated metric** | **1** | `[verified]` |
 | **…inside DEC-006's MVP** | **0** | `[verified]` |
 | Verified share of summary claims | **80%** | `[verified]` |
-| Experiments reproducing byte-identically | **5 of 5** | `[verified]` |
+| Experiments reproducing byte-identically | **7 of 7** deterministic ones | `[verified]` |
 | Blocking actions, all needing a human | **3** | `[verified]` |
 | **Packages built** | **2**, both suites passing | `[verified]` |
 | Shipping bugs caught by those tests | **2** | `[verified]` |

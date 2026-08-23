@@ -87,6 +87,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-022 | 2026-08-03 | API response contract: code-point offsets, surface verbatim, variety label, tier disclosed | Accepted — **alignment clause corrected by DEC-023** |
 | DEC-023 | 2026-08-03 | Primitive evaluation is intrinsic-first; alignment is word-level (corrects DEC-007, DEC-022) | Accepted — **evidence corrected by Amendment 1** |
 | DEC-024 | 2026-08-19 | Load-bearing figures are registered; retired figures are machine-checked | Accepted |
+| DEC-026 | 2026-08-19 | Embedding evaluation is intrinsic-first with a mandatory lexical baseline; cross-lingual retrieval needs a different model class | Accepted |
 
 ---
 
@@ -2047,6 +2048,82 @@ retraction blocks that already exist, and a noisy check gets switched off.
 **Evidence:** the four retirements and four count corrections above
 `[verified]` 2026-08-19; negative controls planted and caught for both checks
 before commit.
+
+---
+
+## DEC-026 — Embeddings are evaluated intrinsically, against a lexical floor
+
+**Decision ID:** DEC-026 · **Date:** 2026-08-19 · **Status:** Accepted
+**Extends:** DEC-023's method to Tier 1 · **Corrects:** the READINESS_PLAN
+dependency graph
+
+**Decision:**
+
+**(a) Embeddings are evaluated intrinsically first** — six properties measured
+without annotation: orthographic invariance, self-retrieval, discrimination,
+corruption monotonicity, order sensitivity, length independence.
+
+**(b) A lexical baseline is mandatory before the neural model is adopted.**
+`tiroberta-bi-encoder` is 124.6M parameters and roughly doubles Tier 1's
+footprint; under **P-6** and **P-7** it must beat a character n-gram TF-IDF
+encoder that costs nothing.
+
+**(c) Cross-lingual retrieval (G-4) is unreachable with this model** and needs a
+different model class. Recorded now rather than discovered in implementation.
+
+**Context:**
+DEC-023 evaluated three of four primitives without gold data and **explicitly
+excluded embeddings**, because the standard method — FLORES+ bitext retrieval —
+needs one shared vector space and `tiroberta-bi-encoder` is monolingual.
+Embeddings were therefore the second MVP capability with no evaluation path.
+
+⚠️ **A licence correction fell out of this.** `READINESS_PLAN.md` and `ACTIONS.md`
+both said A-01 blocks Tier 1. **`tiroberta-bi-encoder` and `tielectra-bi-encoder`
+are Apache-2.0** — A-01's own text says so. **Tier 1 is blocked on A-09 (egress)
+alone.**
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| A | **Intrinsic-first + lexical floor** | Evaluable today with no annotation; the floor answers whether 119 MB is earned | Catches *broken*, not *wrong* |
+| B | Build a Tigrinya STS set first | Enables real similarity measurement | Months (**A-006**) before anything is evaluable |
+| C | FLORES+ bitext retrieval | Standard, no annotation | **Impossible** — the model is monolingual; would measure tokenizer collisions |
+| D | Adopt a multilingual encoder instead | Enables G-4 | A Tier 1 scope change nobody has decided, and abandons a cleared Apache-2.0 model |
+| E | Ship embeddings unevaluated | Fastest | Violates **P-4**, on the capability where silent failure is least visible |
+
+**Chosen:** Option A, with C recorded as impossible and D as an open question.
+
+**Reason:**
+The DEC-023 argument transfers: most of what makes an embedding model *usable*
+is a property of the function. **E1 is the one that is specific to Tigrinya and
+would not appear in a generic suite** — mixing ጸ/ፀ is normal practice, measured
+at 1.0–3.8% in Eritrean newspapers, so an encoder that treats them as different
+words fails retrieval **silently, for whichever spelling the user did not
+type**.
+
+The lexical floor is not a formality. Measured, it **passes the mechanical
+properties and fails E1 at 0.2232 against a 0.80 floor** — so the neural model
+has a specific, measurable job rather than a vague expectation of being better.
+
+**Consequences:**
+- *Positive:* Tier 1 is evaluable the moment weights are reachable; the bar is
+  already recorded.
+- *Positive:* if the neural model does not beat the baseline, that is a
+  **decision made before building**, not after.
+- *Negative:* the floors are **provisional** — set from one 30-sentence corpus
+  and one lexical model, not earned by a model that passed them.
+- *⚠️ Limit:* **catches *broken*, not *wrong*.** Whether two *different*
+  sentences are genuinely similar still needs a speaker or an STS set.
+- *Bridge recorded:* a sixth `validation/` sheet rating sentence pairs 0–4 would
+  turn one reviewer session into a minimal Tigrinya STS set. **Deliberately not
+  built** until A-13 returns — adding items risks the whole instrument going
+  unanswered.
+- *Revisit when:* weights are reachable (A-09), or G-4 forces a multilingual
+  encoder.
+
+**Evidence:** `../research/reports/08_evaluation/003-embedding-evaluation-without-gold-data.md`;
+`experiments/008-embedding-baseline/` `[verified]` 2026-08-19
 
 ---
 

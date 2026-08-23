@@ -83,7 +83,8 @@ graph TD
     A02["A-02 · confirm DEC-002"] --> API["HTTP API"]
     A02 --> MCP["MCP server"]
     API --> SDK["Python + JS SDKs"]
-    A01["A-01 · fgaim licences"] --> T1["Tier 1 embeddings"]
+    A09 --> T1["Tier 1 embeddings"]
+    A01["A-01 · fgaim licences"] --> REUSE["wider model reuse"]
     A09["A-09 · egress"] --> MADLAD["Score MADLAD"]
     A09 --> T2["Tier 2 translation"]
     T2 --> A14["A-14 · cold start"]
@@ -116,10 +117,10 @@ Ordered by **leverage per minute of your time.**
 | --- | --- | --- | --- |
 | **0.1** | **A-15 — install CI** | **One command** | 14 checks; makes every rule self-enforcing |
 | **0.2** | **A-02 — confirm DEC-002** | Read a 3-min summary, decide | The entire API/MCP/SDK surface |
-| **0.3** | **A-01 — email `fgaim`** | Send a drafted email | Tier 1, and DEC-003's reuse plan |
+| **0.3** | **A-01 — email `fgaim`** | Send a drafted email | DEC-003's wider reuse plan. ⚠️ **Not Tier 1** — the bi-encoders are already Apache-2.0 |
 | **0.4** | **A-05 — email re parallel data** | Send a drafted email | The training ladder; 1.4M sentences |
 | **0.5** | **A-13 — find a Tigrinya speaker** | Ask around; **~25 min of their time** — sheets are built and ready | **G-1 — the correctness gap** |
-| **0.6** | **A-09 — a session with egress** | Config change | Every model measurement |
+| **0.6** | **A-09 — a session with egress** | Config change | Every model measurement **and Tier 1 embeddings** — the only thing blocking them |
 | **0.7** | A-07 — HornMorpho licence | One email | Morphology, completing Tier 0 |
 
 ```bash
@@ -207,11 +208,11 @@ measurement exists.
 
 ---
 
-## 8. Phase 4 — Tiers 1 and 2 (blocked on A-01, A-09)
+## 8. Phase 4 — Tiers 1 and 2 (blocked on A-09)
 
 | Step | Deliverable | Notes |
 | --- | --- | --- |
-| 4.1 | **Design embeddings evaluation** | `tiroberta-bi-encoder` is **monolingual**, so FLORES+ bitext retrieval does not apply. This is genuinely unsolved and needs research, not just building |
+| ~~4.1~~ | ~~Design embeddings evaluation~~ ✅ **DONE** → **DEC-026** | Six intrinsic properties, plus a lexical floor the neural model must beat. **The bar is recorded; only A-09 blocks running it** |
 | 4.2 | Tier 1 built and evaluated | |
 | 4.3 | **Score MADLAD-400-3B** through the harness | Closes **G-4**. Report chrF primary with intervals, variety-scoped |
 | 4.4 | Convert to CTranslate2 int8 (DEC-014) | |
@@ -272,8 +273,9 @@ Small, unblocked, and worth clearing between phases.
 2. ~~**Audit the last three doc trees.**~~ ✅ **done** — found "384/384, zero gaps" (real coverage 310/384) and NLLB listed without its NC constraint.
 3. ~~**Contract conformance tests**~~ ✅ **done.**
 4. ~~**Reconcile the horizon roadmaps**~~ ✅ **done** — all five carry supersession banners.
-5. **Design embeddings evaluation** (4.1) — research, not building; the
-   monolingual problem is real and unsolved.
+5. ~~**Design embeddings evaluation**~~ ✅ **done** → DEC-026. The monolingual
+   problem is real: **G-4 cross-language retrieval is unreachable** with this
+   model and needs a different model class.
 
 **What I cannot do:** send an email, install the workflow, confirm a user model,
 obtain a licence, reach a blocked host, or read Tigrinya as a speaker. Six of

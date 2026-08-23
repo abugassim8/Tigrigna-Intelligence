@@ -57,7 +57,7 @@ those are the ones nobody writes up, and the ones most likely to be repeated.
 
 ## Status
 
-**7 experiments complete.** Four of them **refuted** something the project had
+**8 experiments complete.** Five of them **refuted** something the project had
 already written down — which is the point of the directory, and why rule 3
 exists.
 
@@ -72,8 +72,9 @@ exists.
 | `005-word-boundary-epenthesis` | Does a word's transliteration survive being put in a sentence? | **No — 95.47%, not the 100% DEC-023 recorded.** That figure came from a containment test that cannot fail on an appended character. Retracts DEC-023's evidence; the decision survives on a stronger argument |
 | `006-tier0-latency` | What does Tier 0 cost in time? | **Cold start 3.03 s, 98.7% of it `epitran`; service time 0.045 ms.** All 4 hypotheses confirmed — loosely enough that the magnitudes matter more than the verdicts. Does **not** close A-14 (Tier 2) |
 | `007-harness-fidelity` | Does our evaluation harness change the number? | **No — bit-identical to raw sacrebleu at 4/4 corruption levels.** But H4 refuted: CI width widens from n=30 to n=5 and then **reverses at n=3** — the bootstrap understates uncertainty where it matters most. Two hypotheses first produced wrong verdicts through defects in the experiment, both recorded |
+| `008-embedding-baseline` | What must a Tigrinya embedding model beat? | **A free lexical baseline passes the mechanical properties and FAILS orthographic invariance at 0.2232** (floor 0.80). All 4 hypotheses confirmed. The bar for `tiroberta-bi-encoder` is recorded; nothing has been run against it (A-09) |
 
-**001–005 and 007 emit `results.json` and reproduce byte-identically** (DEC-016,
+**001–005, 007 and 008 emit `results.json` and reproduce byte-identically** (DEC-016,
 verified 2026-08-19). **006 declares `"deterministic": false`** — it measures
 time, so it is run and required to emit an artefact but is not byte-compared
 (DEC-016 Amendment 1), and gets no drift detection in exchange.

@@ -22,6 +22,52 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Embedding evaluation designed; Tier 1 was never blocked on A-01 — 2026-08-19
+
+**Embeddings were the second MVP capability with no evaluation path.** DEC-023
+solved three of four primitives intrinsically and explicitly excluded this one,
+because the standard method — FLORES+ bitext retrieval — needs one shared vector
+space and `tiroberta-bi-encoder` is monolingual. → **DEC-026**
+
+**⚠️ A dependency error, live for three weeks.** `READINESS_PLAN.md` and
+`ACTIONS.md` both routed **A-01 → Tier 1 embeddings**. `tiroberta-bi-encoder`
+and `tielectra-bi-encoder` are **Apache-2.0** — A-01's own text says so in
+parentheses. **Tier 1 is blocked on A-09 (egress) alone.** A graph that
+overstates a blocker makes the wrong thing look urgent; A-09 is raised to High.
+
+**Six properties measurable with no annotation**, plus a mandatory lexical
+floor. `tiroberta-bi-encoder` is 124.6M parameters and roughly doubles Tier 1's
+footprint, so under P-6 and P-7 the question is not "does it work?" but **"does
+it beat something free?"**
+
+| Property | Char n-gram baseline | Floor |
+| --- | ---: | ---: |
+| **E1 orthographic invariance** | **0.2232** | **0.80** ❌ |
+| E2 self-retrieval | 1.0000 | 1.00 ✅ |
+| E3 discrimination | 1.0000 | 0.95 ✅ |
+| E4 corruption monotonicity | 1.0000 | 1.00 ✅ |
+
+**The baseline is a working encoder that cannot handle Tigrinya spelling
+variation** — which is precisely the job the neural model has to do. Mixing ጸ/ፀ
+is normal practice (1.0–3.8% in Eritrean newspapers), and an encoder that
+separates them **fails retrieval silently, for whichever spelling the user did
+not type.**
+
+**⚠️ The first version of E1 could not fail.** Measured at *sentence* level, one
+substituted character sits among hundreds of features: a deliberately
+spelling-blind control scored **identically** to a correct one, 0.9282 both.
+Moved to word level, where a correct encoder scores **1.0000**. **The sixth
+check in this project found unable to fail on the case that motivated it.**
+
+**Also corrected mid-build:** I wrote that character n-grams are "order-blind by
+construction and should score 0" on E5. **Measured 0.2246** — padded n-grams
+span word boundaries, so shuffling destroys some. The claim was wrong and the
+number is more useful than the claim would have been.
+
+**G-4 is unreachable with this model.** Cross-language retrieval needs a
+different model class — an undecided Tier 1 scope question, recorded now rather
+than discovered during implementation.
+
 ### Duplicate definitions checked; the harness gets its first consumer — 2026-08-19
 
 The last two cross-cutting debt items.

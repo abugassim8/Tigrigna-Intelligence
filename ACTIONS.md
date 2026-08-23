@@ -24,11 +24,8 @@ to do, why, and what it unblocks; where a message is needed, a
 record. Six of its seven Phase 0 items are here, and they gate almost everything
 else.
 
-⚠️ **A-13 needs widening before you send it.** As written it covers only a
-variety audit of the evaluation anchors. What actually needs a speaker is
-broader: the transliteration phonemes, the word-final `ɨ` question experiment
-005 could not settle, and whether normalising ፀ→ጸ reads as a correction to
-Ethiopian-variety users. See Phase 0 of the plan.
+✅ **A-13 is widened and ready to send.** `validation/PROTOCOL.md` plus
+`validation/sheets/` — 134 items, about 25 minutes. ⚠️ Never send `key.json`.
 
 **What to add over time:** New actions as research surfaces them. Move completed
 items to the Done section with the outcome and date — the outcome is often
@@ -42,7 +39,7 @@ itself a research finding.
 
 | ID | Action | Priority | Unblocks | Status |
 | --- | --- | --- | --- | --- |
-| **A-01** | Get licence clarification on the `fgaim` models | 🔴 **Blocking** | DEC-003 — the entire reuse plan | TODO |
+| **A-01** | Get licence clarification on the `fgaim` models | 🔴 **Blocking** | DEC-003's wider reuse plan — ⚠️ **not Tier 1**; the bi-encoders are already Apache-2.0 | TODO |
 | **A-02** | Confirm DEC-002 (who our primary users are) | 🔴 **Blocking** | API, MCP, SDK design | TODO |
 | **A-03** | Report the TiQuAD contamination to `farefaine` | 🟠 High | Ecosystem (G-11); protects others | TODO |
 | **A-04** | Request the TiQuAD test set | 🟠 High | DEC-005 — canonical evaluation | TODO |
@@ -50,7 +47,7 @@ itself a research finding.
 | **A-06** | Legal review of TiQuAD's copyright position | 🟠 High | Whether we can ship anything using it | TODO |
 | **A-07** | Resolve HornMorpho licence + Tigrinya version | 🟡 Medium | Morphology service (DEC-006 critical path) | TODO |
 | **A-08** | Set an `HF_TOKEN` for this environment | 🟡 Medium | Removes anonymous rate limits | TODO |
-| **A-09** | Arrange a session with unrestricted egress | 🟡 Medium | The whole verification backlog | TODO |
+| **A-09** | Arrange a session with unrestricted egress | 🟠 **High** | The whole verification backlog — **and Tier 1 embeddings, which nothing else blocks** (DEC-026) | TODO |
 | **A-10** | Introduce the project to GeezLab / L3S | 🟢 Low | Collaboration (G-11) | TODO |
 | **A-11** | Licence clarification on `fidel` | 🟢 Low | Transliteration option | TODO |
 | ~~**A-12**~~ | ~~Choose the project licence~~ | ✅ **DONE** | Resolved by **DEC-020** | **DONE** |
@@ -101,8 +98,15 @@ each model repo at `https://hf.co/fgaim/<model>/discussions`
 >
 > [Your name] · [Affiliation, if any] · [Project link]
 
-**Unblocks:** DEC-003, the embeddings service, the POS service, and every
-downstream decision that assumes model reuse.
+**Unblocks:** DEC-003, the POS service, and every downstream decision that
+assumes model reuse.
+
+⚠️ **Corrected 2026-08-19: this does NOT unblock the embeddings service.**
+`tiroberta-bi-encoder` and `tielectra-bi-encoder` are already Apache-2.0 — see
+the parenthesis above. **Tier 1 is blocked on A-09 alone** (DEC-026). This
+entry claimed otherwise for three weeks, and so did the readiness plan's
+dependency graph.
+
 **If refused or unanswered:** the reuse plan narrows sharply — see
 `docs/research/summaries/001-tigrinya-nlp-ecosystem-scan.md` for what remains.
 
