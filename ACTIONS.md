@@ -14,9 +14,21 @@ a single email — and unblock disproportionately large amounts of work. One of
 them potentially unlocks **1.4 million parallel sentences** for the cost of a
 message.
 
-**How to use it:** Work top-down. A-01 through A-04 are blocking. Each item
-states what to do, why, and what it unblocks; where a message is needed, a
+**How to use it:** **A-01, A-02 and A-05 are blocking**; A-15 is one command
+and switches on 14 checks that currently enforce nothing. Each item states what
+to do, why, and what it unblocks; where a message is needed, a
 **ready-to-send draft** is included — copy, adjust the bracketed fields, send.
+
+**For the order to do them in and what each unlocks**, see
+[`docs/roadmap/READINESS_PLAN.md`](docs/roadmap/READINESS_PLAN.md) — the plan of
+record. Six of its seven Phase 0 items are here, and they gate almost everything
+else.
+
+⚠️ **A-13 needs widening before you send it.** As written it covers only a
+variety audit of the evaluation anchors. What actually needs a speaker is
+broader: the transliteration phonemes, the word-final `ɨ` question experiment
+005 could not settle, and whether normalising ፀ→ጸ reads as a correction to
+Ethiopian-variety users. See Phase 0 of the plan.
 
 **What to add over time:** New actions as research surfaces them. Move completed
 items to the Done section with the outcome and date — the outcome is often

@@ -160,29 +160,58 @@ aspirational.
 
 ## Getting started
 
+### Use the primitives
+
+```bash
+pip install -e services/primitives
+python -c "
+from tigrinya_primitives import normalise, transliterate
+print(normalise('ፀሓይ'))                    # -> ጸሓይ
+a = transliterate('ሰላም ዓለም')
+print(a.analysis, [s.surface for s in a.spans])
+"
+```
+
+Evaluation, including the Tier 0 intrinsic checks:
+
+```bash
+pip install -e services/evaluation
+python -m tigrinya_eval.primitives experiments/003-metric-validity/data
+```
+
+### Contribute
+
 **If you have time to unblock the project rather than research it, go straight to
-[`ACTIONS.md`](ACTIONS.md).** Four items are blocking; each has a ready-to-send
-draft. One of them could unlock 1.4M parallel sentences for the cost of a
-message.
+[`ACTIONS.md`](ACTIONS.md).** **Three items are blocking** — A-01, A-02, A-05 —
+and each has a ready-to-send draft. One could unlock 1.4M parallel sentences for
+the cost of a message. **A-15 is one command** and switches on 14 checks that
+currently enforce nothing.
 
 1. Read [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — the whole thing.
 2. Read [`docs/research/AI_RESEARCH_RULES.md`](docs/research/AI_RESEARCH_RULES.md).
 3. Check [`docs/research/summaries/`](docs/research/summaries/) for what is
    already known.
-4. Check [`docs/decisions/DECISIONS.md`](docs/decisions/DECISIONS.md) for what is
-   already decided (DEC-001 … DEC-008).
+4. Check [`docs/decisions/DECISIONS.md`](docs/decisions/DECISIONS.md) —
+   **DEC-001 … DEC-024**, several amended by later measurement.
 5. Read [`docs/research/RESEARCH_ACCESS.md`](docs/research/RESEARCH_ACCESS.md)
    before searching for anything — it maps which sources are reachable.
-6. Pick up a blocking item from
-   [`docs/roadmap/30_days.md`](docs/roadmap/30_days.md) — currently: resolve the
-   `fgaim` model licences, pursue dataset licence clarification, verify the
-   `farefaine`/TiQuAD contamination overlap, and confirm DEC-002. Then proceed to
-   [`08_evaluation`](docs/research/reports/08_evaluation/) or
-   [`04_model_strategy`](docs/research/reports/04_model_strategy/).
+6. **[`docs/roadmap/READINESS_PLAN.md`](docs/roadmap/READINESS_PLAN.md) is the
+   current plan of record** — what "ready" means, what is blocked on whom, and
+   the order to do it in.
 
 ## Licence
 
-Not yet selected. Licence choice is itself a decision that must be recorded in
-`docs/decisions/DECISIONS.md`, and it interacts with the licensing of every
-model and dataset the platform adopts — so it is deliberately deferred until
-after the data and model strategy research is complete.
+**Chosen by licence class (DEC-020), not one licence for everything:**
+
+| Artefact | Licence |
+| --- | --- |
+| **Code** | **Apache-2.0** — see [`LICENSE`](LICENSE) |
+| **Documentation** | **CC-BY-4.0** — see [`LICENSE-docs`](LICENSE-docs) |
+| **Data** | **Inherits** whatever the source imposes |
+
+**No code dependency imposes copyleft** — the upstream licence map was checked in
+full. Share-alike enters only through data (FLORES+ is CC-BY-SA-4.0), so the
+obligation is contained to derived corpora rather than the platform.
+
+*(This section read "Not yet selected" until 2026-08-19, sixteen days after
+DEC-020 closed the question and the LICENSE files were committed.)*

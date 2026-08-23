@@ -22,6 +22,35 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Readiness plan of record; README claimed no licence was chosen — 2026-08-19
+
+**`docs/roadmap/READINESS_PLAN.md`** is now the execution plan. The horizon
+documents (`30_days` … `2_years`) were written **before any research** and are
+kept as direction, not sequence.
+
+**What it settles:** "ready" is defined at three levels with **exit tests that
+can be run**, rather than left to interpretation. Against v0.1 the project is at
+**≈40%** — two of four Tier 0 capabilities, a harness nothing has run through,
+and zero speaker validation.
+
+**The five gaps that matter**, separated from the backlog: no native-speaker
+validation (**G-1**), 14 checks enforcing nothing (**G-2**), hollow evaluation
+anchors (**G-3**), nothing measured end to end (**G-4**), and an MVP incomplete
+by DEC-006's own definition (**G-5**).
+
+**⚠️ A-13 was too narrow and the plan says so.** It covered only a variety audit
+of the evaluation anchors. What actually needs a speaker also includes: whether
+the phonemes are right at all, the word-final `ɨ` disagreement experiment 005
+could not settle (4.53% of tokens, and **we do not know which form is correct**),
+and whether normalising ፀ→ጸ reads as a *correction* to Ethiopian-variety users.
+
+**More stale front-door content, same class as the assumptions register.**
+`README.md` said **"Licence: Not yet selected"** — sixteen days after DEC-020
+chose Apache-2.0 / CC-BY-4.0 and both LICENSE files were committed. It also
+cited "DEC-001 … DEC-008", listed completed research as next steps, called four
+items blocking when three are, and **had no `pip install` line at all** despite
+two installable packages. Fixed, with a real install-to-first-call path.
+
 ### Assumptions re-audited; a CI check that could not count — 2026-08-19
 
 Clearing the debt the gap audit declared: **all ten assumptions re-audited**,

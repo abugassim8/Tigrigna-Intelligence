@@ -148,7 +148,8 @@ docs/research/      The research operating system: rules, templates, reports, su
 docs/architecture/  How the system is designed (populated after research)
 docs/decisions/     What we chose, what we rejected, what we assume
 docs/benchmarks/    How we measure whether any of it works
-docs/roadmap/       Time-boxed planning horizons
+docs/roadmap/       READINESS_PLAN.md is the plan of record; the rest are
+                    pre-research horizons, kept as direction not sequence
 datasets/           Data, by lifecycle stage
 models/             Experiments, checkpoints, evaluations
 services/           Runtime components, one directory per capability
