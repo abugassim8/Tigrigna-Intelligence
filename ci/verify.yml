@@ -243,21 +243,25 @@ jobs:
           done
           exit $fail
 
+      # Counted in Python, not `wc -w`. With LANG/LC_ALL unset, wc runs in the
+      # C locale and cannot split UTF-8: a 661-word Tigrinya file counted as 30,
+      # and summaries undercounted by 3-4% because of em-dashes, ⚠️, × and Ge'ez
+      # samples. That made DEC-001's limit systematically lenient, and MOST
+      # lenient for the most Tigrinya-heavy summaries — exactly backwards.
       - name: Summaries stay within the two-page limit
         run: |
-          set -euo pipefail
-          fail=0
-          for f in docs/research/summaries/[0-9]*.md; do
-            [ -e "$f" ] || continue
-            words=$(wc -w < "$f")
-            if [ "$words" -gt 1200 ]; then
-              echo "::error::$(basename "$f") is $words words — over the 2-page limit"
-              fail=1
-            else
-              echo "$(basename "$f"): $words words"
-            fi
-          done
-          exit $fail
+          python - <<'EOF'
+          import pathlib, sys
+          fail = False
+          for f in sorted(pathlib.Path("docs/research/summaries").glob("[0-9]*.md")):
+              n = len(f.read_text(encoding="utf-8").split())
+              if n > 1200:
+                  print(f"::error file={f}::{f.name} is {n} words — over the 2-page limit")
+                  fail = True
+              else:
+                  print(f"{f.name}: {n} words")
+          sys.exit(1 if fail else 0)
+          EOF
 
       - name: No retired figure is quoted as current (DEC-024)
         run: python scripts/check_figures.py

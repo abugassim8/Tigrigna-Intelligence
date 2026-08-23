@@ -1,9 +1,19 @@
 # Evaluation Strategy
 
-> **Status: translation evaluation designed** (DEC-009, DEC-010, 2026-08-03).
-> Metrics are validated by measurement. Other capabilities remain unresearched.
+> **Status: translation evaluation designed and built; Tier 0 evaluated
+> intrinsically** (DEC-009, DEC-010, **DEC-023**).
 >
-> **Evidence:** `../research/reports/08_evaluation/001-metric-validity-and-harness.md`
+> ⚠️ **Updated 2026-08-19.** This said "other capabilities remain unresearched",
+> which stopped being true when DEC-023 established intrinsic evaluation for the
+> primitives. **Morphology genuinely does remain unevaluated** — and
+> unimplemented (**A-07**).
+>
+> **Built:** `services/evaluation` — chrF+BLEU with variety scoping, plus
+> `tigrinya_eval.primitives` for the six intrinsic checks.
+> ⚠️ **No model has been run through it** (**A-09**).
+>
+> **Evidence:** `../research/reports/08_evaluation/001-metric-validity-and-harness.md`,
+> `002-primitive-evaluation.md`
 
 ## Purpose of this document
 
@@ -31,6 +41,27 @@ confidently wrong for a long time.
 - Before claiming any result, check it was measured the way this document
   specifies.
 - When evaluation practice changes, update this document and record why.
+
+## Intrinsic evaluation of the primitives (DEC-023a)
+
+**Primitives are evaluated differently from translation, and mostly without
+annotation.** Most of their correctness is a property of the function, not
+agreement with a human — so idempotence, determinism, reversibility, coverage
+and alignment integrity are measured as property tests over real text.
+
+`python -m tigrinya_eval.primitives <corpus>` runs six checks and exits
+non-zero on failure. Two design rules came from getting it wrong first:
+
+- **Exact equality, never containment.** DEC-023 originally recorded a 100%
+  figure from a containment test that could not detect an appended character;
+  the real number is 95.47%.
+- **Clear the cache between passes.** `transliterate_word` is `@lru_cache`d, so
+  a naive repeat-call determinism check reads the memo table and passes
+  unconditionally.
+
+⚠️ **These checks catch *broken*, not *wrong*.** A transliterator returning
+deterministically incorrect phonemes passes every one. Accuracy still needs a
+gold standard and a native speaker.
 
 ## Sections to be completed
 

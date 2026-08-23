@@ -1,10 +1,12 @@
 # Evaluation Datasets
 
-> **Status: none.** No evaluation datasets have been identified, assembled, or
-> built.
+> **Status: one evaluation set committed and in use; the second anchor is not
+> obtainable.** ⚠️ **This document read "Status: none — no evaluation datasets
+> have been identified, assembled, or built" until 2026-08-19**, while a
+> screened FLORES+ sample was committed and had already produced DEC-009.
 >
-> **Gated on:** `../research/reports/08_evaluation/` and
-> `../research/reports/03_data_strategy/`
+> **Evidence:** DEC-005 (anchors), `../../experiments/003-metric-validity/`,
+> and the screening records under `../../experiments/*/*/screening/`.
 
 ## Purpose of this document
 
@@ -40,7 +42,44 @@ we produce.
 
 | ID | Name | Capability | Size | Source | Licence | Contamination checked | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| — | *None yet* | — | — | — | — | — | — |
+| **E-01** | FLORES+ Tigrinya sample (`flores_ti.txt`) | Translation (target side) | **30 sentences**, 661 words | `alexei-v-ivanov-amd/flores_plus`, `tir_Ethi` ids 0–29 | **CC-BY-SA-4.0** | ✅ **yes** — `CLEARED`, record committed | **In use** — produced DEC-009 |
+| **E-02** | FLORES+ English sample (`flores_en.txt`) | Translation (source side) | **30 sentences**, 708 words | same, `eng_Latn` ids 0–29 | **CC-BY-SA-4.0** | ✅ yes — `BLOCKED — quality`, **expected**: it is English, and the gate measures non-Ethiopic characters | **In use** as the source side |
+| **E-03** | FLORES+ devtest (full) | Translation | 1,012 sentences `[reported]` | FLORES+ | CC-BY-SA-4.0 | ❌ not obtained | ⚠️ **Blocked — egress (A-09)** |
+| **E-04** | TiQuAD | Extractive QA | 6,508 Q / 10,637 A `[verified]` | `farefaine` / upstream | CC-BY-SA-4.0, **upstream copyright unresolved** | ⚠️ **contamination CONFIRMED in a third-party corpus** | ⚠️ **Not obtained** — test set not public (**A-04**), copyright unresolved (**A-06**) |
+
+**One of DEC-005's two anchors is unusable and the other is a 30-sentence
+sample.** That is the real evaluation position, and it is easy to lose behind
+the phrase "FLORES-200 and TiQuAD as evaluation anchors."
+
+### Why E-01 is small, and what it is not
+
+30 sentences is enough to establish a *metric property* — experiment 003
+measured chrF's behaviour against BLEU on identical content in two languages —
+and **nowhere near enough to score a system**. Confidence intervals on 30
+sentences are very wide (chrF `[30.62, 88.05]` on a sample run), which is
+exactly why DEC-009 requires intervals rather than point estimates.
+
+### Datasets used for property testing, not evaluation
+
+These are **not** evaluation sets. They are corpus text used to exercise
+intrinsic properties, and they carry screening records for the same reason:
+
+| File | Source | Licence | Screening |
+| --- | --- | --- | --- |
+| `tlt_000_clean.txt` | `mewaeltsegay/TigrinyaLargeText` | MIT | `CLEARED` |
+| `haddas_001_colscrambled.txt` | `SIMBA9657/haddas-tigrinya-corpus` | CC-BY-SA-4.0 | `CLEARED` |
+| `tlt_001_CORRUPTED_sample.txt` | same as `tlt_000` | MIT | `BLOCKED — quality`, **intentionally** — it is the negative control for the quality gate |
+
+### What is not here, and why it matters
+
+**No Tigrinya evaluation set exists for any MVP primitive.** DEC-023 answers
+that for three of four capabilities by evaluating them **intrinsically** — no
+annotation needed. **Morphology is the exception**: it needs gold data, and it
+is also unimplemented (**A-07**).
+
+**A-006 anticipated building evaluation data.** DEC-023 shrank that from four
+capabilities to one, which is the single largest reduction in scope this
+project has achieved. It did not eliminate it.
 
 ## Required fields for each dataset
 

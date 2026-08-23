@@ -55,13 +55,11 @@ checking — **though it is not yet installed (A-15)**.
 
 - **Tier 0's half is now measured (experiment 006); Tier 2's is not.**
   Cold start **3.03 s** (vs a 1–60 s free parameter) and service time
-  **0.045 ms** (vs ~2 s assumed), giving a Tier 0 break-even of **1,187
-  req/hour**. **98.7% of that cold start is `epitran` loading** — our own import
-  is 40 ms, and the same dependency is 107.4 MB of the 113.4 MB footprint.
-  ⚠️ **A-14 is not closed**: it asks for Tier 2, which needs a model this
-  environment cannot fetch (**A-09**). Nor is the 2 s assumption refuted — it
-  was a Tier 2 figure. What is shown is that **the model swings ~20× on a
-  guessed parameter**.
+  **0.045 ms** (vs ~2 s assumed), giving a break-even of **1,187 req/hour**.
+  **98.7% of that cold start is `epitran` loading.** ⚠️ **A-14 is not closed** —
+  it asks for Tier 2, which needs a model this environment cannot fetch
+  (**A-09**), and the 2 s figure was a Tier 2 assumption. What is shown is that
+  **the model swings ~20× on a guessed parameter**.
 
 - **⭐ The decision log has rules nothing checks — and that has already failed
   once.** DEC-008 spent three months as policy with no mechanism, silently

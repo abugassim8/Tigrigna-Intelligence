@@ -22,6 +22,47 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Assumptions re-audited; a CI check that could not count — 2026-08-19
+
+Clearing the debt the gap audit declared: **all ten assumptions re-audited**,
+and the two benchmark documents never opened.
+
+**⭐ A CI check that miscounted by design.** `LANG` and `LC_ALL` are unset, so
+`wc -w` runs in the **C locale and cannot split UTF-8**: a 661-word Tigrinya
+file counted as **30**. For summaries — full of em-dashes, ⚠️, × and Ge'ez
+samples — it **undercounted by 3–4%**, making DEC-001's 1,200-word limit
+systematically lenient, and **most lenient for the most Tigrinya-heavy
+summaries**, which is exactly backwards. Counting moved to Python, and the fix
+**immediately surfaced a real violation the broken check had been hiding**:
+summary 011 was 1,207 words. Trimmed.
+
+**The register was wrong about its own confidence, not the project's
+direction** — which is the quieter failure. An assumption marked `Unvalidated`
+invites re-testing; one wrongly marked `Supported — High` closes the question.
+
+| | |
+| --- | --- |
+| **A-002** | Status said `Unvalidated` while its own body said "CONFIRMED by measurement" |
+| **A-003** | `Unvalidated` — experiment 006 shows the accuracy/speed tension **does not arise for Tier 0** at 0.045 ms; it constrains Tier 2 only |
+| **A-005** | `Unvalidated` — **DEC-017 had settled it**: from-scratch foreclosed, ladder with measured triggers |
+| **A-008** | `Unvalidated` — measured: 82.8 vs 1,193.1 GB-h/month, ~14× saving, break-even 1,187 req/hour |
+| **A-004** | Upgraded "achievable" → **demonstrated**: Tier 0 shipped with **zero trained models** |
+| **A-010** | Primitives built, so half the differentiator claim is discharged — **two of four** named components exist |
+| **A-009** | Sharpened: verification is harder than assumed — HF tags wrong on 2 of 4 datasets, PyPI's legacy field wrongly reads "NOT STATED" for five packages |
+| **Deferred list** | Still called the project licence "Open, deliberately deferred" — **DEC-020 closed it sixteen days earlier** |
+
+**`datasets.md` said "Status: none — no evaluation datasets have been
+identified, assembled, or built"** while a screened FLORES+ sample was committed
+and had already produced DEC-009. Now a real register — and it makes the
+position legible: **one of DEC-005's two anchors is unusable and the other is a
+30-sentence sample.** TiQuAD has confirmed contamination, no public test set
+(**A-04**) and unresolved copyright (**A-06**); FLORES+ devtest needs egress
+(**A-09**). That is easy to lose behind the phrase "FLORES-200 and TiQuAD as
+evaluation anchors."
+
+`evaluation_strategy.md` still said other capabilities were unresearched, which
+DEC-023 ended.
+
 ### Gap audit: 12 findings, one shipping bug, four checks that could not fail — 2026-08-19
 
 A deliberate adversarial audit across seven dimensions. **Every check was
