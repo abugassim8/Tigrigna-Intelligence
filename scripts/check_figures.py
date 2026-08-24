@@ -167,7 +167,46 @@ def _derive(spec: dict) -> int:
         return len(re.findall(spec["pattern"], text, flags=re.MULTILINE))
     if kind == "dir_count":
         return len(list(REPO.glob(spec["glob"])))
+    if kind == "section_owners":
+        return _section_owners(spec)
+    if kind == "csv_rows":
+        return _csv_rows(spec)
     raise ValueError(f"unknown derivation kind: {kind}")
+
+
+def _section_owners(spec: dict) -> int:
+    """Count distinct outer sections containing at least one inner heading.
+
+    For "how many decisions carry amendments" — `grep_count` cannot answer it,
+    because DEC-007 has two amendments and must still count once. The readiness
+    plan said **six** when the answer is five, and nothing could have caught it:
+    the claim names no figure and matches no registered count.
+    """
+    text = (REPO / spec["file"]).read_text(encoding="utf-8")
+    outer, inner = re.compile(spec["outer"]), re.compile(spec["inner"])
+    current, owners = None, set()
+    for line in text.splitlines():
+        m = outer.match(line)
+        if m:
+            current = m.group(1)
+        elif current and inner.match(line):
+            owners.add(current)
+    return len(owners)
+
+
+def _csv_rows(spec: dict) -> int:
+    """Total data rows across a glob — header and `#` instruction lines excluded.
+
+    The validation sheets carry a leading `#` line of instructions for the
+    reviewer, so a naive line count over-reports by one per sheet. This counts
+    what a reviewer is actually asked to answer.
+    """
+    total = 0
+    for path in sorted(REPO.glob(spec["glob"])):
+        rows = [ln for ln in path.read_text(encoding="utf-8-sig").splitlines()
+                if ln.strip() and not ln.startswith("#")]
+        total += max(0, len(rows) - 1)  # minus the column header
+    return total
 
 
 def check_counts(reg: dict) -> list[str]:

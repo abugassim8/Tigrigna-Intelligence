@@ -52,13 +52,19 @@ disentangle.
 
 ## Status
 
-Two scripts, both enforcement rather than pipeline.
+Four scripts, all enforcement rather than pipeline.
 
 | Script | Purpose | Enforces |
 | --- | --- | --- |
 | `data_processing/screen_dataset.py` | Runs DEC-008's four screening gates over a corpus; fails closed with no licence or eval set | **DEC-015** |
-| `check_figures.py` | Fails when a retired figure is quoted as current; `--list` prints the register in `docs/figures.json` | **DEC-024** |
+| `check_figures.py` | Fails when a retired figure is quoted as current, or a document contradicts the repository about a count; `--list` prints the register in `docs/figures.json` | **DEC-024** |
+| `check_definitions.py` | Fails when the duplicate copies of `is_ethiopic` or `normalise` disagree on any codepoint | **DEC-022** |
+| `check_dates.py` | Fails when a date stamp is older than the commit carrying it, above a recorded ceiling; `--list` prints the backlog | **A-17** |
 
-Both run in CI (`ci/verify.yml`), which is **not yet installed** — see **A-15**.
+All four run in CI (`ci/verify.yml`), which is **not yet installed** — see **A-15**.
+
+**`check_dates.py` needs full git history.** Its job in CI sets
+`fetch-depth: 0`; the default shallow checkout has no blame to read and the
+check would silently see nothing.
 
 No data pipelines exist yet.

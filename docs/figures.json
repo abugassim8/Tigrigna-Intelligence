@@ -16,7 +16,6 @@
     "",
     "Adding an entry: retire a figure here in the same change that corrects it."
   ],
-
   "_counts_comment": [
     "Counts DERIVED from the repository, and the phrasings that assert them.",
     "Separate from figures because nothing needs registering: the true value is",
@@ -30,39 +29,105 @@
     "commit, so living documents say 'both suites passing' and exact numbers",
     "appear only in dated CHANGELOG entries, which are snapshots and stay true."
   ],
-
   "counts": [
     {
       "id": "decisions",
       "name": "Decisions recorded",
-      "derive": {"kind": "grep_count", "file": "docs/decisions/DECISIONS.md",
-                 "pattern": "^## DEC-[0-9]{3} "},
-      "claims": ["\\*\\*(\\d+)\\*\\* decisions recorded",
-                 "(\\d+) decisions recorded",
-                 "\\| Decisions recorded \\| \\*\\*(\\d+)\\*\\*"]
+      "derive": {
+        "kind": "grep_count",
+        "file": "docs/decisions/DECISIONS.md",
+        "pattern": "^## DEC-[0-9]{3} "
+      },
+      "claims": [
+        "\\*\\*(\\d+)\\*\\* decisions recorded",
+        "(\\d+) decisions recorded",
+        "\\| Decisions recorded \\| \\*\\*(\\d+)\\*\\*",
+        "\\*\\*(\\d+) decisions ·"
+      ]
     },
     {
       "id": "experiments",
       "name": "Reproducible experiments",
-      "derive": {"kind": "dir_count", "glob": "experiments/0*/run.py"},
-      "claims": ["\\*\\*(\\d+)\\*\\* reproducible experiments",
-                 "(\\d+) reproducible experiments"]
+      "derive": {
+        "kind": "dir_count",
+        "glob": "experiments/0*/run.py"
+      },
+      "claims": [
+        "\\*\\*(\\d+)\\*\\* reproducible experiments",
+        "(\\d+) reproducible experiments",
+        "· (\\d+) experiments ·"
+      ]
     },
     {
       "id": "summaries",
       "name": "Research summaries",
-      "derive": {"kind": "dir_count", "glob": "docs/research/summaries/[0-9]*.md"},
-      "claims": ["\\*\\*(\\d+) summaries"]
+      "derive": {
+        "kind": "dir_count",
+        "glob": "docs/research/summaries/[0-9]*.md"
+      },
+      "claims": [
+        "\\*\\*(\\d+) summaries",
+        "· (\\d+) summaries ·"
+      ]
     },
     {
       "id": "domains",
       "name": "Research domains complete",
-      "derive": {"kind": "dir_count", "glob": "docs/research/reports/*/"},
-      "claims": ["(\\d+) research domains complete",
-                 "\\| Research domains complete \\| \\*\\*(\\d+)\\*\\*"]
+      "derive": {
+        "kind": "dir_count",
+        "glob": "docs/research/reports/*/"
+      },
+      "claims": [
+        "(\\d+) research domains complete",
+        "\\| Research domains complete \\| \\*\\*(\\d+)\\*\\*"
+      ]
+    },
+    {
+      "id": "amendments",
+      "name": "Decisions carrying amendments",
+      "derive": {
+        "kind": "section_owners",
+        "file": "docs/decisions/DECISIONS.md",
+        "outer": "^## (DEC-\\d{3})",
+        "inner": "^### Amendment"
+      },
+      "claims": [
+        "(\\d+) decisions now carry amendments",
+        "(\\d+) decisions carry amendments"
+      ]
+    },
+    {
+      "id": "ci_checks",
+      "name": "CI checks",
+      "derive": {
+        "kind": "grep_count",
+        "file": "ci/verify.yml",
+        "pattern": "^      - name: (?!Install)"
+      },
+      "claims": [
+        "(\\d+) CI checks",
+        "\\*\\*(\\d+) checks\\*\\*",
+        "(\\d+) checks start enforcing",
+        "\\\"(\\d+) checks enforcing\\\"",
+        "switches on (\\d+) checks",
+        "(\\d+) checks, not \\d+"
+      ]
+    },
+    {
+      "id": "validation_items",
+      "name": "Native-speaker validation items",
+      "derive": {
+        "kind": "csv_rows",
+        "glob": "validation/sheets/*.csv"
+      },
+      "claims": [
+        "(\\d+) items, (?:roughly|about|~)",
+        "(\\d+)-item instrument",
+        "(\\d+) items, 5 strata",
+        "\\*\\*(\\d+) items\\*\\*"
+      ]
     }
   ],
-
   "figures": [
     {
       "id": "tier0-footprint",
@@ -73,7 +138,10 @@
       "retired": [
         {
           "value": "72 MB",
-          "patterns": ["72 MB", "0.072 GB"],
+          "patterns": [
+            "72 MB",
+            "0.072 GB"
+          ],
           "reason": "DEC-013's pre-build estimate; low by 57%",
           "superseded": "2026-08-03"
         }
@@ -88,7 +156,11 @@
       "retired": [
         {
           "value": "22x",
-          "patterns": ["22×", "22x saving", "22x standing"],
+          "patterns": [
+            "22×",
+            "22x saving",
+            "22x standing"
+          ],
           "reason": "computed from the 72 MB estimate",
           "superseded": "2026-08-03"
         }
@@ -103,7 +175,10 @@
       "retired": [
         {
           "value": "1,639/1,639 (100%)",
-          "patterns": ["1,639/1,639", "1,639 / 1,639"],
+          "patterns": [
+            "1,639/1,639",
+            "1,639 / 1,639"
+          ],
           "reason": "came from a containment test that cannot fail on an appended character; never emitted by a committed script (DEC-016 violation)",
           "superseded": "2026-08-18"
         }
@@ -118,13 +193,17 @@
       "retired": [
         {
           "value": "99.72%",
-          "patterns": ["99.72"],
+          "patterns": [
+            "99.72"
+          ],
           "reason": "denominator included digits, which correctly pass through",
           "superseded": "2026-08-18"
         },
         {
           "value": "96.86%",
-          "patterns": ["96.86"],
+          "patterns": [
+            "96.86"
+          ],
           "reason": "denominator included Ethiopic punctuation; same error one category deeper",
           "superseded": "2026-08-18"
         }
@@ -139,7 +218,9 @@
       "retired": [
         {
           "value": "384/384 coverage",
-          "patterns": ["384/384"],
+          "patterns": [
+            "384/384"
+          ],
           "reason": "experiment 001 counted non-empty output, not phonemes; quoted as full coverage it hid 19 genuinely unmapped characters",
           "superseded": "2026-08-19"
         }

@@ -15,7 +15,7 @@ them potentially unlocks **1.4 million parallel sentences** for the cost of a
 message.
 
 **How to use it:** **A-01, A-02 and A-05 are blocking**; A-15 is one command
-and switches on 14 checks that currently enforce nothing. Each item states what
+and switches on 17 checks that currently enforce nothing. Each item states what
 to do, why, and what it unblocks; where a message is needed, a
 **ready-to-send draft** is included — copy, adjust the bracketed fields, send.
 
@@ -55,6 +55,7 @@ itself a research finding.
 | **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO — *Tier 0 measured (exp 006); Tier 2 still blocked on A-09* |
 | **A-15** | **Activate the CI workflow** (one command) | 🟠 High | DEC-018 — every checkable rule is unenforced until this is done | TODO |
 | **A-16** | Report epitran's position-sensitive transliteration upstream | 🟢 Low | Nothing — we work around it; but the next user will not know | TODO |
+| **A-17** | **Decide how the record is dated** — 71 stamps are earlier than their own commit | 🟡 Medium | Correcting the backlog; every argument that turns on elapsed time | TODO |
 
 ---
 
@@ -541,6 +542,44 @@ Version tested: `epitran==1.35.2`.
 **Worth mentioning:** we have **not** determined which output is
 phonologically correct — that needs a Tigrinya speaker, so the report should
 describe the inconsistency, not assert a bug in the phonology.
+
+---
+
+## 🟡 A-17 — Decide how the record is dated
+
+**Who:** you. This is a one-line rule, not an email.
+
+**Blocks:** correcting a 71-stamp backlog. `scripts/check_dates.py` holds it at
+a ceiling so it cannot grow, but the existing entries cannot be fixed until the
+rule exists.
+
+**The finding:** every document date written between 2026-08-21 and 2026-08-23
+said `2026-08-19` — six commits of work stamped with the previous session's
+date. Measuring it found the habit is older and wider:
+
+| | |
+| --- | --- |
+| Stamps earlier than the commit carrying them | **71**, across 34 files |
+| Worst gap | **15 days** |
+| Ten of the 16 summaries, and eleven reports | dated 2026-08-03, committed on the 17th and 18th |
+
+**Why it is not a nitpick:** several arguments here are computed from elapsed
+time — *"DEC-022 clause 5 sat unimplemented for 16 days"*, *"the register was
+frozen for three weeks"*, *"DEC-008 spent three months as policy with no
+mechanism"*. Those intervals rest on stamps that are unreliable. **No conclusion
+is known to be wrong**; what is gone is the ability to say so without
+re-deriving each interval from git.
+
+**The decision needed:** when a document's stamp and its commit date disagree,
+which is authoritative?
+
+| Option | Consequence |
+| --- | --- |
+| **Commit date wins** (recommended) | Mechanical, verifiable, and the checker already computes it. Costs: a report describing work done over several days gets the date it landed |
+| Earliest document recording the event wins | Preserves intent, but two documents already date the same event differently, so it needs a per-line judgement — the reason the backlog is not mechanically fixable |
+| Leave the backlog, hold the ceiling | Honest and free. The record stays wrong in a known, bounded way |
+
+**Once decided:** I work the ceiling down and lower `CEILING` as it drops.
 
 ---
 

@@ -184,7 +184,7 @@ python -m tigrinya_eval.primitives experiments/003-metric-validity/data
 **If you have time to unblock the project rather than research it, go straight to
 [`ACTIONS.md`](ACTIONS.md).** **Three items are blocking** — A-01, A-02, A-05 —
 and each has a ready-to-send draft. One could unlock 1.4M parallel sentences for
-the cost of a message. **A-15 is one command** and switches on 14 checks that
+the cost of a message. **A-15 is one command** and switches on 17 checks that
 currently enforce nothing.
 
 1. Read [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — the whole thing.

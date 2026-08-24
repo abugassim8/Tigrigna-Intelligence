@@ -22,6 +22,59 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Readiness plan refreshed; the dates on this record are wrong — 2026-08-24
+
+**The plan of record now states measured state rather than intent.** Its v0.1
+exit criteria are run rather than estimated: **two of six are met outright**
+(every MVP capability has a metric; install-to-first-call works), Tier 0 is
+three-quarters done, and the two fully open criteria are the two needing a
+person. A new §10 lists the ten items delivered since the plan was written.
+
+**⚠️ The plan of record was the one document whose headline numbers nothing
+checked.** `check_figures.py` verifies claims like "N decisions recorded", but
+the plan states its basis as `25 decisions · 8 experiments · 16 summaries`, a
+phrasing no registered pattern matched. **The seventh check found unable to
+fail** — and it was wrong when finally checked: the plan claimed **six decisions
+carry amendments** when the answer is **five** (DEC-005, 007, 009, 016, 023).
+DEC-007 has two amendments and must still count once, which `grep_count` cannot
+express.
+
+Three derived counts added, each validated by planting a violation:
+
+| Count | Derived from | Now pinned in |
+| --- | --- | --- |
+| Decisions carrying amendments | distinct `## DEC-` sections containing `### Amendment` | 1 place |
+| CI checks | non-install named steps in `ci/verify.yml` | 6 places, **three of them stale at 14** |
+| Native-speaker validation items | data rows across `validation/sheets/*.csv` | 6 places |
+
+**⚠️ The date stamps in this repository are unreliable — 71 of them.** Auditing
+this refresh's own timestamp found that **every document date written between
+2026-08-21 and 2026-08-23 said `2026-08-19`**: six commits of work stamped with
+the previous session's date. Measuring it found the habit is older and wider —
+**71 stamps across 34 files are earlier than the commit carrying them, by up to
+15 days**. Ten of the 16 summaries and eleven reports are dated 2026-08-03 and
+were committed on the 17th and 18th.
+
+It is load-bearing. Arguments here are computed from elapsed time — *"DEC-022
+clause 5 sat unimplemented for 16 days"*, *"the register was frozen for three
+weeks"*, *"DEC-008 spent three months as policy with no mechanism"*. **No
+conclusion is known to be wrong**; what is gone is the ability to say so without
+re-deriving each interval from git.
+
+`scripts/check_dates.py` holds it at a **ceiling of 71** — drift may not grow —
+rather than allowlisting the backlog, which would have made the check unable to
+fail for the eighth time. Two design errors on the way, both recorded: the first
+version compared *every* date against its commit and reported **228** lines,
+most of them legitimate backward citations; and the first negative-control file
+**suppressed itself**, because its heading contained "planted" and "negative
+control", both of which are `COUNT_MARKERS`. That is exactly the marker
+generosity `check_figures.py`'s own docstring warns about, demonstrated against
+the person who wrote the warning.
+
+**A-17 raised:** decide whether the commit date or the earliest recording
+document is authoritative. The backlog is not mechanically fixable until that is
+answered — two documents already date the same event differently.
+
 ### Embedding evaluation designed; Tier 1 was never blocked on A-01 — 2026-08-19
 
 **Embeddings were the second MVP capability with no evaluation path.** DEC-023

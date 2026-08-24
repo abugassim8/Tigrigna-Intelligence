@@ -223,7 +223,12 @@ jobs:
     name: DEC-001 — reports have summaries; summaries stay short
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 because the date-drift check blames each stamped line
+      # against the commit that introduced it, and a shallow clone has no
+      # blame to read. Every other job in this file is fine at depth 1.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # A report is covered only if a summary names THAT report's file.
       # The previous version also accepted any summary mentioning the report's
@@ -309,6 +314,12 @@ jobs:
             fi
           done
           exit $fail
+
+      # 71 stamps are already earlier than their own commit, by up to 15 days,
+      # so this enforces a ceiling rather than zero. New drift fails; the
+      # backlog is printed every run until it is worked down.
+      - name: Date stamps do not drift further behind their commits
+        run: python scripts/check_dates.py --list
 
       - name: Every decision names its rejected alternatives
         run: |
