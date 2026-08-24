@@ -22,6 +22,59 @@ first service is deployed.
 
 ## [Unreleased]
 
+### A-17 answered: the commit date wins; 71 dates corrected — 2026-08-24
+
+**The rule: when a document's stamp and the commit carrying it disagree, the
+commit is right** — it is the only one of the two that cannot be typed wrong.
+**257 corrections across 56 files**, and `scripts/check_dates.py` now holds the
+count at **0**.
+
+**Decision dates are pinned to each decision's own record**, not to the blame of
+whatever line quotes it. Index rows and `rejected_options.md` entries get edited
+long after a decision is taken — DEC-009's row was touched when its amendment
+landed — so their blame is the edit, not the decision. Only two shapes bind an
+id to a date: a table row where the id sits in the column before it, and the
+`DEC-014 — 2026-08-03` form. **Prose does not bind**, and an earlier
+id-anywhere rule proved it: *"DEC-008 established the policy in July. Measured
+on 2026-08-03"* names an id and a date with nothing to do with each other, and
+the rule dated that measurement to DEC-008's day three weeks earlier. Every
+`DEC-NNN` date mention now agrees with its decision's record.
+
+**⚠️ One claim was wrong by a factor of six, independently of the drift.**
+*"DEC-008 spent three months as policy with no mechanism"* appeared in **eleven
+places** — in DECISIONS.md, two summaries, a report, the architecture tree, the
+action register and the CI header. DEC-008 is dated 2026-07-29 and the
+measurement that found it ignored ran 2026-08-13. That is **15 days**, and three
+months was never possible: this repository's first commit is 2026-07-29. Every
+interval computed from a corrected date was recomputed:
+
+| Claim | Was | Is |
+| --- | --- | --- |
+| DEC-008 without a mechanism | three months | **15 days** |
+| DEC-022 clause 5 unimplemented | 16 days | **5 days** |
+| Assumptions register frozen | three weeks | **25 days** |
+| README claimed no licence chosen | sixteen days | **six days** |
+| `A-01 → Tier 1` dependency error | three weeks | **25 days** |
+| "384/384, zero gaps" left standing | three weeks | **25 days** |
+| `is_ethiopic` missing Extended-B | three weeks | **19 days** |
+
+**None of these changed a conclusion.** Each is an argument about how long
+something went unnoticed, and each is *stronger* stated correctly — "unenforced
+policy is ignored within a fortnight" needs no exaggeration to land.
+
+**The fix would otherwise have tripped its own check.** Blame attributes a line
+to whatever commit last touched it, so the commit that corrected 257 dates would
+read as the commit that wrote every one of them, and each correctly restored
+stamp would look like fresh drift. `.git-blame-ignore-revs` lists it, and
+`check_dates.py` passes `--ignore-revs-file`. **Nothing is exempted by content**
+— a mechanical commit is made invisible to blame, and that is all; a commit that
+changes meaning must stay visible.
+
+**Four lines deliberately keep the old dates.** They state the finding itself
+(*"every document date written between 2026-08-21 and 2026-08-23 said
+`2026-08-19`"*), and rewriting them would make the record contradict its own
+correction.
+
 ### Readiness plan refreshed; the dates on this record are wrong — 2026-08-24
 
 **The plan of record now states measured state rather than intent.** Its v0.1

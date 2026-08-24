@@ -55,7 +55,7 @@ itself a research finding.
 | **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO — *Tier 0 measured (exp 006); Tier 2 still blocked on A-09* |
 | **A-15** | **Activate the CI workflow** (one command) | 🟠 High | DEC-018 — every checkable rule is unenforced until this is done | TODO |
 | **A-16** | Report epitran's position-sensitive transliteration upstream | 🟢 Low | Nothing — we work around it; but the next user will not know | TODO |
-| **A-17** | **Decide how the record is dated** — 71 stamps are earlier than their own commit | 🟡 Medium | Correcting the backlog; every argument that turns on elapsed time | TODO |
+| ~~**A-17**~~ | ~~Decide how the record is dated~~ | ✅ **DONE** | Resolved: **the commit date wins**; 71 stamps corrected | **DONE** |
 
 ---
 
@@ -545,17 +545,19 @@ describe the inconsistency, not assert a bug in the phonology.
 
 ---
 
-## 🟡 A-17 — Decide how the record is dated
+## ✅ A-17 — How the record is dated · **RESOLVED 2026-08-24**
 
-**Who:** you. This is a one-line rule, not an email.
+**Answer: the commit date wins.** When a document says it was written on one day
+and the commit carrying that line landed on another, the commit is right — it is
+the only one of the two that cannot be typed wrong.
 
-**Blocks:** correcting a 71-stamp backlog. `scripts/check_dates.py` holds it at
-a ceiling so it cannot grow, but the existing entries cannot be fixed until the
-rule exists.
+**The backlog is corrected.** 257 date corrections across 56 files; every
+`DEC-NNN` date mention now agrees with that decision's own record.
+`scripts/check_dates.py` holds the count at **0** and fails on any new drift.
 
-**The finding:** every document date written between 2026-08-21 and 2026-08-23
-said `2026-08-19` — six commits of work stamped with the previous session's
-date. Measuring it found the habit is older and wider:
+**What the finding was:** every document date written between 2026-08-21 and
+2026-08-23 said `2026-08-19` — six commits of work stamped with the previous
+session's date. Measuring it found the habit was older and wider:
 
 | | |
 | --- | --- |
@@ -563,23 +565,28 @@ date. Measuring it found the habit is older and wider:
 | Worst gap | **15 days** |
 | Ten of the 16 summaries, and eleven reports | dated 2026-08-03, committed on the 17th and 18th |
 
-**Why it is not a nitpick:** several arguments here are computed from elapsed
-time — *"DEC-022 clause 5 sat unimplemented for 5 days"*, *"the register was
-frozen for 25 days"*, *"DEC-008 spent 15 days as policy with no
-mechanism"*. Those intervals rest on stamps that are unreliable. **No conclusion
-is known to be wrong**; what is gone is the ability to say so without
-re-deriving each interval from git.
+**One claim was wrong by a factor of six, independently of the drift.**
+*"DEC-008 spent three months as policy with no mechanism"* appeared in **eleven
+places**. DEC-008 is dated 2026-07-29 and the measurement that found it ignored
+ran 2026-08-13 — **15 days**. Three months was never possible: this repository's
+first commit is 2026-07-29. Every interval computed from a corrected date was
+recomputed:
 
-**The decision needed:** when a document's stamp and its commit date disagree,
-which is authoritative?
+| Claim | Was | Is |
+| --- | --- | --- |
+| DEC-008 without a mechanism | three months | **15 days** |
+| DEC-022 clause 5 unimplemented | 16 days | **5 days** |
+| Assumptions register frozen | three weeks | **25 days** |
+| README claimed no licence chosen | sixteen days | **six days** |
+| `A-01 → Tier 1` dependency error | three weeks | **25 days** |
+| "384/384, zero gaps" left standing | three weeks | **25 days** |
+| `is_ethiopic` missing Extended-B | three weeks | **19 days** |
 
-| Option | Consequence |
-| --- | --- |
-| **Commit date wins** (recommended) | Mechanical, verifiable, and the checker already computes it. Costs: a report describing work done over several days gets the date it landed |
-| Earliest document recording the event wins | Preserves intent, but two documents already date the same event differently, so it needs a per-line judgement — the reason the backlog is not mechanically fixable |
-| Leave the backlog, hold the ceiling | Honest and free. The record stays wrong in a known, bounded way |
-
-**Once decided:** I work the ceiling down and lower `CEILING` as it drops.
+**Why the fix does not trip its own check:** blame attributes a line to whatever
+commit last touched it, so the commit that corrected 257 dates would look like
+the commit that wrote them all. It is listed in `.git-blame-ignore-revs`, which
+blame skips. Nothing is exempted by content — a mechanical commit is made
+invisible to blame, and that is all.
 
 ---
 
@@ -590,4 +597,5 @@ research finding — record it in `docs/research/` too.)*
 
 | ID | Action | Outcome | Date |
 | --- | --- | --- | --- |
+| **A-17** | Decide how the record is dated | **The commit date wins.** 71 drifted stamps corrected across 56 files, and the seven intervals computed from them recomputed — one of which, *"DEC-008 spent three months as policy"*, was wrong by a factor of six in eleven places | 2026-08-24 |
 | **A-12** | Choose the project licence | **DEC-020** — Apache-2.0 code, CC-BY-4.0 docs, inherit for data. Resolved once the upstream licence map was complete: **no code dependency imposes copyleft**; share-alike enters only through data | 2026-08-17 |

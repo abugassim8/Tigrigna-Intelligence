@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-08-24** after ten work items |
+| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-08-24** after eleven work items |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
 | **Basis** | **25 decisions · 8 experiments · 16 summaries · 129 tests · 4 audits** |
 
@@ -243,7 +243,7 @@ earlier, or not at all.
 
 ## 10. Delivered since this plan was written
 
-Ten items, all unblocked work. **Every one found a defect**, which is the
+Eleven items, all unblocked work. **Every one found a defect**, which is the
 argument for the next audit rather than a claim of thoroughness.
 
 | Item | What it produced |
@@ -258,12 +258,14 @@ argument for the next audit rather than a claim of thoroughness.
 | **Experiment 008** — embedding baseline | A free lexical encoder **passes the mechanical properties and fails orthographic invariance at 0.2232** |
 | **Embeddings evaluation** → DEC-026 | Six properties measurable without annotation; **found the A-01 → Tier 1 dependency error** |
 | **This refresh** | Made this document's own headline numbers checkable — its `Basis` line matched no registered pattern, so nothing verified them. Immediately caught **"six decisions carry amendments"** when the answer is five. Then found the dates |
+| **Date correction** (A-17) | **257 corrections across 56 files.** Recomputing the intervals found one wrong by a factor of six *independently of the drift* — "DEC-008 spent three months as policy", in eleven places, when the record says 15 days |
 
-### ⚠️ The dates in this record are wrong
+### ✅ The dates in this record were wrong — and are now fixed
 
 Auditing this refresh's own timestamp found that **every document date written
-since 2026-08-21 said `2026-08-19`** — six commits of work stamped with the
-previous session's date. Measuring it found the habit is far older:
+between 2026-08-21 and 2026-08-23 said `2026-08-19`** — six commits of work
+stamped with the previous session's date. Measuring it found the habit was far
+older:
 
 | | |
 | --- | --- |
@@ -271,21 +273,34 @@ previous session's date. Measuring it found the habit is far older:
 | **Worst gap** | **15 days** |
 | **Ten of the 16 summaries, and eleven reports** | dated 2026-08-03, committed on the 17th and 18th |
 
-This is load-bearing. Several arguments in this repository turn on elapsed
-time — *"DEC-022 clause 5 sat unimplemented for 5 days"*, *"the register was
-frozen for 25 days"* — and those intervals are computed from stamps that
-are themselves unreliable. **No conclusion is known to be wrong because of it**;
-what is gone is the ability to say so without re-deriving each interval from
-git.
+**A-17 settled the rule: the commit date wins** — it is the only one of the two
+that cannot be typed wrong. **257 corrections across 56 files**, and every
+`DEC-NNN` date mention now agrees with that decision's own record.
+`scripts/check_dates.py` holds the count at **0**.
 
-`scripts/check_dates.py` now enforces a **ceiling of 71**: drift may not grow.
-The backlog is not mechanically fixable — where two documents date the same
-event differently, choosing between them is a judgement per line — so it is
-recorded as debt rather than allowlisted, which would have made the check
-unable to fail.
+This was load-bearing, and recomputing the intervals proved it. **One claim was
+wrong by a factor of six, independently of the drift**: *"DEC-008 spent three
+months as policy with no mechanism"* appeared in **eleven places**, and the real
+interval is **15 days** — three months was never possible in a repository whose
+first commit is 2026-07-29.
 
-**Cross-cutting debt table: one item.** The 71 stamps above. Everything else on
-it is done.
+| Claim | Was | Is |
+| --- | --- | --- |
+| DEC-008 without a mechanism | three months | **15 days** |
+| DEC-022 clause 5 unimplemented | 16 days | **5 days** |
+| Assumptions register frozen | three weeks | **25 days** |
+| README claimed no licence chosen | sixteen days | **six days** |
+| `A-01 → Tier 1` dependency error | three weeks | **25 days** |
+| "384/384, zero gaps" left standing | three weeks | **25 days** |
+| `is_ethiopic` missing Extended-B | three weeks | **19 days** |
+
+⚠️ **None of these changed a conclusion.** Every one of them is an argument
+about how long something went unnoticed, and each is *stronger* stated
+correctly — "unenforced policy is ignored within a fortnight" needs no
+exaggeration.
+
+**Cross-cutting debt table: empty.** Every item on it is done, the 71 stamps
+included.
 
 ---
 
@@ -304,15 +319,12 @@ it is done.
 
 ## 12. What I can do without you
 
-**One thing, and it is tedious: correct the 71 drifted date stamps.** That is
-real unblocked work — see §10. It needs a one-line rule first, because two
-documents sometimes date the same event differently and the checker cannot
-choose between them. **That rule is A-17**; answer it and I work the ceiling
-down.
+**Nothing substantial.** The date backlog that stood here is corrected — A-17
+answered, 71 stamps fixed, ceiling at 0 — and it was the last unblocked item.
 
-Everything else that stood here is finished: validation instrument, three
-audits, conformance suite, consistency check, two experiments, the embeddings
-design, and this document's own instrumentation.
+Everything else is finished too: validation instrument, three audits,
+conformance suite, consistency check, two experiments, the embeddings design,
+and this document's own instrumentation.
 
 What remains beyond the dates is either **blocked on a person** or is work I
 would rather not do blind: designing the API surface before A-02 answers who it
@@ -342,9 +354,11 @@ phrasing used in *this document*, so the plan of record was the one file whose
 headline numbers nothing verified. It was wrong when checked.
 
 **The exposure is equally real.** No speaker has validated a single output. No
-model has been scored. Nothing is deployed and nothing is enforced — and **the
-dates on the record itself are unreliable**, which is a poor position for a
-project whose central claim is that it writes things down honestly.
+model has been scored. Nothing is deployed and nothing is enforced. The record's
+own dates were unreliable until 2026-08-24 — 71 of them — and the audit that
+found it also found *"DEC-008 spent three months as policy"* repeated in eleven
+places when the record says 15 days. **Both are fixed; that they survived this
+long is the point.**
 
 **A platform that is rigorous about everything except whether its Tigrinya is
 correct has its priorities inverted.** That remains the honest description, and

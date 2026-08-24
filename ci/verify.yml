@@ -315,10 +315,11 @@ jobs:
           done
           exit $fail
 
-      # 71 stamps are already earlier than their own commit, by up to 15 days,
-      # so this enforces a ceiling rather than zero. New drift fails; the
-      # backlog is printed every run until it is worked down.
-      - name: Date stamps do not drift further behind their commits
+      # A-17: the commit date wins. The 71-stamp backlog was corrected on
+      # 2026-08-24, so the ceiling is 0 and any new drift fails. Needs the
+      # full history above, and .git-blame-ignore-revs so the commit that made
+      # the correction is not mistaken for the one that caused it.
+      - name: Date stamps match the commits that wrote them (A-17)
         run: python scripts/check_dates.py --list
 
       - name: Every decision names its rejected alternatives

@@ -1,37 +1,39 @@
 #!/usr/bin/env python3
-"""Fail when new work is stamped with an older date than the commit that made it.
+"""Fail when work is stamped with an older date than the commit that made it.
 
-The problem this catches
-------------------------
-Dates in this repository are typed by hand. On 2026-08-24 an audit of the plan
-of record found that **every document date written since 2026-08-21 said
-`2026-08-19`** — six commits' worth of work stamped with the date of the last
-session rather than its own.
+The rule
+--------
+**The commit date wins** (A-17). When a document says it was written on one day
+and the commit carrying that line landed on another, the commit is right — it is
+the only one of the two that cannot be typed wrong.
 
-Measuring it found the habit is older and worse than that one session:
-**71 stamps across 34 files** are earlier than the commit carrying them, and the
-gap reaches **15 days**. Ten research summaries and eleven reports are dated
-2026-08-03 but were committed on the 17th and 18th. The drift is not an
-occasional slip; it is how this record has been dated throughout.
+What this was written for
+-------------------------
+On 2026-08-24 an audit of the plan of record found that **every document date
+written between 2026-08-21 and 2026-08-23 said `2026-08-19`** — six commits of
+work stamped with the previous session's date. Measuring it found the habit was
+older and wider: **71 stamps across 34 files** were earlier than the commit
+carrying them, and the gap reached **15 days**. Ten of the 16 summaries and
+eleven reports were dated 2026-08-03 and committed on the 17th and 18th.
 
-That matters more here than it would elsewhere. This project's method is that
-the record is true and corrections are dated, and several arguments turn on
-elapsed time — "DEC-022 clause 5 sat unimplemented for 5 days", "the register
-was frozen for 25 days". Those intervals are computed from stamps that are
-themselves unreliable.
+That mattered here more than it would elsewhere. This project's method is that
+the record is true and corrections are dated, and several arguments are computed
+from elapsed time. Recomputing them found one wrong by a factor of six,
+independently of the drift: *"DEC-008 spent three months as policy with no
+mechanism"* appeared in eleven places, and the real interval is **15 days** —
+three months was never possible in a repository whose first commit is
+2026-07-29.
 
-Why this is a ratchet and not a clean gate
-------------------------------------------
-The 71 existing stamps cannot be fixed mechanically. Some are event dates that
-two documents record differently, and choosing between them is a judgement per
-line, not a rewrite. Grandfathering them all into an allowlist would make the
-check unable to fail, which is the failure mode this repository keeps finding in
-its own tooling.
+**All 71 were corrected on 2026-08-24 and the ceiling is now 0.**
 
-So it enforces a **ceiling**: drift may not grow. New drift fails; the recorded
-backlog is debt, visible in the output every run, and shrinking it lowers the
-ceiling. The check was validated the only way that works here — by planting a
-drifted date and watching it fail.
+Why the correction does not trip this check
+-------------------------------------------
+Blame attributes a line to whatever commit last touched it, so the commit that
+*fixed* 257 dates would otherwise look like the commit that wrote every one of
+them — and each correctly restored stamp would read as fresh drift. The
+correction is listed in `.git-blame-ignore-revs`, which blame skips, so each
+line reports the commit that actually wrote it. Nothing is exempted by content:
+a mechanical commit is made invisible to blame, and that is all.
 
 Only self-referential stamps are considered
 -------------------------------------------
@@ -67,14 +69,16 @@ import sys
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 
-#: Maximum drifted stamps tolerated. Measured at 71 on 2026-08-24; lower it
-#: whenever the backlog is worked down. Never raise it.
-CEILING = 71
+#: Maximum drifted stamps tolerated. The backlog of 71 was corrected on
+#: 2026-08-24 (A-17), so this is 0 and every new drift fails. Never raise it —
+#: a ceiling above the true count is an allowlist, and an allowlist that covers
+#: everything is a check that cannot fail.
+CEILING = 0
 
 #: A stamp older than its commit by at most this many days is not reported.
 #: One day absorbs the ordinary case of writing in the evening and committing
 #: after midnight UTC. It is not there to be lenient about the real failure —
-#: the backlog this found runs 2 to 15 days behind.
+#: the backlog this found ran 2 to 15 days behind.
 GRACE_DAYS = 1
 
 _DATE = r"(20\d{2}-\d{2}-\d{2})"
@@ -114,11 +118,23 @@ def _files() -> list[pathlib.Path]:
     return sorted(seen)
 
 
+#: Commits that only changed how something is written. Blame skips them, so a
+#: mechanical pass does not claim authorship of every line it touched.
+#:
+#: Without this the check eats its own tail: the commit that CORRECTED 257 dates
+#: becomes, to blame, the commit that wrote every one of them — and every
+#: correctly restored stamp reads as fresh drift.
+IGNORE_REVS = REPO / ".git-blame-ignore-revs"
+
+
 def _blame_dates(path: pathlib.Path) -> dict[int, datetime.date]:
-    """line number -> author date of the commit that last touched that line."""
+    """line number -> author date of the commit that last wrote that line."""
+    cmd = ["git", "blame", "--line-porcelain"]
+    if IGNORE_REVS.is_file():
+        cmd += ["--ignore-revs-file", str(IGNORE_REVS)]
     try:
         out = subprocess.run(
-            ["git", "blame", "--line-porcelain", "--", str(path)],
+            cmd + ["--", str(path)],
             cwd=REPO, capture_output=True, text=True, check=True,
         ).stdout
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -239,14 +255,16 @@ def check(show_all: bool) -> int:
         # Newest commits first. The excess is whatever was added most recently,
         # and reporting by file order would name an unrelated old line instead —
         # a check that fails while pointing at the wrong place teaches nothing.
+        # With CEILING at 0 this is simply every hit, newest first.
         newest = sorted(hits, key=lambda h: h[3], reverse=True)
         print(f"\n{n - CEILING} new drifted date(s) — ceiling is {CEILING}:\n")
         for rel, ln, stamped, committed, behind, text in newest[:n - CEILING]:
             print(f"::error file={rel},line={ln}::date stamped {stamped} but "
                   f"committed {committed} ({behind} days behind)")
             print(f"  {rel}:{ln}\n    {text}\n")
-        print("Stamp the date the work was actually done, or lower nothing — "
-              "the ceiling only moves down.")
+        print("A-17: the commit date wins. Stamp the day the work lands, or — "
+              "if this was a mechanical rewrite that changed no meaning — add "
+              "the commit to .git-blame-ignore-revs.")
         return 1
 
     slack = CEILING - n
