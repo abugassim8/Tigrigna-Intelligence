@@ -4,7 +4,7 @@
 | --- | --- |
 | **Summary ID** | `010-training-triggers` |
 | **Full report** | `docs/research/reports/09_training_strategy/001-training-triggers-and-the-empty-tank.md` |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-17 |
 | **Status** | Current |
 | **Confidence** | High on the licence audit and cost arithmetic; **no training run** |
 
@@ -121,7 +121,7 @@ insurance policy on DEC-011 rather than a nice-to-have.
 
 1. `docs/research/summaries/005-corpus-inventory-and-contamination.md` — licences
 2. `docs/research/summaries/007-translation-model-selection.md` — DEC-011
-3. PyPI metadata for `peft`, `accelerate`, `trl` `[verified]` 2026-08-03
+3. PyPI metadata for `peft`, `accelerate`, `trl` `[verified]` 2026-08-17
 
 ---
 

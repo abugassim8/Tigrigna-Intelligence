@@ -4,7 +4,7 @@
 | --- | --- |
 | **Summary ID** | `008-architecture-tiers-and-runtime` |
 | **Full report** | `docs/research/reports/05_architecture/001-service-decomposition-and-runtime.md` |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-10 |
 | **Status** | Current |
 | **Confidence** | High on footprints and runtime support (verified); **no latency measured** |
 
@@ -114,13 +114,13 @@ system decomposes **by resource profile, not by domain** — and one MIT runtime
    `tiroberta-bi-encoder`. Support is verified; conversion is an experiment
    needing the weights.
 4. **Build Tier 0 first** — unblocked, and everything above depends on it.
-   *(Done 2026-08-03; it measured **113.4 MB**, not the 72 MB estimated here.)*
+   *(Done 2026-08-19; it measured **113.4 MB**, not the 72 MB estimated here.)*
 5. **Resolve HornMorpho (A-07)** — its ~48 MB is an estimate, and if it is
    unusable Tier 0 loses morphology.
 
 ## References
 
-1. CTranslate2 4.8.1 converter registry — inspected 2026-08-03 `[verified]`
+1. CTranslate2 4.8.1 converter registry — inspected 2026-08-10 `[verified]`
 2. `docs/research/summaries/007-translation-model-selection.md` — parameter counts
 3. PyPI metadata for runtime candidates `[verified]`
 

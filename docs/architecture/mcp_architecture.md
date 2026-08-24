@@ -112,10 +112,10 @@ about Tigrinya in ways no test would catch.
 
 | Decision | ID | Date | Summary |
 | --- | --- | --- | --- |
-| Library-first | **DEC-012** | 2026-08-03 | MCP is a thin wrapper over the same libraries as the HTTP API — never a second implementation |
-| API response contract | **DEC-022** | 2026-08-03 | Binds MCP too: verbatim surface, code-point offsets, variety label, tier disclosed |
-| Primitive evaluation; word-level alignment | **DEC-023** | 2026-08-03 | Spans are word-level; character alignment must not be promised |
-| Tier by resource profile | **DEC-013** | 2026-08-03 | The ~150× latency spread is why a tool result discloses its tier |
+| Library-first | **DEC-012** | 2026-08-10 | MCP is a thin wrapper over the same libraries as the HTTP API — never a second implementation |
+| API response contract | **DEC-022** | 2026-08-18 | Binds MCP too: verbatim surface, code-point offsets, variety label, tier disclosed |
+| Primitive evaluation; word-level alignment | **DEC-023** | 2026-08-18 | Spans are word-level; character alignment must not be promised |
+| Tier by resource profile | **DEC-013** | 2026-08-10 | The ~150× latency spread is why a tool result discloses its tier |
 | Primary users | **DEC-002** | 2026-07-29 | ⚠️ **Proposed, not accepted** — decides whether MCP ships early (**A-02**) |
 
 ## What future contributors should add

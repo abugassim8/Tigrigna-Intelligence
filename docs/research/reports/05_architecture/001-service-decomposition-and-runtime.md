@@ -5,7 +5,7 @@
 | **Report ID** | `001-service-decomposition-and-runtime` |
 | **Domain** | `05_architecture` |
 | **Stage** | Scout → Analyst → Architect |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-10 |
 | **Status** | Accepted |
 | **Summary** | `docs/research/summaries/008-architecture-tiers-and-runtime.md` |
 | **Related decisions** | **DEC-012**, **DEC-013**, **DEC-014**; validates DEC-006; engages DEC-002, DEC-011, A-008, P-6, P-11 |
@@ -188,5 +188,5 @@ converts an architectural problem into a deployment parameter.
 
 **Evidence:** parameter counts `[verified]` from
 `docs/research/summaries/007-translation-model-selection.md`; CTranslate2
-converter registry `[verified]` by inspection 2026-08-03; PyPI metadata
+converter registry `[verified]` by inspection 2026-08-10; PyPI metadata
 `[verified]`.

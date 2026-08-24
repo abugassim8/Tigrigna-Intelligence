@@ -183,11 +183,11 @@ Decided in part, by the shape of the types:
 
 | Decision | ID | Date | Summary |
 | --- | --- | --- | --- |
-| API response contract | **DEC-022** | 2026-08-03 | Code-point offsets, surface verbatim, variety label, tier disclosed — **alignment clause corrected by DEC-023** |
-| Primitive evaluation; word-level alignment | **DEC-023** | 2026-08-03 | Corrects DEC-022's offset clause to word-level spans; **evidence retracted and re-measured by Amendment 1** |
-| Library-first | **DEC-012** | 2026-08-03 | Services are thin wrappers; no capability lives only behind a network call |
+| API response contract | **DEC-022** | 2026-08-18 | Code-point offsets, surface verbatim, variety label, tier disclosed — **alignment clause corrected by DEC-023** |
+| Primitive evaluation; word-level alignment | **DEC-023** | 2026-08-18 | Corrects DEC-022's offset clause to word-level spans; **evidence retracted and re-measured by Amendment 1** |
+| Library-first | **DEC-012** | 2026-08-10 | Services are thin wrappers; no capability lives only behind a network call |
 | Variety-scoped results | **DEC-010** | 2026-08-03 | Variety is mandatory in the schema; `unknown` is first-class |
-| Tier by resource profile | **DEC-013** | 2026-08-03 | The ~150× spread is why responses disclose the serving tier |
+| Tier by resource profile | **DEC-013** | 2026-08-10 | The ~150× spread is why responses disclose the serving tier |
 | Primary users | **DEC-002** | 2026-07-29 | ⚠️ **Proposed, not accepted** — the open blocker on the surface (**A-02**) |
 
 ## What future contributors should add

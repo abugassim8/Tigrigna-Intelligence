@@ -5,7 +5,7 @@
 | **Report ID** | `001-licence-and-sustainability` |
 | **Domain** | `11_business` |
 | **Stage** | Scout → Analyst → Architect |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-17 |
 | **Status** | Accepted |
 | **Summary** | `docs/research/summaries/012-licence-and-sustainability.md` |
 | **Related decisions** | **DEC-020**; closes **A-12**; engages N-9, P-9, A-009, G-11 |
@@ -175,5 +175,5 @@ not before.
 **DEC-020** — Licence by artefact class: **Apache-2.0** for code, **CC-BY-4.0**
 for documentation, **inherit upstream** for data derivatives. Closes **A-12**.
 
-**Evidence:** PyPI and Hub licence metadata `[verified]` 2026-08-03; cost model
+**Evidence:** PyPI and Hub licence metadata `[verified]` 2026-08-17; cost model
 from `docs/research/summaries/011-cost-model-and-enforcement.md`.

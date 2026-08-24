@@ -4,7 +4,7 @@
 | --- | --- |
 | **Summary ID** | `016-embedding-evaluation` |
 | **Full report** | `docs/research/reports/08_evaluation/003-embedding-evaluation-without-gold-data.md` |
-| **Date** | 2026-08-19 |
+| **Date** | 2026-08-23 |
 | **Status** | Current |
 | **Confidence** | High on the method; **nothing run against a neural model** (A-09) |
 

@@ -4,7 +4,7 @@
 | --- | --- |
 | **Summary ID** | `009-pipeline-without-training` |
 | **Full report** | `docs/research/reports/06_ml_pipeline/001-pipeline-without-training.md` |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-13 |
 | **Status** | Current |
 | **Confidence** | High — two self-claims tested; one held, one did not |
 
@@ -127,7 +127,7 @@ in, while **DEC-008's screening gates had no implementation at all.**
 
 ## References
 
-1. Re-run and byte-comparison, 2026-08-03 `[verified]`
+1. Re-run and byte-comparison, 2026-08-13 `[verified]`
 2. `scripts/data_processing/screen_dataset.py` — the mechanism
 3. `docs/research/summaries/006-metric-validity-and-harness.md` — corrected here
 

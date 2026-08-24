@@ -5,7 +5,7 @@
 | **Report ID** | `001-translation-model-selection` |
 | **Domain** | `04_model_strategy` |
 | **Stage** | Scout → Analyst → Architect |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-10 |
 | **Status** | Accepted |
 | **Summary** | `docs/research/summaries/007-translation-model-selection.md` |
 | **Related decisions** | **DEC-011**; extends DEC-008; engages DEC-003, DEC-009, A-008, A-009 |
@@ -160,5 +160,5 @@ models.
 - **Only translation is decided.** Embeddings are unblocked but unevaluated;
   every other capability remains blocked on A-01, on evaluation, or on both.
 
-**Evidence:** Hub metadata `[verified]` 2026-08-03;
+**Evidence:** Hub metadata `[verified]` 2026-08-10;
 `docs/research/summaries/006-metric-validity-and-harness.md`

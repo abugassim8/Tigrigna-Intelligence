@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | **Experiment ID** | `007-harness-fidelity` |
-| **Date** | 2026-08-19 |
+| **Date** | 2026-08-23 |
 | **Status** | **Complete — H1, H2, H3 confirmed; H4 REFUTED, and the refutation is the finding** |
 | **Related decisions** | Tests **DEC-009**, **DEC-010**; adds a caveat to DEC-009 |
 | **Determinism** | Byte-identical across runs and across `PYTHONHASHSEED` |

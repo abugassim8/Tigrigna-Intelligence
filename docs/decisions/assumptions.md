@@ -24,11 +24,11 @@ An assumption that has been validated should say so and link the evidence.
 
 ---
 
-> ⚠️ **This register was frozen from 2026-07-29 to 2026-08-19** — through six
+> ⚠️ **This register was frozen from 2026-07-29 to 2026-08-23** — through six
 > experiments and sixteen decisions — while its stated purpose is recording
 > "updates to the status of existing ones as evidence arrives."
 >
-> **All ten entries were re-audited on 2026-08-19.** What the freeze had hidden:
+> **All ten entries were re-audited on 2026-08-23.** What the freeze had hidden:
 >
 > | | |
 > | --- | --- |
@@ -36,7 +36,7 @@ An assumption that has been validated should say so and link the evidence.
 > | **A-003, A-005, A-008** | Marked `Unvalidated` when experiments 002/006 and DEC-017/DEC-019 had settled them |
 > | **A-007** | Confidence *raised to High* on `[reported]` evidence our own `[verified]` measurement contradicts |
 > | **A-006** | Counted TiQuAD as available despite confirmed contamination and unresolved copyright |
-> | **Deferred list** | Still called the project licence "Open, deliberately deferred" **sixteen days after DEC-020 closed it** |
+> | **Deferred list** | Still called the project licence "Open, deliberately deferred" **six days after DEC-020 closed it** |
 >
 > **Nothing was invalidated outright**; the register was wrong about its own
 > confidence, not about the project's direction. That is the quieter failure —
@@ -83,9 +83,9 @@ volume.
 ### A-002 — We optimize for low-resource language capability
 
 **Status:** **Supported — confirmed by measurement** · **Confidence:** High
-**Since:** 2026-07-29 · **Updated:** 2026-08-19
+**Since:** 2026-07-29 · **Updated:** 2026-08-23
 
-> ⚠️ **Status corrected 2026-08-19.** This read `Unvalidated` while its own
+> ⚠️ **Status corrected 2026-08-23.** This read `Unvalidated` while its own
 > evidence block below said **"CONFIRMED 2026-07-29 by measurement"** with row
 > counts. Anyone scanning the status column saw the opposite of what the entry
 > actually establishes.
@@ -114,9 +114,9 @@ Data-hungry methods remain off the table.
 ### A-003 — We prioritize accuracy over speed
 
 **Status:** **Supported — and the tension does not arise for Tier 0**
-**Confidence:** Medium-high · **Since:** 2026-07-29 · **Updated:** 2026-08-19
+**Confidence:** Medium-high · **Since:** 2026-07-29 · **Updated:** 2026-08-23
 
-> **Updated 2026-08-19 with measurement.** The assumption was written as a
+> **Updated 2026-08-23 with measurement.** The assumption was written as a
 > hypothetical trade ("a wrong translation in 50 ms is worse than a right one in
 > 500 ms"). `experiments/006-tier0-latency/` measured the tier we have built:
 >
@@ -151,12 +151,12 @@ requirement.
 ### A-004 — We avoid unnecessary model training
 
 **Status:** **Supported — demonstrated** · **Confidence:** High
-**Since:** 2026-07-29 · **Updated:** 2026-08-19
+**Since:** 2026-07-29 · **Updated:** 2026-08-23
 **Evidence:** The ecosystem scan found existing Tigrinya models for language
 modelling, embeddings, POS, NER, and translation. DEC-006's minimum viable
 platform requires **no training at all**.
 
-> **Upgraded from "achievable" to "demonstrated" 2026-08-19.** **Tier 0 is
+> **Upgraded from "achievable" to "demonstrated" 2026-08-23.** **Tier 0 is
 > built and shipped zero trained models**: `services/primitives` is
 > normalisation, tokenization and transliteration over `epitran` and
 > `tokenizers`, and `services/evaluation` wraps `sacrebleu`. The default answer
@@ -181,9 +181,9 @@ case where training becomes justified.
 ### A-005 — Fine-tuning and adaptation are preferred over training from scratch
 
 **Status:** **Supported — and now decided policy** · **Confidence:** High
-**Since:** 2026-07-29 · **Updated:** 2026-08-19
+**Since:** 2026-07-29 · **Updated:** 2026-08-23
 
-> **Updated 2026-08-19.** **DEC-017 settled this and the register never
+> **Updated 2026-08-23.** **DEC-017 settled this and the register never
 > recorded it.** From-scratch pretraining is **foreclosed**, not merely
 > deprioritised, and adaptation is gated behind a ladder with measured triggers:
 > rung 0 use the checkpoint → rung 1 prompt/decoding → rung 2 **LoRA (~23×
@@ -207,9 +207,9 @@ base models and Tigrinya's script or morphology that adaptation cannot bridge.
 ### A-006 — Tigrinya-specific evaluation data is scarce and will need to be built
 
 **Status:** **Partially invalidated — refined twice** · **Confidence:** Medium
-**Since:** 2026-07-29 · **Updated:** 2026-08-19
+**Since:** 2026-07-29 · **Updated:** 2026-08-22
 
-> ⚠️ **Second refinement, 2026-08-19.** Two things changed after the text below
+> ⚠️ **Second refinement, 2026-08-22.** Two things changed after the text below
 > was written, and neither was recorded until an audit found this file frozen.
 >
 > **1. Most of Tier 0 needs no annotation at all.** DEC-023 established that
@@ -270,9 +270,9 @@ primitives and retrieval, and adopt existing sets elsewhere (DEC-005).
 
 **Status:** **Supported for retrieval/embeddings (untested); REFUTED for
 tokenization (measured)** · **Confidence:** Medium (lowered from High)
-**Since:** 2026-07-29 · **Updated:** 2026-08-19
+**Since:** 2026-07-29 · **Updated:** 2026-08-22
 
-> ⚠️ **Updated 2026-08-19 after an audit found this register frozen.**
+> ⚠️ **Updated 2026-08-22 after an audit found this register frozen.**
 > Confidence had been *raised to High* on `[reported]` paper evidence — including
 > MoVoC's "21 BPE tokens versus 6" — and **our own `[verified]` measurement
 > points the other way on the one dimension we tested.**
@@ -337,9 +337,9 @@ linguistic fidelity; accuracy gains must be measured, not assumed.
 ### A-008 — The platform must be affordable to run at low volume
 
 **Status:** **Supported — measured for Tier 0** · **Confidence:** High
-**Since:** 2026-07-29 · **Updated:** 2026-08-19
+**Since:** 2026-07-29 · **Updated:** 2026-08-23
 
-> **Updated 2026-08-19.** Costed in **GB-hours**, deliberately not dollars —
+> **Updated 2026-08-23.** Costed in **GB-hours**, deliberately not dollars —
 > vendor pricing is unverifiable from this environment and volatile, while the
 > arithmetic survives price changes (DEC-019).
 >
@@ -389,7 +389,7 @@ We assume that unclear licensing is disqualifying. As infrastructure that others
 will build on, we cannot pass on rights we do not have — a downstream user
 inheriting a licensing problem from us is a serious failure, not an inconvenience.
 
-> **Sharpened again 2026-08-19 — verification is harder than assumed.** This
+> **Sharpened again 2026-08-23 — verification is harder than assumed.** This
 > assumption requires licences to be *verifiable*, and metadata turns out to be
 > evidence rather than truth **in both directions**:
 >
@@ -411,9 +411,9 @@ constraint.
 ### A-010 — The primitives layer is our differentiator, not the models
 
 **Status:** **Supported — partly demonstrated** · **Confidence:** High
-**Since:** 2026-07-29 · **Updated:** 2026-08-19
+**Since:** 2026-07-29 · **Updated:** 2026-08-23
 
-> **Updated 2026-08-19.** The primitives layer is **built** (Tier 0, both test
+> **Updated 2026-08-23.** The primitives layer is **built** (Tier 0, both test
 > suites passing), which moves this from a claim about where value *would* sit
 > to one where half the claim is discharged.
 >
@@ -457,12 +457,12 @@ Recorded so nobody mistakes silence for a decision:
   now that DEC-006 excludes translation from the minimum platform.
 - **Diaspora-specific needs.** Whether they differ from in-country users —
   **open**, and plausibly relevant to transliteration priority.
-- ~~**Project licence.**~~ **CLOSED** by **DEC-020** (2026-08-03): Apache-2.0
+- ~~**Project licence.**~~ **CLOSED** by **DEC-020** (2026-08-23): Apache-2.0
   for code, CC-BY-4.0 for documentation, **inherit** for data. Resolved once the
   upstream licence map was complete — **no code dependency imposes copyleft**;
   share-alike enters only through data. Closes **A-12**.
-  ⚠️ *This entry still read "Open, deliberately deferred" until 2026-08-19,
-  sixteen days after the decision.*
+  ⚠️ *This entry still read "Open, deliberately deferred" until 2026-08-23,
+  six days after the decision.*
 
 ---
 

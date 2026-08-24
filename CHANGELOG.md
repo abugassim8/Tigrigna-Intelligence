@@ -56,8 +56,8 @@ the previous session's date. Measuring it found the habit is older and wider —
 were committed on the 17th and 18th.
 
 It is load-bearing. Arguments here are computed from elapsed time — *"DEC-022
-clause 5 sat unimplemented for 16 days"*, *"the register was frozen for three
-weeks"*, *"DEC-008 spent three months as policy with no mechanism"*. **No
+clause 5 sat unimplemented for 5 days"*, *"the register was frozen for 25
+days"*, *"DEC-008 spent 15 days as policy with no mechanism"*. **No
 conclusion is known to be wrong**; what is gone is the ability to say so without
 re-deriving each interval from git.
 
@@ -75,14 +75,14 @@ the person who wrote the warning.
 document is authoritative. The backlog is not mechanically fixable until that is
 answered — two documents already date the same event differently.
 
-### Embedding evaluation designed; Tier 1 was never blocked on A-01 — 2026-08-19
+### Embedding evaluation designed; Tier 1 was never blocked on A-01 — 2026-08-23
 
 **Embeddings were the second MVP capability with no evaluation path.** DEC-023
 solved three of four primitives intrinsically and explicitly excluded this one,
 because the standard method — FLORES+ bitext retrieval — needs one shared vector
 space and `tiroberta-bi-encoder` is monolingual. → **DEC-026**
 
-**⚠️ A dependency error, live for three weeks.** `READINESS_PLAN.md` and
+**⚠️ A dependency error, live for 25 days.** `READINESS_PLAN.md` and
 `ACTIONS.md` both routed **A-01 → Tier 1 embeddings**. `tiroberta-bi-encoder`
 and `tielectra-bi-encoder` are **Apache-2.0** — A-01's own text says so in
 parentheses. **Tier 1 is blocked on A-09 (egress) alone.** A graph that
@@ -121,7 +121,7 @@ number is more useful than the claim would have been.
 different model class — an undecided Tier 1 scope question, recorded now rather
 than discovered during implementation.
 
-### Duplicate definitions checked; the harness gets its first consumer — 2026-08-19
+### Duplicate definitions checked; the harness gets its first consumer — 2026-08-23
 
 The last two cross-cutting debt items.
 
@@ -164,14 +164,14 @@ design took `refs[:n]`, varying sentence **content** along with sample size and
 producing a false non-monotonic refutation. **Correcting the design changed the
 answer** — from "CIs do not widen" to "CIs widen down to n=5 and then break."
 
-### Contract conformance suite; last three doc trees audited — 2026-08-19
+### Contract conformance suite; last three doc trees audited — 2026-08-23
 
 Plan items 2 and 3. **The audit found a coverage claim that had been quoted as
-"zero gaps" for three weeks while 19 characters were unmapped.**
+"zero gaps" for 25 days while 19 characters were unmapped.**
 
 **⭐ The conformance suite reads the decision, not my memory of it.** DEC-022
-clause 5 — "the serving tier is disclosed" — was decided on 2026-08-03 and still
-unimplemented on 2026-08-19, surviving a build, a test suite, two audits and a
+clause 5 — "the serving tier is disclosed" — was decided on 2026-08-23 and still
+unimplemented on 2026-08-23, surviving a build, a test suite, two audits and a
 documentation pass that asserted it. Testing the clauses I happened to recall
 would reproduce exactly that. So `test_contract.py` **counts the numbered
 clauses in DEC-022 itself** and fails if its map falls behind — verified by
@@ -209,7 +209,7 @@ redefined by DEC-023, G-3 deprioritised by DEC-006, G-8 harder than assumed
 A-02 and A-09 were open on day one and are open now. They were never engineering
 problems.
 
-### Native-speaker validation instrument built — 2026-08-19
+### Native-speaker validation instrument built — 2026-08-23
 
 **A-13 goes from "find someone and work out what to ask" to "send them these
 five sheets."** `validation/` holds a **134-item instrument, ~25 minutes**,
@@ -261,7 +261,7 @@ across two `PYTHONHASHSEED` values.
 **A-13 is re-scoped and upgraded to blocking**, and `PROTOCOL.md` invites the
 reviewer to say if this should be paid work rather than a favour.
 
-### Readiness plan of record; README claimed no licence was chosen — 2026-08-19
+### Readiness plan of record; README claimed no licence was chosen — 2026-08-23
 
 **`docs/roadmap/READINESS_PLAN.md`** is now the execution plan. The horizon
 documents (`30_days` … `2_years`) were written **before any research** and are
@@ -284,13 +284,13 @@ could not settle (4.53% of tokens, and **we do not know which form is correct**)
 and whether normalising ፀ→ጸ reads as a *correction* to Ethiopian-variety users.
 
 **More stale front-door content, same class as the assumptions register.**
-`README.md` said **"Licence: Not yet selected"** — sixteen days after DEC-020
+`README.md` said **"Licence: Not yet selected"** — six days after DEC-020
 chose Apache-2.0 / CC-BY-4.0 and both LICENSE files were committed. It also
 cited "DEC-001 … DEC-008", listed completed research as next steps, called four
 items blocking when three are, and **had no `pip install` line at all** despite
 two installable packages. Fixed, with a real install-to-first-call path.
 
-### Assumptions re-audited; a CI check that could not count — 2026-08-19
+### Assumptions re-audited; a CI check that could not count — 2026-08-23
 
 Clearing the debt the gap audit declared: **all ten assumptions re-audited**,
 and the two benchmark documents never opened.
@@ -317,7 +317,7 @@ invites re-testing; one wrongly marked `Supported — High` closes the question.
 | **A-004** | Upgraded "achievable" → **demonstrated**: Tier 0 shipped with **zero trained models** |
 | **A-010** | Primitives built, so half the differentiator claim is discharged — **two of four** named components exist |
 | **A-009** | Sharpened: verification is harder than assumed — HF tags wrong on 2 of 4 datasets, PyPI's legacy field wrongly reads "NOT STATED" for five packages |
-| **Deferred list** | Still called the project licence "Open, deliberately deferred" — **DEC-020 closed it sixteen days earlier** |
+| **Deferred list** | Still called the project licence "Open, deliberately deferred" — **DEC-020 closed it six days earlier** |
 
 **`datasets.md` said "Status: none — no evaluation datasets have been
 identified, assembled, or built"** while a screened FLORES+ sample was committed
@@ -331,7 +331,7 @@ evaluation anchors."
 `evaluation_strategy.md` still said other capabilities were unresearched, which
 DEC-023 ended.
 
-### Gap audit: 12 findings, one shipping bug, four checks that could not fail — 2026-08-19
+### Gap audit: 12 findings, one shipping bug, four checks that could not fail — 2026-08-22
 
 A deliberate adversarial audit across seven dimensions. **Every check was
 re-tested by planting a violation**, rather than read.
@@ -389,7 +389,7 @@ includes the English file — its numbers are internally consistent. Its private
 `normalise()` agrees with the shipped one on every core-block character.
 `GeezTokenizer.save`/`load` were untested but correct.
 
-### Four architecture documents were empty scaffolds — 2026-08-19
+### Four architecture documents were empty scaffolds — 2026-08-21
 
 `api_`, `mcp_`, `data_` and `ml_architecture.md` were still the original
 templates — "Sections to be completed", and a decision log reading
@@ -535,7 +535,7 @@ genuinely variable quantities. Gating CI on a timing-derived verdict was
 considered and rejected — a loaded runner would flip it, and a check that fails
 for unrelated reasons is one people learn to ignore.
 
-### Intrinsic evaluation for Tier 0, and DEC-023's supporting measurement retracted — 2026-08-18
+### Intrinsic evaluation for Tier 0, and DEC-023's supporting measurement retracted — 2026-08-19
 
 **The evaluation service scored translation only — the one capability DEC-006
 excludes.** That reproduced DEC-021's structural error in code: the MVP
@@ -585,7 +585,7 @@ Withdrawn figures were corrected **in place** in DECISIONS.md, the report, the
 summary, `transliterate.py` and `types.py` — not appended, so nothing reads as
 self-contradictory. **A-16** files the epitran behaviour upstream.
 
-### CI extended to the packages; stale cost figures fixed in place — 2026-08-03
+### CI extended to the packages; stale cost figures fixed in place — 2026-08-18
 
 `ci/verify.yml` predated both packages and did not test either. It now runs
 **`services/primitives` (61 tests)** and **`services/evaluation` (14 tests)** in a
@@ -602,7 +602,7 @@ recording that 22× came from the pre-build estimate and should not be quoted.
 true two commits ago. Superseded with the current position: two packages, 75
 tests, and two shipping bugs caught by those tests.
 
-### Evaluation harness built; DEC-013 cost figures corrected — 2026-08-03
+### Evaluation harness built; DEC-013 cost figures corrected — 2026-08-18
 
 **`services/evaluation/` implements DEC-009 and DEC-010 as enforced code rather
 than documented intent.** 14 tests passing.
@@ -631,7 +631,7 @@ is unchanged and the figure should no longer be quoted as 22×.
 are behind the egress block (A-09), so MADLAD-400-3B's Tigrinya quality — which
 appears to be unpublished — remains unmeasured.
 
-### DEC-021 answered: primitive evaluation; DEC-023 — 2026-08-03
+### DEC-021 answered: primitive evaluation; DEC-023 — 2026-08-18
 
 **Most of the primitives layer is evaluable with no annotated data at all.**
 Primitives differ from translation in a way that matters: much of their
@@ -656,7 +656,7 @@ Context supplies **1,375 of 8,430 output symbols — 16.3%**.
 **The fix is granularity, not engineering — and the first reading was wrong.**
 I framed it as a tradeoff between exact offsets and faithful phonemes; a
 follow-up measurement refuted that **before it reached a decision record**.
-⚠️ **That follow-up was itself wrong — corrected 2026-08-18, see below.** It
+⚠️ **That follow-up was itself wrong — corrected 2026-08-19, see below.** It
 reported the word transliteration preserved in a sentence **1,639/1,639 (100%)**;
 measured by exact equality it is **95.47%**. Word-level spans give exact
 alignment; they do **not** give full fidelity against running-text output.
@@ -670,7 +670,7 @@ deterministically incorrect transliterator passes all of them. **Morphology stil
 needs gold data** — but it is now one capability needing annotation rather than
 four, which is what DEC-021 set out to establish. Embeddings remain untested.
 
-### 07_api_mcp researched (partial); DEC-022 — 2026-08-03
+### 07_api_mcp researched (partial); DEC-022 — 2026-08-18
 
 **Less was blocked than claimed — for the second time.** I said
 `04_model_strategy` was blocked on A-01 and it was not; the same test here gives
@@ -706,7 +706,7 @@ first-class value rather than a null.
 **The surface remains undesigned** and waits on A-02. No API code should be
 written before DEC-021's primitive evaluation, since P-4 applies to endpoints too.
 
-### 12_master_blueprint — the synthesis; DEC-021 — 2026-08-03
+### 12_master_blueprint — the synthesis; DEC-021 — 2026-08-17
 
 **Reading eleven domains together surfaced something invisible from inside any
 one of them.**
@@ -740,7 +740,7 @@ citation, pre-committed thresholds caught overclaiming twice, policy without
 mechanism fails silently, metadata is evidence rather than truth, and the
 corrections improved the evidence rather than weakening the conclusions.
 
-### 11_business researched; DEC-020 — A-12 closed — 2026-08-03
+### 11_business researched; DEC-020 — A-12 closed — 2026-08-17
 
 **A-12 (the project licence) is resolved and the files are in place.** It had
 been deferred pending A-01/A-05/A-06; the code licence turns out to depend on
@@ -773,7 +773,7 @@ maintainer attention** — fifteen `ACTIONS.md` items need a human and three are
 blocking, none resolvable by further research. The action register is the real
 risk register.
 
-### 10_infrastructure researched; DEC-018, DEC-019 — 2026-08-03
+### 10_infrastructure researched; DEC-018, DEC-019 — 2026-08-17
 
 **No dollar figures appear in this domain, deliberately** — vendor pricing is
 unverifiable from this environment and volatile, so cost is modelled in
@@ -797,7 +797,7 @@ warm in all but name while still paying cold-start latency on every request.
 **A-14**. DEC-013's tiering is unaffected; only Tier 2's *mode* was ever
 contingent.
 
-**DEC-018** puts CI behind the decision log. **DEC-008 spent three months as
+**DEC-018** puts CI behind the decision log. **DEC-008 spent 15 days as
 policy with no mechanism and was silently ignored the whole time**; five newer
 rules sat in exactly that position. `ci/verify.yml` implements all of them, and
 **every check was run locally before commit** — 3 experiments byte-identical,
@@ -816,7 +816,7 @@ Also recorded: what we deliberately **do not** build — no orchestration, no GP
 no model registry, no vector DB, no autoscaling curves. A container runtime,
 object storage, and CI.
 
-### 09_training_strategy researched; DEC-017 — 2026-08-03
+### 09_training_strategy researched; DEC-017 — 2026-08-17
 
 **The contingency plan has no fuel.** Auditing every dataset against licence
 *and* role found **zero cleanly-licensed parallel training data**: the 1.4M en–ti
@@ -848,7 +848,7 @@ Tooling is available and Apache-licensed; **nothing is blocked on tooling**.
 Memory is arithmetic; training time and quality are not estimated, because they
 cannot be known without running it.
 
-### 06_ml_pipeline researched; DEC-015, DEC-016 — 2026-08-03
+### 06_ml_pipeline researched; DEC-015, DEC-016 — 2026-08-13
 
 **Two claims this repository makes about itself were tested. One held; one did
 not.**
@@ -892,7 +892,7 @@ rather than weakens**: FLORES+'s ET-marker rate is 15.1%, ~4–15× Eritrean
 sources, so the Ethiopian-leaning signal now rests on better evidence than when
 first recorded.
 
-### 05_architecture researched; DEC-012, DEC-013, DEC-014 — 2026-08-03
+### 05_architecture researched; DEC-012, DEC-013, DEC-014 — 2026-08-10
 
 **The memory spread is the architecture.** Our capabilities differ by **~150×**:
 normalising a string is free, tokenization is 10 MB, and MADLAD-400-3B at Q4 is
@@ -926,7 +926,7 @@ not** — that needs the weights.
 Memory throughout is arithmetic; **no latency figure appears anywhere**, because
 none was measured.
 
-### 04_model_strategy researched; DEC-011 — 2026-08-03
+### 04_model_strategy researched; DEC-011 — 2026-08-10
 
 **The model behind essentially every published Tigrinya MT number cannot be
 shipped.** Every NLLB-200 variant — 600M, 1.3B, 3.3B — is **CC-BY-NC-4.0**.

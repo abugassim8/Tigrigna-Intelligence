@@ -4,7 +4,7 @@
 | --- | --- |
 | **Summary ID** | `015-primitive-evaluation` |
 | **Full report** | `docs/research/reports/08_evaluation/002-primitive-evaluation.md` |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-18 |
 | **Status** | Current |
 | **Confidence** | High — measured on real text, reproduces byte-identically |
 
@@ -54,7 +54,7 @@ must be **word-level, not character-level**.
   8,430 symbols, 16.3% of all output**.
 
 - **⭐ The fix is granularity — but the measurement behind it was wrong.**
-  ⚠️ **Corrected 2026-08-18, experiment 005.** This summary recorded that
+  ⚠️ **Corrected 2026-08-19, experiment 005.** This summary recorded that
   word-by-word transliteration loses nothing, citing "**1,639/1,639 (100%)**".
   **That figure came from a containment test** (`alone in in_context`), which
   cannot detect an *appended* character — and an appended word-final `ɨ` is

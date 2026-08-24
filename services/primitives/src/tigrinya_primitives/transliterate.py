@@ -19,7 +19,7 @@ So character offsets cannot be derived by summing per-character output lengths.
 
 Why word-by-word, given that it is *not* lossless
 -------------------------------------------------
-⚠️ **Corrected 2026-08-18 (experiment 005).** DEC-023 originally justified this
+⚠️ **Corrected 2026-08-19 (experiment 005).** DEC-023 originally justified this
 by claiming word-by-word transliteration loses nothing — "a word's
 transliteration is preserved inside a sentence: 1,639/1,639". **That figure was
 wrong.** It came from a *containment* test (`alone in in_context`), which cannot

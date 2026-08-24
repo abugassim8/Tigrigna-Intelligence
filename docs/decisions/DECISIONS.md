@@ -73,21 +73,21 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
 | DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted — **caveat added by Amendment 1** |
 | DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted |
-| DEC-011 | 2026-08-03 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted |
-| DEC-012 | 2026-08-03 | Library-first; services are thin wrappers over libraries | Accepted |
-| DEC-013 | 2026-08-03 | Tier by resource profile; never co-locate tiers in one process | Accepted |
-| DEC-014 | 2026-08-03 | CTranslate2 is the single model runtime | Accepted |
-| DEC-015 | 2026-08-03 | Screening is executable and mandatory; datasets carry a screening record | Accepted |
-| DEC-016 | 2026-08-03 | Every experiment emits a machine-checkable artefact | Accepted |
-| DEC-017 | 2026-08-03 | Training gated behind an adaptation ladder and measured triggers; from-scratch foreclosed | Accepted |
-| DEC-018 | 2026-08-03 | CI enforces the machine-checkable rules in the decision log | Accepted — ⚠️ **workflow written, NOT YET ACTIVE (A-15)** |
-| DEC-019 | 2026-08-03 | Tier 2 deployment mode set by measured duty cycle, not fixed in advance | Accepted |
-| DEC-020 | 2026-08-03 | Licence by artefact class: Apache-2.0 code, CC-BY-4.0 docs, inherit for data | Accepted — closes A-12 |
-| DEC-021 | 2026-08-03 | Extend evaluation anchors to the MVP primitives; next research is Tier 0 evaluation | Accepted |
-| DEC-022 | 2026-08-03 | API response contract: code-point offsets, surface verbatim, variety label, tier disclosed | Accepted — **alignment clause corrected by DEC-023** |
-| DEC-023 | 2026-08-03 | Primitive evaluation is intrinsic-first; alignment is word-level (corrects DEC-007, DEC-022) | Accepted — **evidence corrected by Amendment 1** |
+| DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted |
+| DEC-012 | 2026-08-10 | Library-first; services are thin wrappers over libraries | Accepted |
+| DEC-013 | 2026-08-10 | Tier by resource profile; never co-locate tiers in one process | Accepted |
+| DEC-014 | 2026-08-10 | CTranslate2 is the single model runtime | Accepted |
+| DEC-015 | 2026-08-13 | Screening is executable and mandatory; datasets carry a screening record | Accepted |
+| DEC-016 | 2026-08-13 | Every experiment emits a machine-checkable artefact | Accepted |
+| DEC-017 | 2026-08-17 | Training gated behind an adaptation ladder and measured triggers; from-scratch foreclosed | Accepted |
+| DEC-018 | 2026-08-17 | CI enforces the machine-checkable rules in the decision log | Accepted — ⚠️ **workflow written, NOT YET ACTIVE (A-15)** |
+| DEC-019 | 2026-08-17 | Tier 2 deployment mode set by measured duty cycle, not fixed in advance | Accepted |
+| DEC-020 | 2026-08-17 | Licence by artefact class: Apache-2.0 code, CC-BY-4.0 docs, inherit for data | Accepted — closes A-12 |
+| DEC-021 | 2026-08-17 | Extend evaluation anchors to the MVP primitives; next research is Tier 0 evaluation | Accepted |
+| DEC-022 | 2026-08-18 | API response contract: code-point offsets, surface verbatim, variety label, tier disclosed | Accepted — **alignment clause corrected by DEC-023** |
+| DEC-023 | 2026-08-18 | Primitive evaluation is intrinsic-first; alignment is word-level (corrects DEC-007, DEC-022) | Accepted — **evidence corrected by Amendment 1** |
 | DEC-024 | 2026-08-19 | Load-bearing figures are registered; retired figures are machine-checked | Accepted |
-| DEC-026 | 2026-08-19 | Embedding evaluation is intrinsic-first with a mandatory lexical baseline; cross-lingual retrieval needs a different model class | Accepted |
+| DEC-026 | 2026-08-23 | Embedding evaluation is intrinsic-first with a mandatory lexical baseline; cross-lingual retrieval needs a different model class | Accepted |
 
 ---
 
@@ -531,7 +531,7 @@ decision's four requirements. It ships **`tir-Ethi`**, a dedicated Tigrinya map.
 | Requirement | Result |
 | --- | --- |
 | Decomposition | ✅ ካተበ → `katəbə` → consonants `[k,t,b]`, vowels `[a,ə,ə]`. The discontinuous root is extractable |
-| Coverage | ✅ 384/384 core Ethiopic characters produce **non-empty** output — ⚠️ **refined 2026-08-03:** only **310** are transliterated to phonemes; 74 pass through, of which **19 are real characters** (16 syllables + 3 combining marks). Non-core blocks are **entirely** unmapped. See DEC-022 |
+| Coverage | ✅ 384/384 core Ethiopic characters produce **non-empty** output — ⚠️ **refined 2026-08-18:** only **310** are transliterated to phonemes; 74 pass through, of which **19 are real characters** (16 syllables + 3 combining marks). Non-core blocks are **entirely** unmapped. See DEC-022 |
 | Tigrinya-specific | ✅ 59/384 (15.4%) differ from Amharic, and correctly (pharyngeal ħ, uvular q) |
 | **Lossless reversibility** | ❌ **384 chars → 362 outputs; 22 collisions** |
 
@@ -556,7 +556,7 @@ matching and output.
   morphological analysis, retrieval, and embeddings. **Lossy by design; that
   loss is normalisation.**
 - **Alignment offsets** maintained between them, so analysis results map back
-  onto surface spans. ⚠️ **Corrected 2026-08-03 (DEC-023): these are WORD-LEVEL
+  onto surface spans. ⚠️ **Corrected 2026-08-18 (DEC-023): these are WORD-LEVEL
   spans, not character offsets.** Character-level alignment is **measurably
   impossible** — only 23.89% of words align, because epitran resolves epenthetic
   `ɨ` from cross-character context supplying 16.3% of output symbols.
@@ -785,7 +785,7 @@ incomparable to the field for no measured gain.
 
 ---
 
-### Amendment 1 — 2026-08-19: the interval itself stops being trustworthy below ~n=5
+### Amendment 1 — 2026-08-23: the interval itself stops being trustworthy below ~n=5
 
 **DEC-009 requires confidence intervals on small evaluation sets** because a
 point estimate hides how little is known. `experiments/007-harness-fidelity/`
@@ -813,7 +813,7 @@ so any per-variety or per-domain breakdown of it lands in that range.
 *(Mechanism inferred from the resample-space arithmetic, not independently
 proven.)*
 
-**Evidence:** `experiments/007-harness-fidelity/` `[verified]` 2026-08-19
+**Evidence:** `experiments/007-harness-fidelity/` `[verified]` 2026-08-23
 
 ---
 
@@ -889,7 +889,7 @@ TiQuAD provenance from `../research/summaries/001-tigrinya-nlp-ecosystem-scan.md
 
 ## DEC-011 — MADLAD-400-3B is the translation baseline; NC-licensed models are quarantined
 
-**Decision ID:** DEC-011 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-011 · **Date:** 2026-08-10 · **Status:** Accepted
 
 **Decision:**
 **`google/madlad400-3b-mt` (Apache-2.0)** is the translation model for anything we
@@ -964,13 +964,13 @@ evaluations, and the documentation all assume the model that has to be removed.
   model licence reaches a commercial downstream product.
 
 **Evidence:** `../research/summaries/007-translation-model-selection.md`;
-Hub metadata `[verified]` 2026-08-03
+Hub metadata `[verified]` 2026-08-10
 
 ---
 
 ## DEC-012 — Library-first: services are thin wrappers over libraries
 
-**Decision ID:** DEC-012 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-012 · **Date:** 2026-08-10 · **Status:** Accepted
 
 **Decision:**
 Every capability is implemented as an **importable library first**. Services
@@ -1022,7 +1022,7 @@ and works, the library extraction is always next quarter's task.
 
 ## DEC-013 — Tier by resource profile; never co-locate tiers in one process
 
-**Decision ID:** DEC-013 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-013 · **Date:** 2026-08-10 · **Status:** Accepted
 
 **Decision:**
 The platform is decomposed by **resource profile**, not by domain:
@@ -1036,7 +1036,7 @@ The platform is decomposed by **resource profile**, not by domain:
 **Tiers are never co-located in a single process.** Model weights load lazily,
 per tier, on first use.
 
-⚠️ **Corrected 2026-08-03, on building Tier 0.** The 72 MB figure was arithmetic
+⚠️ **Corrected 2026-08-18, on building Tier 0.** The 72 MB figure was arithmetic
 from estimated component sizes. **Measured, Tier 0 is 113.4 MB — and that is
 *without* morphology**, which the estimate included:
 
@@ -1111,7 +1111,7 @@ is the standing counter-argument.
 
 ## DEC-014 — CTranslate2 is the single model runtime
 
-**Decision ID:** DEC-014 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-014 · **Date:** 2026-08-10 · **Status:** Accepted
 
 **Decision:**
 **CTranslate2 (MIT)** is the inference runtime for every model-backed capability.
@@ -1157,13 +1157,13 @@ convenience for MADLAD is outweighed by needing a second runtime for embeddings.
   becomes relevant.
 
 **Evidence:** `../research/summaries/008-architecture-tiers-and-runtime.md`;
-CTranslate2 converter registry inspected 2026-08-03 `[verified]`
+CTranslate2 converter registry inspected 2026-08-10 `[verified]`
 
 ---
 
 ## DEC-015 — Screening is executable and mandatory; datasets carry a screening record
 
-**Decision ID:** DEC-015 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-015 · **Date:** 2026-08-13 · **Status:** Accepted
 
 **Decision:**
 The **DEC-008** gates are implemented as
@@ -1173,7 +1173,7 @@ enters training, tuning, or evaluation use without a committed, machine-readable
 and **contamination**.
 
 **Context:**
-DEC-008 established the policy in July. Measured on 2026-08-03: it mentions
+DEC-008 established the policy in July. Measured on 2026-08-13: it mentions
 screening **seven times**, `scripts/data_processing/` contained **zero files**,
 and screening logic had been **reimplemented in all three experiment scripts,
 differently each time**.
@@ -1226,13 +1226,13 @@ detector.
   contamination becomes a live concern.
 
 **Evidence:** `../research/summaries/009-pipeline-without-training.md`;
-validation runs `[verified]` 2026-08-03
+validation runs `[verified]` 2026-08-13
 
 ---
 
 ## DEC-016 — Every experiment emits a machine-checkable artefact
 
-**Decision ID:** DEC-016 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-016 · **Date:** 2026-08-13 · **Status:** Accepted
 
 **Decision:**
 An experiment is not complete until it writes a **machine-readable results
@@ -1241,7 +1241,7 @@ reproduce that artefact **byte-identically**, and a mismatch is a finding to
 investigate rather than a file to overwrite.
 
 **Context:**
-Re-running all three experiments and byte-comparing on 2026-08-03:
+Re-running all three experiments and byte-comparing on 2026-08-13:
 
 | Experiment | Artefact | Byte-identical |
 | --- | --- | --- |
@@ -1313,13 +1313,13 @@ failure this rule exists to prevent.
   earns its cost.
 
 **Evidence:** `../research/summaries/009-pipeline-without-training.md`;
-re-run and byte-comparison `[verified]` 2026-08-03
+re-run and byte-comparison `[verified]` 2026-08-13
 
 ---
 
 ## DEC-017 — Training is gated behind an adaptation ladder and measured triggers
 
-**Decision ID:** DEC-017 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-017 · **Date:** 2026-08-17 · **Status:** Accepted
 
 **Decision:**
 Model training is reached only by climbing an **adaptation ladder**, cheapest
@@ -1401,13 +1401,13 @@ because it feels like progress.
   measures MADLAD.
 
 **Evidence:** `../research/summaries/010-training-triggers.md`; licence audit and
-PyPI metadata `[verified]` 2026-08-03
+PyPI metadata `[verified]` 2026-08-17
 
 ---
 
 ## DEC-018 — CI enforces the machine-checkable rules in the decision log
 
-**Decision ID:** DEC-018 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-018 · **Date:** 2026-08-17 · **Status:** Accepted
 
 **Decision:**
 Every decision-log rule that **can** be checked mechanically **is**, in
@@ -1429,7 +1429,7 @@ summaries stay within two pages (**DEC-001**), every decision names rejected
 alternatives (**CONTRIBUTING**).
 
 **Context:**
-**DEC-008 spent three months as policy with no mechanism and was silently ignored
+**DEC-008 spent 15 days as policy with no mechanism and was silently ignored
 the entire time** — screening reimplemented three times, differently, with zero
 files in `scripts/data_processing/`. It was found by measurement in
 `06_ml_pipeline`, not by anyone noticing.
@@ -1476,13 +1476,13 @@ than none.
   principle but not in practice.
 
 **Evidence:** `../research/summaries/011-cost-model-and-enforcement.md`;
-local verification `[verified]` 2026-08-03
+local verification `[verified]` 2026-08-17
 
 ---
 
 ## DEC-019 — Tier 2's deployment mode is set by measured duty cycle, not fixed in advance
 
-**Decision ID:** DEC-019 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-019 · **Date:** 2026-08-17 · **Status:** Accepted
 
 **Decision:**
 Tier 2 (translation, 1.593 GB) is deployed **scale-to-zero or always-warm
@@ -1548,7 +1548,7 @@ exactly what fixing Option A blindly would produce.
 
 ## DEC-020 — Licence by artefact class
 
-**Decision ID:** DEC-020 · **Date:** 2026-08-03 · **Status:** Accepted · **Closes:** A-12
+**Decision ID:** DEC-020 · **Date:** 2026-08-17 · **Status:** Accepted · **Closes:** A-12
 
 **Decision:**
 Different artefact classes carry different licences, because their upstream
@@ -1615,13 +1615,13 @@ matches what the surrounding ecosystem already uses.
 - *Revisit when:* A-06 returns, or a dependency changes licence.
 
 **Evidence:** `../research/summaries/012-licence-and-sustainability.md`;
-licence metadata `[verified]` 2026-08-03
+licence metadata `[verified]` 2026-08-17
 
 ---
 
 ## DEC-021 — Extend the evaluation anchors to cover the MVP primitives
 
-**Decision ID:** DEC-021 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-021 · **Date:** 2026-08-17 · **Status:** Accepted
 
 **Decision:**
 **DEC-005's anchors are extended.** FLORES+ and TiQuAD remain the anchors for
@@ -1686,13 +1686,13 @@ downstream fails.
 - *Revisit when:* primitive evaluation is researched, or it proves impossible.
 
 **Evidence:** `../research/summaries/013-state-of-play.md`; readiness audit
-`[verified]` 2026-08-03
+`[verified]` 2026-08-17
 
 ---
 
 ## DEC-022 — The API response contract
 
-**Decision ID:** DEC-022 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-022 · **Date:** 2026-08-18 · **Status:** Accepted
 
 **Decision:**
 Every API and MCP response obeys this contract, independently of which endpoints
@@ -1774,13 +1774,13 @@ one client timeout either aborts valid translations or hangs on a tokenize call.
   by contributing them upstream to epitran (**G-11**).
 
 **Evidence:** `../research/summaries/014-api-response-contract.md`; encoding and
-epitran measurements `[verified]` 2026-08-03
+epitran measurements `[verified]` 2026-08-18
 
 ---
 
 ## DEC-023 — Primitive evaluation is intrinsic-first; alignment is word-level
 
-**Decision ID:** DEC-023 · **Date:** 2026-08-03 · **Status:** Accepted
+**Decision ID:** DEC-023 · **Date:** 2026-08-18 · **Status:** Accepted
 **Corrects:** DEC-007, DEC-022 · **Answers:** DEC-021
 
 **Decision:**
@@ -1865,9 +1865,9 @@ wrong granularity, not for something unachievable.
   morphological gold data exists.
 
 **Evidence:** `../research/summaries/015-primitive-evaluation.md`;
-`experiments/004-primitive-evaluation/` `[verified]` 2026-08-03
+`experiments/004-primitive-evaluation/` `[verified]` 2026-08-18
 
-### Amendment 1 — 2026-08-18: the supporting measurement was wrong; the decision survives
+### Amendment 1 — 2026-08-19: the supporting measurement was wrong; the decision survives
 
 **The decision stands. The evidence given for it does not.**
 
@@ -1929,7 +1929,7 @@ spans remain exact by construction.
   `tigrinya_eval.primitives` implements it that way, so this specific error
   cannot recur silently.
 
-**Evidence:** `experiments/005-word-boundary-epenthesis/` `[verified]` 2026-08-18
+**Evidence:** `experiments/005-word-boundary-epenthesis/` `[verified]` 2026-08-19
 
 ---
 
@@ -2053,7 +2053,7 @@ before commit.
 
 ## DEC-026 — Embeddings are evaluated intrinsically, against a lexical floor
 
-**Decision ID:** DEC-026 · **Date:** 2026-08-19 · **Status:** Accepted
+**Decision ID:** DEC-026 · **Date:** 2026-08-23 · **Status:** Accepted
 **Extends:** DEC-023's method to Tier 1 · **Corrects:** the READINESS_PLAN
 dependency graph
 
@@ -2123,7 +2123,7 @@ has a specific, measurable job rather than a vague expectation of being better.
   encoder.
 
 **Evidence:** `../research/reports/08_evaluation/003-embedding-evaluation-without-gold-data.md`;
-`experiments/008-embedding-baseline/` `[verified]` 2026-08-19
+`experiments/008-embedding-baseline/` `[verified]` 2026-08-23
 
 ---
 

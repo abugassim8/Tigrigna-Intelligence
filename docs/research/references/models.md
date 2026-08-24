@@ -68,7 +68,7 @@ noted in case those non-goals are revisited:
 
 | Model | Licence | Note |
 | --- | --- | --- |
-| **MADLAD-400-3B** (`google/madlad400-3b-mt`) | **Apache-2.0** | ⭐ **ADOPTED as the translation baseline — DEC-011.** Absent from this list until 2026-08-19, which is how the reference omitted the one model we actually chose. ⚠️ **Never scored** — its quality is assumed (**A-09**) |
+| **MADLAD-400-3B** (`google/madlad400-3b-mt`) | **Apache-2.0** | ⭐ **ADOPTED as the translation baseline — DEC-011.** Absent from this list until 2026-08-23, which is how the reference omitted the one model we actually chose. ⚠️ **Never scored** — its quality is assumed (**A-09**) |
 | **NLLB-200** (facebook) | ⛔ **CC-BY-NC-4.0** | **Measurable, never deployable (DEC-011).** Every variant is non-commercial, so it is a research comparison baseline only. The evaluation harness marks it `shippable=False` and prints `COMPARISON ONLY`, because a licence rule nobody enforces is a licence rule that gets broken. `[reported]`: into Tigrinya supported only from French and Spanish in some deployments — **verify** |
 | **AfroXLM-R** | see repo | Used as a base by `Abelex`; African-language multilingual encoder |
 | **Google Translate** | proprietary | Supports Tigrinya; `[reported]` outperforms NLLB on accuracy/fluency. **Baseline to measure against, never a dependency** (A-001, R-005) |

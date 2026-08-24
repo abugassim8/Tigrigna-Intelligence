@@ -3,7 +3,7 @@
 Why this file exists separately from the property tests
 -------------------------------------------------------
 **DEC-022 clause 5 — "the serving tier is disclosed" — was decided on
-2026-08-03 and was still not implemented on 2026-08-19.** Six of the seven
+2026-08-18 and was still not implemented on 2026-08-23.** Six of the seven
 clauses were enforced. Nothing compared the decision text against the payload,
 so the gap survived a build, a test suite, two audits, and a documentation pass
 that confidently asserted the clause as part of the contract.
@@ -88,7 +88,7 @@ def test_every_clause_in_the_decision_record_is_covered_here():
     assert n == len(DEC_022_CLAUSES), (
         f"DEC-022 states {n} clauses but this suite covers "
         f"{len(DEC_022_CLAUSES)}. A clause was added to the decision and not "
-        f"implemented — which is exactly how clause 5 went missing for 16 days."
+        f"implemented — which is exactly how clause 5 went missing for 5 days."
     )
 
 
@@ -180,7 +180,7 @@ def test_clause_4_variety_is_mandatory_and_unknown_is_not_null():
 
 
 def test_clause_5_serving_tier_is_disclosed(payload):
-    """The clause that was decided and silently unimplemented for 16 days."""
+    """The clause that was decided and silently unimplemented for 5 days."""
     assert "tier" in payload
     assert payload["tier"] == 0, "primitives are Tier 0 (DEC-013)"
     assert isinstance(payload["tier"], int)

@@ -102,10 +102,10 @@ each model repo at `https://hf.co/fgaim/<model>/discussions`
 **Unblocks:** DEC-003, the POS service, and every downstream decision that
 assumes model reuse.
 
-⚠️ **Corrected 2026-08-19: this does NOT unblock the embeddings service.**
+⚠️ **Corrected 2026-08-23: this does NOT unblock the embeddings service.**
 `tiroberta-bi-encoder` and `tielectra-bi-encoder` are already Apache-2.0 — see
 the parenthesis above. **Tier 1 is blocked on A-09 alone** (DEC-026). This
-entry claimed otherwise for three weeks, and so did the readiness plan's
+entry claimed otherwise for 25 days, and so did the readiness plan's
 dependency graph.
 
 **If refused or unanswered:** the reuse plan narrows sharply — see
@@ -245,7 +245,7 @@ Tigrinya sentence pairs** — by far the largest Tigrinya resource found — wit
 
 **Unblocks:** translation work; a large share of the usable data.
 
-**⚠️ Escalated to Blocking, 2026-08-03 (DEC-017).** The training-strategy audit
+**⚠️ Escalated to Blocking, 2026-08-17 (DEC-017).** The training-strategy audit
 found we have **zero cleanly-licensed parallel training data** — FLORES+ and
 TiQuAD are evaluation anchors, so training on them is contamination, and this
 1.4M-pair corpus is the only other parallel data that exists.
@@ -276,7 +276,7 @@ CC-BY-SA licence cannot grant rights the licensor does not hold.
 TiQuAD is used beyond internal evaluation. Same question applies to
 `haddas-tigrinya-corpus` (newspaper-derived) and any news-sourced corpus.
 
-**Second question, added 2026-08-03 (DEC-011):** **does a CC-BY-NC-4.0 *model*
+**Second question, added 2026-08-10 (DEC-011):** **does a CC-BY-NC-4.0 *model*
 licence reach a commercial downstream product, or only the model's own
 redistribution?** Every NLLB variant is NC-licensed. We have assumed the strict
 reading and chosen an Apache-2.0 alternative at 4.8× the parameters — a real
@@ -381,7 +381,7 @@ A-01, A-05, and A-06 resolve. Owned by `11_business`.
 > ⚠️ **Never send `validation/key.json`**; it records which answer is ours, and
 > the design depends on the reviewer not knowing.
 >
-> **Widened 2026-08-19.** This action used to cover only a variety audit of the
+> **Widened 2026-08-23.** This action used to cover only a variety audit of the
 > evaluation anchors. That was too narrow. What actually needs a speaker:
 >
 > | Sheet | Question |
@@ -501,7 +501,7 @@ git commit -m "Activate CI verification workflow (DEC-018)"
 git push
 ```
 
-**Why it matters:** DEC-018 exists because **DEC-008 spent three months as policy
+**Why it matters:** DEC-018 exists because **DEC-008 spent 15 days as policy
 with no mechanism and was silently ignored**. Until A-15 is done, **DEC-018 is in
 exactly that state** — and so are DEC-015, DEC-016, and DEC-001's summary rules.
 
@@ -564,8 +564,8 @@ date. Measuring it found the habit is older and wider:
 | Ten of the 16 summaries, and eleven reports | dated 2026-08-03, committed on the 17th and 18th |
 
 **Why it is not a nitpick:** several arguments here are computed from elapsed
-time — *"DEC-022 clause 5 sat unimplemented for 16 days"*, *"the register was
-frozen for three weeks"*, *"DEC-008 spent three months as policy with no
+time — *"DEC-022 clause 5 sat unimplemented for 5 days"*, *"the register was
+frozen for 25 days"*, *"DEC-008 spent 15 days as policy with no
 mechanism"*. Those intervals rest on stamps that are unreliable. **No conclusion
 is known to be wrong**; what is gone is the ability to say so without
 re-deriving each interval from git.
@@ -590,4 +590,4 @@ research finding — record it in `docs/research/` too.)*
 
 | ID | Action | Outcome | Date |
 | --- | --- | --- | --- |
-| **A-12** | Choose the project licence | **DEC-020** — Apache-2.0 code, CC-BY-4.0 docs, inherit for data. Resolved once the upstream licence map was complete: **no code dependency imposes copyleft**; share-alike enters only through data | 2026-08-03 |
+| **A-12** | Choose the project licence | **DEC-020** — Apache-2.0 code, CC-BY-4.0 docs, inherit for data. Resolved once the upstream licence map was complete: **no code dependency imposes copyleft**; share-alike enters only through data | 2026-08-17 |

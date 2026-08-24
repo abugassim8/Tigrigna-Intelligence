@@ -5,7 +5,7 @@
 | **Report ID** | `001-response-contract-before-surface` |
 | **Domain** | `07_api_mcp` |
 | **Stage** | Scout → Analyst → Architect |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-18 |
 | **Status** | Accepted — **partial**, surface deferred to A-02 |
 | **Summary** | `docs/research/summaries/014-api-response-contract.md` |
 | **Related decisions** | **DEC-022**; refines DEC-007; applies DEC-010, DEC-012, DEC-013 |
@@ -177,5 +177,5 @@ Deferred, honestly:
 unit, surface form always returned verbatim, analysis form declared non-phonemic,
 variety label mandatory, serving tier disclosed.
 
-**Evidence:** encoding arithmetic and epitran behaviour `[verified]` 2026-08-03;
+**Evidence:** encoding arithmetic and epitran behaviour `[verified]` 2026-08-18;
 DEC-007, DEC-010, DEC-012, DEC-013.

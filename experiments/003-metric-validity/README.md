@@ -156,7 +156,7 @@ retention ratio at 10/20/30% near-miss corruption on Tigrinya.
 
 ---
 
-### ⚠️ Correction — 2026-08-03, from the `06_ml_pipeline` screening tool
+### ⚠️ Correction — 2026-08-13, from the `06_ml_pipeline` screening tool
 
 Building `scripts/data_processing/screen_dataset.py` produced a **baseline this
 experiment did not have**, and it refines one claim above.

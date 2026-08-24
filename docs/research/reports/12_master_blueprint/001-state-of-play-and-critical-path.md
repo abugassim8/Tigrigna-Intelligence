@@ -5,7 +5,7 @@
 | **Report ID** | `001-state-of-play-and-critical-path` |
 | **Domain** | `12_master_blueprint` |
 | **Stage** | Architect |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-17 |
 | **Status** | Accepted |
 | **Summary** | `docs/research/summaries/013-state-of-play.md` |
 | **Related decisions** | **DEC-021**; synthesises DEC-001…DEC-020 |
@@ -164,5 +164,5 @@ the plan:
 research is evaluation for Tier 0, not another capability.
 
 **Evidence:** audit of `docs/benchmarks/metrics.md` against DEC-006
-`[verified]` 2026-08-03; evidence-marker counts across twelve summaries
+`[verified]` 2026-08-17; evidence-marker counts across twelve summaries
 `[verified]`.

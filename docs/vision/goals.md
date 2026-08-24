@@ -18,7 +18,7 @@ is achievable. Move goals to `../roadmap/` once they have dates. Retire goals
 that are met or abandoned, with a note on which.
 
 > **Status:** ⚠️ **Written pre-research; all 13 research domains are now
-> complete** (updated 2026-08-19). The goals themselves held up — none was
+> complete** (updated 2026-08-23). The goals themselves held up — none was
 > abandoned — but research changed what each costs, and two changed shape:
 >
 > | Goal | What research did to it |

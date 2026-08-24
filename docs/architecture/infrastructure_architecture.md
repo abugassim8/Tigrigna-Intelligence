@@ -1,6 +1,6 @@
 # Infrastructure Architecture
 
-> **Status: designed, with one input missing** (DEC-018, DEC-019 — 2026-08-03).
+> **Status: designed, with one input missing** (DEC-018, DEC-019 — 2026-08-17).
 > The cost model and enforcement are settled. **Tier 2's deployment mode is
 > deliberately not fixed** — it depends on a cold-start measurement we do not
 > have (**A-14**).
@@ -129,12 +129,12 @@ CI. Everything else is premature.
 
 | Decision | ID | Date | Summary |
 | --- | --- | --- | --- |
-| CI enforces checkable rules | DEC-018 | 2026-08-03 | Six rules implemented and locally verified — ⚠️ **not installed (A-15)** |
-| Tier 2 mode by measured duty cycle | DEC-019 | 2026-08-03 | Rule stated; input (**A-14**) still missing |
-| Tier by resource profile | DEC-013 | 2026-08-03 | ~14× standing-cost saving confirms it (22× was the pre-build estimate) |
-| Single model runtime | DEC-014 | 2026-08-03 | CTranslate2 (MIT), CPU int8 — no GPU tier, no second runtime |
-| Machine-checkable experiment artefacts | DEC-016 | 2026-08-03 | The reproducibility job doubles as a dependency regression test |
-| Library-first | DEC-012 | 2026-08-03 | Services are thin wrappers, so a tier is a deployment unit rather than a capability boundary |
+| CI enforces checkable rules | DEC-018 | 2026-08-17 | Six rules implemented and locally verified — ⚠️ **not installed (A-15)** |
+| Tier 2 mode by measured duty cycle | DEC-019 | 2026-08-17 | Rule stated; input (**A-14**) still missing |
+| Tier by resource profile | DEC-013 | 2026-08-10 | ~14× standing-cost saving confirms it (22× was the pre-build estimate) |
+| Single model runtime | DEC-014 | 2026-08-10 | CTranslate2 (MIT), CPU int8 — no GPU tier, no second runtime |
+| Machine-checkable experiment artefacts | DEC-016 | 2026-08-13 | The reproducibility job doubles as a dependency regression test |
+| Library-first | DEC-012 | 2026-08-10 | Services are thin wrappers, so a tier is a deployment unit rather than a capability boundary |
 
 ## What future contributors should add
 

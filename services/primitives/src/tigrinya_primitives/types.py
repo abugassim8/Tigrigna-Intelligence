@@ -58,7 +58,7 @@ class Span:
     Word-level rather than character-level is exact by construction: the
     analysis form simply *is* the concatenation of its spans' analyses.
 
-    ⚠️ **Corrected 2026-08-18 (experiment 005).** This docstring previously
+    ⚠️ **Corrected 2026-08-19 (experiment 005).** This docstring previously
     claimed per-word analysis was also *fully faithful* — that a word's
     transliteration is preserved inside a sentence "1,639/1,639 times". That
     figure came from a containment test that could not detect an appended

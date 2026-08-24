@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | **Experiment ID** | `005-word-boundary-epenthesis` |
-| **Date** | 2026-08-18 |
+| **Date** | 2026-08-19 |
 | **Author** | Research session |
 | **Status** | **Complete — C1 and C3 REFUTED; C2 CONFIRMED** |
 | **Related decision** | **DEC-023** (amended by this result); **DEC-016** (which this experiment exists because we violated) |

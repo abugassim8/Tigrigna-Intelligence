@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | **Experiment ID** | `004-primitive-evaluation` |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-18 |
 | **Author** | Research session (Claude Opus 5) |
 | **Status** | **Complete — H3 REFUTED; the other three hold** |
 | **Related report** | `docs/research/reports/08_evaluation/002-primitive-evaluation.md` |
@@ -156,7 +156,7 @@ An initial reading framed this as "exact offsets *or* faithful phonemes."
 - **Prepending a character changes 0 of 1,635 tokens.** *(Holds: re-measured at
   0 of 1,565.)*
 
-> ### ⚠️ Retraction — 2026-08-18
+> ### ⚠️ Retraction — 2026-08-19
 >
 > **Neither figure above came from `run.py`.** They were produced by an ad-hoc
 > probe that was never committed, which is a **DEC-016 violation** and the

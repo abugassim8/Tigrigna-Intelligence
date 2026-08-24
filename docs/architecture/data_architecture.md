@@ -71,7 +71,7 @@ Two properties matter more than the gate list:
   five packages whose licences are declared under PEP 639. Trusting either would
   have produced confidently wrong answers in both directions.
 
-**Why it is executable at all:** DEC-008 spent three months as policy with no
+**Why it is executable at all:** DEC-008 spent 15 days as policy with no
 mechanism and was **silently ignored the entire time** — screening reimplemented
 three times, differently, with zero files in `scripts/data_processing/`. That was
 found by measurement, not by anyone noticing. → DEC-015, then DEC-018.
@@ -154,11 +154,11 @@ Eritrean standard. Three measured properties shape it:
 
 | Decision | ID | Date | Summary |
 | --- | --- | --- | --- |
-| Mandatory contamination screening | **DEC-008** | 2026-07-29 | Unlicensed data quarantined — ⚠️ spent three months as policy with no mechanism |
-| Screening is executable | **DEC-015** | 2026-08-03 | A script, not a convention; datasets carry a screening record; fails closed |
-| Licence by artefact class | **DEC-020** | 2026-08-03 | Apache-2.0 code, CC-BY-4.0 docs, inherit for data; closes A-12 |
+| Mandatory contamination screening | **DEC-008** | 2026-07-29 | Unlicensed data quarantined — ⚠️ spent 15 days as policy with no mechanism |
+| Screening is executable | **DEC-015** | 2026-08-13 | A script, not a convention; datasets carry a screening record; fails closed |
+| Licence by artefact class | **DEC-020** | 2026-08-17 | Apache-2.0 code, CC-BY-4.0 docs, inherit for data; closes A-12 |
 | Evaluation anchors | **DEC-005** | 2026-07-29 | FLORES-200 and TiQuAD — TiQuAD contamination since confirmed in a third-party corpus |
-| Machine-checkable experiment artefacts | **DEC-016** | 2026-08-03 | `results.json`, byte-identical on re-run — ⚠️ **Amendment 1** exempts timing experiments |
+| Machine-checkable experiment artefacts | **DEC-016** | 2026-08-13 | `results.json`, byte-identical on re-run — ⚠️ **Amendment 1** exempts timing experiments |
 | Support both varieties | **DEC-004** | 2026-07-29 | Data carries a variety label; results never aggregate across them |
 
 ## What future contributors should add

@@ -137,13 +137,13 @@ minimum platform), **no training pipeline** until the ladder's triggers fire and
 
 | Decision | ID | Date | Summary |
 | --- | --- | --- | --- |
-| Translation baseline | **DEC-011** | 2026-08-03 | MADLAD-400-3B adopted; NC-licensed models are research-only and marked unshippable in code |
-| Single model runtime | **DEC-014** | 2026-08-03 | CTranslate2 (MIT), CPU int8 — one runtime, not one per model |
-| Adaptation ladder | **DEC-017** | 2026-08-03 | Training gated behind measured triggers; **from-scratch foreclosed** |
+| Translation baseline | **DEC-011** | 2026-08-10 | MADLAD-400-3B adopted; NC-licensed models are research-only and marked unshippable in code |
+| Single model runtime | **DEC-014** | 2026-08-10 | CTranslate2 (MIT), CPU int8 — one runtime, not one per model |
+| Adaptation ladder | **DEC-017** | 2026-08-17 | Training gated behind measured triggers; **from-scratch foreclosed** |
 | Adopt the existing model layer | **DEC-003** | 2026-07-29 | Build primitives, evaluation and integration — not models |
 | chrF primary | **DEC-009** | 2026-08-03 | BLEU for comparability only, never alone |
 | Variety-scoped results | **DEC-010** | 2026-08-03 | No cross-variety aggregate; `aggregate()` raises |
-| Tier by resource profile | **DEC-013** | 2026-08-03 | Translation is Tier 2 and lazily loaded |
+| Tier by resource profile | **DEC-013** | 2026-08-10 | Translation is Tier 2 and lazily loaded |
 | Decomposition substrate | **DEC-007** | 2026-07-29 | ⚠️ **Amended twice** — tokenization runs on raw Ge'ez; the token-efficiency rationale was refuted |
 
 ## What future contributors should add

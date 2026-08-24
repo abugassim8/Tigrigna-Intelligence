@@ -47,7 +47,7 @@ left to be discovered later.
 
 ## Verified locally
 
-All six checks were run by hand before commit, 2026-08-03:
+All six checks were run by hand before commit, 2026-08-17:
 
 - 61 primitives tests and 14 evaluation tests passed
 - 4 experiments reproduced byte-identically

@@ -5,7 +5,7 @@
 | **Report ID** | `003-embedding-evaluation-without-gold-data` |
 | **Domain** | `08_evaluation` |
 | **Stage** | Scout → Analyst → Architect |
-| **Date** | 2026-08-19 |
+| **Date** | 2026-08-23 |
 | **Status** | Accepted |
 | **Summary** | `docs/research/summaries/016-embedding-evaluation.md` |
 | **Related decisions** | **DEC-026**; extends DEC-023's method to Tier 1; corrects the READINESS_PLAN dependency graph |
@@ -151,5 +151,5 @@ design is recorded so it is ready when A-13 comes back.
 - **DEC-026** — embedding evaluation is intrinsic-first with a mandatory lexical
   baseline; cross-lingual retrieval requires a different model class.
 
-**Evidence:** `experiments/008-embedding-baseline/` `[verified]` 2026-08-19;
+**Evidence:** `experiments/008-embedding-baseline/` `[verified]` 2026-08-23;
 licence status from `docs/research/references/models.md` `[verified]`.

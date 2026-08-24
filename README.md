@@ -213,5 +213,5 @@ currently enforce nothing.
 full. Share-alike enters only through data (FLORES+ is CC-BY-SA-4.0), so the
 obligation is contained to derived corpora rather than the platform.
 
-*(This section read "Not yet selected" until 2026-08-19, sixteen days after
+*(This section read "Not yet selected" until 2026-08-23, six days after
 DEC-020 closed the question and the LICENSE files were committed.)*

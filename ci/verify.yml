@@ -9,7 +9,7 @@ name: verify
 #   DEC-023 — Tier 0's intrinsic property tests pass (services/primitives)
 #   DEC-009/010 — the evaluation harness enforces its own rules
 #
-# DEC-008 spent three months as policy with no mechanism and was silently
+# DEC-008 spent 15 days as policy with no mechanism and was silently
 # ignored the whole time. This workflow exists so the newer rules do not
 # repeat that.
 

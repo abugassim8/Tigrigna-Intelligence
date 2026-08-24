@@ -4,7 +4,7 @@
 | --- | --- |
 | **Summary ID** | `012-licence-and-sustainability` |
 | **Full report** | `docs/research/reports/11_business/001-licence-and-sustainability.md` |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-17 |
 | **Status** | Current |
 | **Confidence** | High on the licence map; **legal readings are readings, not rulings** |
 
@@ -118,7 +118,7 @@ attention is.**
 
 ## References
 
-1. PyPI `license_expression` and Hub licence metadata `[verified]` 2026-08-03
+1. PyPI `license_expression` and Hub licence metadata `[verified]` 2026-08-17
 2. `docs/research/summaries/011-cost-model-and-enforcement.md` — cost model
 3. `docs/vision/non_goals.md` — N-9
 

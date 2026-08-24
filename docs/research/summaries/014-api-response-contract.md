@@ -4,7 +4,7 @@
 | --- | --- |
 | **Summary ID** | `014-api-response-contract` |
 | **Full report** | `docs/research/reports/07_api_mcp/001-response-contract-before-surface.md` |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-18 |
 | **Status** | Current — **partial**, surface deferred to A-02 |
 | **Confidence** | High on the contract; **surface not designed** |
 
@@ -118,7 +118,7 @@ found an offset trap above the BMP, a favourable normalisation property, and tha
 
 ## References
 
-1. Unicode encoding arithmetic and epitran behaviour `[verified]` 2026-08-03
+1. Unicode encoding arithmetic and epitran behaviour `[verified]` 2026-08-18
 2. `experiments/001-epitran-geez-decomposition/` — the coverage figure refined here
 3. DEC-007 · DEC-010 · DEC-012 · DEC-013 · DEC-019
 

@@ -5,7 +5,7 @@
 | **Report ID** | `001-cost-model-and-enforcement` |
 | **Domain** | `10_infrastructure` |
 | **Stage** | Scout → Analyst → Architect |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-17 |
 | **Status** | Accepted |
 | **Summary** | `docs/research/summaries/011-cost-model-and-enforcement.md` |
 | **Related decisions** | **DEC-018**, **DEC-019**; qualifies DEC-013; enforces DEC-015, DEC-016, DEC-001 |
@@ -113,7 +113,7 @@ boot rather than being warm-except-once.
 
 ## Finding 3 — The decision log has rules nothing checks, and that has already failed once
 
-**DEC-008 spent three months as policy with no mechanism and was silently ignored
+**DEC-008 spent 15 days as policy with no mechanism and was silently ignored
 the entire time** — screening reimplemented three times, differently, with zero
 files in `scripts/data_processing/`. That was found by measurement in
 `06_ml_pipeline`, not by anyone noticing.
@@ -194,4 +194,4 @@ for weights, and CI.** Everything else is premature.
 
 **Evidence:** resource arithmetic from
 `docs/research/summaries/008-architecture-tiers-and-runtime.md`; CI checks run
-locally `[verified]` 2026-08-03.
+locally `[verified]` 2026-08-17.

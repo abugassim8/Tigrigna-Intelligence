@@ -4,7 +4,7 @@
 | --- | --- |
 | **Summary ID** | `011-cost-model-and-enforcement` |
 | **Full report** | `docs/research/reports/10_infrastructure/001-cost-model-and-enforcement.md` |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-17 |
 | **Status** | Current |
 | **Confidence** | High on arithmetic and CI; **cold start unmeasured, and it is decisive** |
 
@@ -62,7 +62,7 @@ checking — **though it is not yet installed (A-15)**.
   **the model swings ~20× on a guessed parameter**.
 
 - **⭐ The decision log has rules nothing checks — and that has already failed
-  once.** DEC-008 spent three months as policy with no mechanism, silently
+  once.** DEC-008 spent 15 days as policy with no mechanism, silently
   ignored, found only by measurement. Five newer rules were in the same position:
 
   | Rule | Source |
@@ -106,7 +106,7 @@ checking — **though it is not yet installed (A-15)**.
 | Fixing Tier 2 as always-warm now | Equally unfounded in the other direction; at genuinely low volume it wastes 1,193.1 GB-h/month |
 | Costing infrastructure in dollars | Vendor pricing is unverifiable here and volatile; GB-hours survive price changes |
 | Kubernetes / orchestration | Three tiers, one runtime, low volume — a continuous expense buying nothing (P-7) |
-| Leaving DEC-015/DEC-016 unenforced | DEC-008 already demonstrated what happens: silently ignored for three months |
+| Leaving DEC-015/DEC-016 unenforced | DEC-008 already demonstrated what happens: silently ignored for 15 days |
 | Quietly dropping the workflow when the push was refused | The work would have been lost and DEC-018 would have claimed enforcement that did not exist — the exact failure it names |
 | GPU infrastructure | DEC-014's runtime is CPU int8; DEC-017's training is blocked on data, not hardware |
 
@@ -134,7 +134,7 @@ checking — **though it is not yet installed (A-15)**.
 
 1. `docs/research/summaries/008-architecture-tiers-and-runtime.md` — tier footprints
 2. `ci/verify.yml` — the enforcement mechanism (**awaiting install, A-15**)
-3. Local CI verification runs `[verified]` 2026-08-03
+3. Local CI verification runs `[verified]` 2026-08-17
 
 ---
 

@@ -25,7 +25,7 @@ Two of them are load-bearing in a way that makes importing worse:
   and its meaning as evidence.
 
 So the duplicates stay, and this checks they agree. Divergence becomes a failed
-build rather than a finding three weeks later.
+build rather than a finding 19 days later.
 
 Usage:
     python3 scripts/check_definitions.py
@@ -137,7 +137,7 @@ def main() -> int:
         print(f"::error::{p}")
         print(f"  {p}\n")
     print("  Two copies of one rule that disagree is how Extended-B came to be "
-          "missing from the screening gate for three weeks.")
+          "missing from the screening gate for 19 days.")
     return 1
 
 

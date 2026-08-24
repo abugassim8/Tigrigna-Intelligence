@@ -62,7 +62,7 @@
   so correctly (pharyngeal ħ, uvular q); ካተበ → `katəbə` yields root `[k,t,b]`;
   **22 collisions → not reversible**; 1.97× mean expansion.
 - ⚠️ **"384/384 Ethiopic coverage" was recorded here and is misleading**
-  (corrected 2026-08-19). Experiment 001 counted **non-empty output**. Of the 384
+  (corrected 2026-08-23). Experiment 001 counted **non-empty output**. Of the 384
   core characters, **310 transliterate to phonemes and 74 pass through** — 26
   unassigned and 29 punctuation/digits, both correct, but **16 real syllables and
   3 combining marks come back as raw Ge'ez**. Supplement, Extended-A and

@@ -2,7 +2,7 @@
 
 One record per committed corpus file, produced by
 `scripts/data_processing/screen_dataset.py`. **DEC-015 requires datasets to
-carry a screening record**; until 2026-08-19 the rule had none — five corpus
+carry a screening record**; until 2026-08-22 the rule had none — five corpus
 files were committed with zero records, while the CI job was *named* after the
 rule but only tested that the tool fails closed.
 

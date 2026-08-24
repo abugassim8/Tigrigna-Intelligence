@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Plan of record** · first written 2026-08-19 · **refreshed 2026-08-24** after ten work items |
+| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-08-24** after ten work items |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
 | **Basis** | **25 decisions · 8 experiments · 16 summaries · 129 tests · 4 audits** |
 
@@ -111,7 +111,7 @@ graph TD
 ```
 
 ⚠️ **This graph previously routed `A-01 → Tier 1 embeddings`, and that was
-wrong for three weeks.** `tiroberta-bi-encoder` and `tielectra-bi-encoder` are
+wrong for 25 days.** `tiroberta-bi-encoder` and `tielectra-bi-encoder` are
 **Apache-2.0**; A-01's own text said so in parentheses. **Tier 1 is blocked on
 A-09 alone.** A graph that overstates a blocker makes the wrong thing look
 urgent — found while designing the embeddings evaluation (DEC-026).
@@ -250,7 +250,7 @@ argument for the next audit rather than a claim of thoroughness.
 | --- | --- |
 | **Validation instrument** (1.1, 1.2) | 134 items; A-13 becomes "send these sheets". First E1-style design flaw caught: the instrument was **not reproducible** until a hash-order tie-break was added |
 | **Gap audit** — 7 dimensions | **12 findings**, including a **live shipping bug**: `confidence_interval=False` returned an **inverted interval** (`ci_low > ci_high`) |
-| **Assumptions re-audit** | All 10 re-audited. **A-002 said `Unvalidated` while its own body said "CONFIRMED by measurement"**; the deferred list still called the project licence open 16 days after DEC-020 closed it |
+| **Assumptions re-audit** | All 10 re-audited. **A-002 said `Unvalidated` while its own body said "CONFIRMED by measurement"**; the deferred list still called the project licence open six days after DEC-020 closed it |
 | **Doc-tree audit** | **"384/384, zero gaps"** was wrong — real phoneme coverage is **310/384**. NLLB listed without its **CC-BY-NC-4.0** constraint, in the document you consult when choosing a model |
 | **Contract conformance suite** | Reads **DEC-022 itself** and fails if a clause is added and not implemented. Found `warnings` serialised as a tuple, so the payload was **not equal to its own JSON round-trip** |
 | **Definition consistency check** | `is_ethiopic` exists **five times, two were wrong** — `experiments/002` omitted Extended-B exactly as `screen_dataset` had |
@@ -272,8 +272,8 @@ previous session's date. Measuring it found the habit is far older:
 | **Ten of the 16 summaries, and eleven reports** | dated 2026-08-03, committed on the 17th and 18th |
 
 This is load-bearing. Several arguments in this repository turn on elapsed
-time — *"DEC-022 clause 5 sat unimplemented for 16 days"*, *"the register was
-frozen for three weeks"* — and those intervals are computed from stamps that
+time — *"DEC-022 clause 5 sat unimplemented for 5 days"*, *"the register was
+frozen for 25 days"* — and those intervals are computed from stamps that
 are themselves unreliable. **No conclusion is known to be wrong because of it**;
 what is gone is the ability to say so without re-deriving each interval from
 git.

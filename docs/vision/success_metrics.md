@@ -19,7 +19,7 @@ establishes what is achievable. Baselines, once measured. Replace the
 placeholders below with real numbers — and record the basis for each target.
 
 > **Status:** **No targets are set, and that is still deliberate** — but four
-> capabilities are now measured, which this table denied until 2026-08-19.
+> capabilities are now measured, which this table denied until 2026-08-23.
 >
 > Setting numeric targets before knowing the state of the art for Tigrinya would
 > produce numbers with no basis, either trivially achievable or impossible with

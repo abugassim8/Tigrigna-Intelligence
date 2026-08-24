@@ -5,7 +5,7 @@
 | **Report ID** | `001-pipeline-without-training` |
 | **Domain** | `06_ml_pipeline` |
 | **Stage** | Scout → Analyst → Architect |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-13 |
 | **Status** | Accepted |
 | **Summary** | `docs/research/summaries/009-pipeline-without-training.md` |
 | **Related decisions** | **DEC-015**, **DEC-016**; gives DEC-008 a mechanism; engages A-004, A-005, DEC-010, DEC-014, P-5 |
@@ -159,5 +159,5 @@ waits on a conversion step that cannot run without model weights.
   record.
 - **DEC-016** — Every experiment emits a machine-checkable artefact.
 
-**Evidence:** re-run and byte-comparison 2026-08-03 `[verified]`;
+**Evidence:** re-run and byte-comparison 2026-08-13 `[verified]`;
 `scripts/data_processing/screen_dataset.py` validation runs `[verified]`.

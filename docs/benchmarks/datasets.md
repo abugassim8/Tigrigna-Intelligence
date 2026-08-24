@@ -2,7 +2,7 @@
 
 > **Status: one evaluation set committed and in use; the second anchor is not
 > obtainable.** ⚠️ **This document read "Status: none — no evaluation datasets
-> have been identified, assembled, or built" until 2026-08-19**, while a
+> have been identified, assembled, or built" until 2026-08-23**, while a
 > screened FLORES+ sample was committed and had already produced DEC-009.
 >
 > **Evidence:** DEC-005 (anchors), `../../experiments/003-metric-validity/`,

@@ -1,6 +1,6 @@
 # System Overview
 
-> **Status: designed** (DEC-012, DEC-013, DEC-014 — 2026-08-03).
+> **Status: designed** (DEC-012, DEC-013, DEC-014 — 2026-08-10).
 > Every element below traces to a decision record. The API surface is **not**
 > designed — that is `07_api_mcp`, gated on **A-02**.
 >
@@ -177,8 +177,8 @@ and the API surface do not change (**DEC-012**).
 
 | Decision | ID | Date | Summary |
 | --- | --- | --- | --- |
-| Library-first; services are thin wrappers | DEC-012 | 2026-08-03 | Capability logic is importable; no logic exists only behind a network call |
-| Tier by resource profile | DEC-013 | 2026-08-03 | ~150× memory spread drives decomposition; tiers never co-located |
-| CTranslate2 as single runtime | DEC-014 | 2026-08-03 | One MIT runtime serves T5, M2M100, and Roberta |
-| Translation model | DEC-011 | 2026-08-03 | MADLAD-400-3B (Apache-2.0); NLLB quarantined as NC |
+| Library-first; services are thin wrappers | DEC-012 | 2026-08-10 | Capability logic is importable; no logic exists only behind a network call |
+| Tier by resource profile | DEC-013 | 2026-08-10 | ~150× memory spread drives decomposition; tiers never co-located |
+| CTranslate2 as single runtime | DEC-014 | 2026-08-10 | One MIT runtime serves T5, M2M100, and Roberta |
+| Translation model | DEC-011 | 2026-08-10 | MADLAD-400-3B (Apache-2.0); NLLB quarantined as NC |
 | Minimum viable platform | DEC-006 | 2026-07-29 | Primitives + embeddings = Tier 0+1 = 191 MB |

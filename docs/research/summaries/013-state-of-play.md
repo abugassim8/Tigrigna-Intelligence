@@ -4,7 +4,7 @@
 | --- | --- |
 | **Summary ID** | `013-state-of-play` |
 | **Full report** | `docs/research/reports/12_master_blueprint/001-state-of-play-and-critical-path.md` |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-17 |
 | **Status** | Current |
 | **Confidence** | High — an audit of our own record, not new external research |
 
@@ -48,7 +48,7 @@ next research is evaluation for the primitives, and it is blocked by nothing.
   **80% of summary claims carry `[verified]`**, 20% `[reported]` — the latter
   almost all paper-derived figures behind the egress block.
 
-- ~~**Nothing has been built.**~~ ⚠️ **Superseded 2026-08-03.** Tier 0 and the
+- ~~**Nothing has been built.**~~ ⚠️ **Superseded 2026-08-18.** Tier 0 and the
   evaluation harness are now built: **two packages, both suites passing**.
 
   | Package | Status |
@@ -62,7 +62,7 @@ next research is evaluation for the primitives, and it is blocked by nothing.
   production.
 
 - **⭐ The evaluation service scored only the capability the MVP excludes** —
-  DEC-021's structural error, reproduced in code. Fixed 2026-08-18: the MVP
+  DEC-021's structural error, reproduced in code. Fixed 2026-08-19: the MVP
   primitives now have a harness, and building it retracted **DEC-023's central
   measurement**. "A word's transliteration is preserved in a sentence,
   1,639/1,639 (100%)" came from a **containment** test that cannot detect an
@@ -85,7 +85,7 @@ next research is evaluation for the primitives, and it is blocked by nothing.
      rich languages" became "**BLEU is 1.08× harsher**."
   2. **Pre-committed thresholds caught overclaiming twice** — Experiments 002 and
      003. Without them, both would have been written up as successes.
-  3. **Policy without mechanism fails silently** — DEC-008, ignored three months,
+  3. **Policy without mechanism fails silently** — DEC-008, ignored 15 days,
      found by measurement. Structural, not careless.
   4. **Metadata is evidence, not truth** — HF tags wrong on 2 of 4 datasets;
      PyPI's legacy field wrongly reads "NOT STATED" for five packages.

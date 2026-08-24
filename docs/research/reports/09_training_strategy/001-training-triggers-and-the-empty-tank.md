@@ -5,7 +5,7 @@
 | **Report ID** | `001-training-triggers-and-the-empty-tank` |
 | **Domain** | `09_training_strategy` |
 | **Stage** | Scout → Analyst → Architect |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-17 |
 | **Status** | Accepted |
 | **Summary** | `docs/research/summaries/010-training-triggers.md` |
 | **Related decisions** | **DEC-017**; engages A-004, A-005, A-002, A-008, DEC-011, DEC-008 |
@@ -155,4 +155,4 @@ conditions; from-scratch training is foreclosed.
 
 **Evidence:** licence audit `[verified]` against
 `docs/research/summaries/005-corpus-inventory-and-contamination.md` and
-`007-translation-model-selection.md`; PyPI metadata `[verified]` 2026-08-03.
+`007-translation-model-selection.md`; PyPI metadata `[verified]` 2026-08-17.

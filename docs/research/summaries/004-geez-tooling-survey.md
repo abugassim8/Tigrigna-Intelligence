@@ -23,7 +23,7 @@ alongside for output, and build only the alignment between them.
   - **Decomposition ✅** ካተበ → `katəbə` → consonants `[k,t,b]`, vowels
     `[a,ə,ə]`. **The discontinuous K-T-B root becomes extractable** — exactly
     what DEC-007 required.
-  - **Coverage ⚠️** — ~~384/384, zero gaps~~ **corrected 2026-08-19.** That counted
+  - **Coverage ⚠️** — ~~384/384, zero gaps~~ **corrected 2026-08-23.** That counted
   *non-empty output*. Only **310 of 384** produce phonemes; **16 real syllables
   and 3 combining marks** come back as raw Ge'ez, and three whole blocks are
   unmapped. This is why DEC-022 declares the analysis form non-phonemic.

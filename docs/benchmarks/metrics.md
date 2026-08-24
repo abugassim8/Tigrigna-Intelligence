@@ -49,7 +49,7 @@ finding to record rather than a problem to route around.
 | Semantic search | TBD | No | — | Not yet researched |
 | Cross-language retrieval | TBD | No | — | Not yet researched |
 | Tokenization | **Reversibility** + fertility + UNK rate | **Yes — intrinsic** | see DEC-023 | Property tests, no gold data (exp 004) |
-| Morphological analysis | Consistency + coverage *(accuracy needs gold data)* | ❌ **No — NOT measured** | — | ⚠️ **Corrected 2026-08-19.** This row read *"Yes — intrinsic"* citing exp 004. **Experiment 004 never tested morphology** — H1–H4 were normalisation, transliteration, alignment and tokenization. DEC-023 itself records morphology's intrinsic properties as **untested**, and the capability is **not implemented** (**A-07**). P-4 does **not** clear it |
+| Morphological analysis | Consistency + coverage *(accuracy needs gold data)* | ❌ **No — NOT measured** | — | ⚠️ **Corrected 2026-08-22.** This row read *"Yes — intrinsic"* citing exp 004. **Experiment 004 never tested morphology** — H1–H4 were normalisation, transliteration, alignment and tokenization. DEC-023 itself records morphology's intrinsic properties as **untested**, and the capability is **not implemented** (**A-07**). P-4 does **not** clear it |
 | Lemmatization | TBD | No | — | Not yet researched |
 | Spell correction | TBD | No | — | Not yet researched |
 | Grammar checking | TBD | No | — | Not yet researched |

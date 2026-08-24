@@ -4,7 +4,7 @@
 | --- | --- |
 | **Summary ID** | `007-translation-model-selection` |
 | **Full report** | `docs/research/reports/04_model_strategy/001-translation-model-selection.md` |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-10 |
 | **Status** | Current |
 | **Confidence** | High on licensing and sizes (verified); **no quality measured** |
 
@@ -111,7 +111,7 @@ published Tigrinya MT number — is **CC-BY-NC-4.0 and cannot be shipped**.
 ## References
 
 1. Hub metadata for `facebook/nllb-200-*`, `google/madlad400-*`, `fgaim/*`,
-   accessed 2026-08-03 `[verified]`
+   accessed 2026-08-10 `[verified]`
 2. `docs/research/summaries/006-metric-validity-and-harness.md` — the harness
 
 ---

@@ -30,7 +30,7 @@ ETHIOPIC_RANGES = [
     (0x1380, 0x139F),   # Ethiopic Supplement
     (0x2D80, 0x2DDF),   # Ethiopic Extended
     (0xAB00, 0xAB2F),   # Ethiopic Extended-A
-    # Extended-B was MISSING here until 2026-08-19, while the two other
+    # Extended-B was MISSING here until 2026-08-22, while the two other
     # definitions in the repo included it. Consequence, measured: a corpus of
     # real Tigrinya carrying 21 Extended-B characters failed the quality gate
     # at 1.444% "foreign" — legitimate Ge'ez rejected as mojibake. It is also

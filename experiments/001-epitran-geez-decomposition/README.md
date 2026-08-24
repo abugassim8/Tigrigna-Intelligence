@@ -145,7 +145,7 @@ modern pronunciation.
 **Mean expansion ≈ 1.97×.** Decomposition roughly doubles sequence length — the
 cost side of the ledger, and a real input to tokenizer fertility budgeting.
 
-### ⚠️ Refinement — 2026-08-03, from `07_api_mcp`
+### ⚠️ Refinement — 2026-08-18, from `07_api_mcp`
 
 **"Coverage 384/384" is true, and it does not mean what it looks like.**
 

@@ -3,7 +3,7 @@
 > **Status: translation evaluation designed and built; Tier 0 evaluated
 > intrinsically** (DEC-009, DEC-010, **DEC-023**).
 >
-> ⚠️ **Updated 2026-08-19.** This said "other capabilities remain unresearched",
+> ⚠️ **Updated 2026-08-23.** This said "other capabilities remain unresearched",
 > which stopped being true when DEC-023 established intrinsic evaluation for the
 > primitives. **Morphology genuinely does remain unevaluated** — and
 > unimplemented (**A-07**).

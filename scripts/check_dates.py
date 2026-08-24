@@ -16,8 +16,8 @@ occasional slip; it is how this record has been dated throughout.
 
 That matters more here than it would elsewhere. This project's method is that
 the record is true and corrections are dated, and several arguments turn on
-elapsed time — "DEC-022 clause 5 sat unimplemented for 16 days", "the register
-was frozen for three weeks". Those intervals are computed from stamps that are
+elapsed time — "DEC-022 clause 5 sat unimplemented for 5 days", "the register
+was frozen for 25 days". Those intervals are computed from stamps that are
 themselves unreliable.
 
 Why this is a ratchet and not a clean gate

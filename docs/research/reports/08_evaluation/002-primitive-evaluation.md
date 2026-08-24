@@ -5,7 +5,7 @@
 | **Report ID** | `002-primitive-evaluation` |
 | **Domain** | `08_evaluation` |
 | **Stage** | Scout → Analyst → Architect |
-| **Date** | 2026-08-03 |
+| **Date** | 2026-08-18 |
 | **Status** | Accepted |
 | **Summary** | `docs/research/summaries/015-primitive-evaluation.md` |
 | **Related decisions** | **DEC-023**; answers DEC-021; **corrects DEC-007 and DEC-022** |
@@ -93,7 +93,7 @@ I initially framed this as a **tradeoff**: exact offsets *or* faithful phonemes.
 A follow-up measurement refuted that framing, and **the follow-up was itself
 wrong**. Both corrections belong in the record.
 
-⚠️ **Corrected 2026-08-18 by `experiments/005-word-boundary-epenthesis/`.**
+⚠️ **Corrected 2026-08-19 by `experiments/005-word-boundary-epenthesis/`.**
 This section originally read:
 
 > A word's transliteration is preserved inside a sentence: 1,639/1,639 (100.00%).
@@ -177,5 +177,5 @@ gold data, not four** — which is what DEC-021 was trying to establish.
 **DEC-023** — Primitive evaluation is intrinsic-first; surface↔analysis alignment
 is **word-level**, correcting DEC-007 and DEC-022.
 
-**Evidence:** `experiments/004-primitive-evaluation/` `[verified]` 2026-08-03,
+**Evidence:** `experiments/004-primitive-evaluation/` `[verified]` 2026-08-18,
 reproducing byte-identically.
