@@ -671,14 +671,35 @@ refusing to allow a GitHub App to create or update workflow
 `.github/workflows/verify.yml` without `workflows` permission
 ```
 
+⚠️ **Re-tested 2026-09-02. Both available routes are blocked, so this is
+confirmed human-only — please do not ask an agent to retry it:**
+
+| Route | Result |
+| --- | --- |
+| `git push` carrying the workflow file | `remote rejected` — the message above |
+| REST contents API | **403** `Resource not accessible by integration` |
+
+It is a **token scope**, not a repository setting.
+
 **What to do** — from a normal clone with write access:
 
 ```bash
 mkdir -p .github/workflows
 git mv ci/verify.yml .github/workflows/verify.yml
-git commit -m "Activate CI verification workflow (DEC-018)"
+sed -i 's|"file": "ci/verify.yml"|"file": ".github/workflows/verify.yml"|' docs/figures.json
+git commit -am "Activate CI verification workflow (DEC-018)"
 git push
 ```
+
+The `sed` is not optional: `docs/figures.json` derives the CI-check count from
+the workflow's path, and `scripts/check_figures.py` crashes on the old one.
+
+✅ **One defect has already been fixed for you.** The `intrinsic` job installed
+both packages without the `[dev]` extra, so `pytest` was missing for a step that
+calls it — **it would have failed on the first real run**. Found by executing
+all 28 non-install `run:` blocks locally (28 run, 0 failed). That is still not
+the same as a run: nothing local exercises `actions/checkout`, `setup-python`, a
+clean install on a fresh runner, or GitHub's network.
 
 **Why it matters:** DEC-018 exists because **DEC-008 spent 15 days as policy
 with no mechanism and was silently ignored**. Until A-15 is done, **DEC-018 is in

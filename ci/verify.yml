@@ -54,10 +54,18 @@ jobs:
         with:
           python-version: "3.11"
 
+      # The `[dev]` extra is what carries pytest, and the test-count step below
+      # needs it to collect. Without it that step dies with "pytest: not found"
+      # on the first real run — found by executing every `run:` block locally
+      # against this file, not by reading it.
+      #
+      # `tigrinya-primitives` is also in that extra and is not on PyPI, so
+      # primitives must be installed from the tree first; the requirement is
+      # then already satisfied and pip does not go looking.
       - name: Install the packages
         run: |
           pip install --quiet -e services/primitives
-          pip install --quiet -e services/evaluation
+          pip install --quiet -e "services/evaluation[dev]"
 
       # The property tests above run on fixtures. This runs the same checks
       # over the committed corpus, which is where real text breaks properties
