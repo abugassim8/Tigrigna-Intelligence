@@ -4,7 +4,7 @@
 | --- | --- |
 | **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-02** after fourteen work items |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
-| **Basis** | **28 decisions · 8 experiments · 16 summaries · 129 tests · 4 audits** |
+| **Basis** | **28 decisions · 8 experiments · 16 summaries · 145 tests · 4 audits** |
 
 ---
 
@@ -51,8 +51,9 @@ and enough adoption that breaking changes are a genuine cost.
 ## 2. Where we actually are
 
 **Built and tested — `services/primitives`:** normalisation, tokenization,
-transliteration, `warmup()`. Morphology is a deliberate stub that raises rather
-than degrading silently.
+transliteration, `warmup()`, and **morphology** — an adapter over a
+user-installed HornMorpho (DEC-028) that reports its absence rather than
+degrading silently.
 
 **Built and tested — `services/evaluation`:** `metrics` and `harness`
 (chrF/BLEU, variety-scoped), `primitives` (six intrinsic checks, DEC-023a),
@@ -62,8 +63,9 @@ than degrading silently.
 items), four enforcement scripts, 21 CI checks, and the **HornMT anchor**
 (2,030 pairs, CC-BY-4.0, screened both sides).
 
-**Not built:** morphology, Tier 1 serving, Tier 2 serving, HTTP API, MCP server,
-SDKs, any deployment.
+**Not built:** Tier 1 serving, Tier 2 serving, HTTP API, MCP server, SDKs, any
+deployment. **Morphology is built but unmeasured** — its analyser is never
+bundled, so nothing here can run it.
 
 **Never done:** a native speaker has never seen our output. **No model has ever
 been scored.** CI has never run.
@@ -76,7 +78,7 @@ been scored.** CI has never run.
 | **G-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 21 checks, not 14.** All written, all locally verified, **none running** |
 | **G-3** | **Evaluation anchors are hollow** | ⚠️ **Materially better.** **HornMT is ingested** — 2,030 human-translated pairs, CC-BY-4.0, **68× the 30-sentence sample** and 0 overlap with it. Still one domain (news), and full FLORES+ is **gated, not blocked** — one token (**A-08**) buys 997/1,012 devtest and comparability with published work |
 | **G-4** | **Nothing measured end to end** | Unchanged, and now precisely diagnosed: the runtime **installs** (PyPI is open) and the **weights cannot be fetched** (**A-09**). MADLAD's quality assumed, Tier 2 cold start assumed. Tier 1's bar is recorded (DEC-026) |
-| **G-5** | **The MVP is incomplete by its own definition** | ⚠️ **Path decided, not closed.** **DEC-028** adopts HornMorpho as a **user-installed** dependency — so morphology becomes reachable, and a clean `pip install` still cannot do it. A hosted API *can*, because HornMorpho is GPL-3.0 rather than AGPL |
+| **G-5** | **The MVP is incomplete by its own definition** | ⚠️ **Built, and still not closed.** `morphology.py` is implemented against a **user-installed** HornMorpho (**DEC-028**), with 16 tests covering spans, offsets and every failure path via an injected analyser. A clean `pip install` still cannot analyse morphology, and **nothing has measured it** — the `metrics.md` row stays ❌ |
 
 ---
 
@@ -196,9 +198,9 @@ validation is required before anything ships user-facing."*
 | Step | Deliverable | Notes |
 | --- | --- | --- |
 | ~~2.1~~ | HornMorpho licence resolved | ✅ **DONE** → **DEC-028**. It is **GPL-3.0**; adopted as a **user-installed** dependency we never distribute. `fgaim` POS models were rejected as *worse* — they state no licence at all |
-| 2.2 | `morphology.py` behind the existing stub API | `is_available()` already lets callers degrade gracefully — and **DEC-028 makes that the permanent design**, not a placeholder |
+| ~~2.2~~ | `morphology.py` behind the existing stub API | ✅ **DONE** 2026-09-02. Adapter over a user-installed HornMorpho; word-level spans per DEC-023; **16 tests, no GPL dependency present** — the analyser is injected |
 | 2.2b | ⚠️ **Never package or image it** | DEC-028(c). CI check added; a hosted API may still call it, because HornMorpho is **GPL-3.0, not AGPL** |
-| 2.3 | **Intrinsic checks extended to morphology** | The `metrics.md` row stays ❌ until a measurement exists |
+| 2.3 | **Intrinsic checks extended to morphology** | ⚠️ **Needs an actual install** — consistency and coverage are measurable, but only with an analyser present. The `metrics.md` row stays ❌ until then |
 | 2.4 | Gold data for morphological accuracy | The **one** capability DEC-023 could not free from annotation |
 
 ⚠️ **Do not repeat the `metrics.md` error.** That row claimed morphology was
@@ -274,6 +276,7 @@ argument for the next audit rather than a claim of thoroughness.
 | **Phase A — HornMT ingested** | The project's **first cleanly-licensed parallel corpus**: 2,030 pairs, CC-BY-4.0, 68× the old anchor. Retracted **"0 cleanly-licensed parallel sentences"** from nine places. Found that screening **could not see the Latin half of a parallel corpus**, and that `flores_en.json` had been recording `BLOCKED` over one `ğ` |
 | **Phase B — the record re-measured** | Five actions described a world that had changed. **A-07's licence is answered** (HornMorpho is **GPL-3.0**, verified from `LICENSE.txt`); **A-09 was one action covering two blockers**; **A-08 guards a gate, not a rate limit**; **A-05 is re-uploaded OPUS bitext**; **A-01 reaches Tier 1 through the chain** |
 | **Phase C — three decisions** | **DEC-028** morphology is user-installed and never distributed (a hosted service *may* use it — GPL, not AGPL); **DEC-029** anchors v2, HornMT primary and TiQuAD out; **DEC-030** parallel data is clean/quarantined/refused, and **licence is identified at source** |
+| **Morphology built** | `morphology.py` implements DEC-028 — **16 tests, no GPL dependency present**, the analyser injected. Reading HornMorpho's source found two traps it now defends against: `hm.analyze()` returns **`None`** when a language fails to load, and **language data is a separate download**, so `import hm` proves nothing |
 
 ### ✅ The dates in this record were wrong — and are now fixed
 

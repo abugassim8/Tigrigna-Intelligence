@@ -18,8 +18,10 @@ infrastructure at all.
     >>> [s.surface for s in a.spans]
     ['ሰላም', 'ዓለም']
 
-**Morphology is deliberately not implemented** — see `morphology.py` and A-07.
-`morphology.is_available()` returns False so callers can degrade gracefully.
+**Morphology is implemented but its dependency is never bundled** (DEC-028).
+HornMorpho is GPL-3.0 and this package is Apache-2.0, so the user installs it;
+`morphology.is_available()` is False until they do, and callers degrade
+gracefully rather than crashing. See `morphology.py`.
 
 Decisions realised here: DEC-006 (Tier 0 is the MVP), DEC-007 amended
 (raw-Ge'ez tokenization; word-level alignment), DEC-010 (variety labels),

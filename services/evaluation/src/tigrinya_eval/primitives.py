@@ -501,8 +501,10 @@ def evaluate_primitives(texts: Sequence[str],
         results.append(check_context_divergence(texts))
 
     notes = (
-        "Morphology is not evaluated: it is not implemented, and is blocked on "
-        "A-07 (HornMorpho licensing). See tigrinya_primitives.morphology.",
+        "Morphology is not evaluated here. It is now implemented as an adapter "
+        "(DEC-028), but HornMorpho is GPL-3.0 and is never bundled, so it is "
+        "absent unless the user installed it. Nothing to measure without an "
+        "analyser present. See tigrinya_primitives.morphology.",
     )
     return IntrinsicReport(
         results=tuple(results),

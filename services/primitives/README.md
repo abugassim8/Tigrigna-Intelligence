@@ -28,18 +28,27 @@ a.analysis_is_phonemic                 # False — declared, not implied
 | Ge'ez orthographic normalisation | ✅ working |
 | Ge'ez → phoneme transliteration, word-aligned | ✅ working |
 | Subword tokenization (raw Ge'ez, byte-level BPE) | ✅ working |
-| **Morphological analysis** | ⛔ **blocked on A-07** |
+| **Morphological analysis** | ⚠️ **implemented, dependency not bundled** — needs a user-installed HornMorpho (**DEC-028**) |
 
-Morphology is deliberately unimplemented. HornMorpho is the only established
-Tigrinya analyser, and as of 2026-09-01 its licence is **known: GPL-3.0**
-`[verified]` from its `LICENSE.txt`. That is worse than unresolved for our
+Morphology is implemented as an **adapter, not a dependency**. HornMorpho is the
+only established Tigrinya analyser, and its licence is **GPL-3.0** `[verified]`
+from its `LICENSE.txt`. That is worse than unresolved for our
 purposes — **DEC-020 chose Apache-2.0 precisely because no dependency imposed
 copyleft**, and GPLv3 cannot be redistributed under Apache-2.0.
 
-`morphology.is_available()` returns `False` so callers degrade rather than
-crash — and **DEC-028 makes that stub the permanent design**: HornMorpho is a
-dependency **the user installs themselves**, so we never distribute the
-combination.
+`morphology.is_available()` returns `False` unless you installed it, so callers
+degrade rather than crash. **DEC-028 made that the permanent design** rather
+than a placeholder:
+
+```bash
+pip install git+https://github.com/hltdi/HornMorpho
+python -c "import hm; hm.download('ti')"     # not optional — separate download
+```
+
+Both lines are needed, and `is_available()` checks both: `import hm` succeeds on
+a fresh install with no language packs, and HornMorpho then returns `None` for
+every word rather than raising. Mapped naively that reads as "this corpus has no
+morphology", so the adapter treats it as a broken install and says so.
 
 | | |
 | --- | --- |

@@ -22,6 +22,58 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Morphology implemented behind the stub — 2026-09-02
+
+`morphology.py` now implements DEC-028: an **adapter over a user-installed
+HornMorpho**, never a dependency. 16 new tests, **145 passing overall**.
+
+**Nothing GPL-3.0 is present, and that is not a compromise.** The analyser is
+injected, so every path that has to be *correct* — word-level spans, offset
+alignment, whitespace preservation, warning suppression, each failure mode — is
+exercised deterministically without HornMorpho. Verified by planting three
+defects and watching the right test catch each.
+
+**Two upstream traps found by reading HornMorpho 5.3.6's source**, not by
+hitting them:
+
+1. **`hm.analyze()` returns `None` when a language cannot be loaded.** Its body
+   is `language = morpho.get_language(...)` then `if language:` with no `else`.
+   Mapped naively that becomes *"this word has no analysis"* — quietly, for
+   every word in a corpus. The adapter treats `None` as a broken install and
+   raises with the fix.
+2. **Language data is a separate download.** `import hm` succeeds on a fresh
+   install with no packs, so `is_available()` checks **both** the import and
+   the Tigrinya data. Checking only the import is the mistake that would have
+   made trap 1 unavoidable.
+
+⚠️ **One part is explicitly unverified: the shape of an individual analysis.**
+HornMorpho's own docstrings contradict each other — `hm.analyze` says *"a list
+of dicts"*, the `Language.analyze` it delegates to says *"a Word object"* — and
+nothing in this environment can install it to settle the question. So `_render`
+accepts either, and when it recognises **neither** it returns the surface form
+unchanged **plus a warning naming the keys it actually saw**, rather than
+building a confident string out of `str(obj)`. A plausible-looking wrong answer
+is worse here than an admitted gap, and the first real install settles it in a
+minute.
+
+**G-5 does not close.** A clean `pip install` still cannot analyse morphology,
+and the `metrics.md` row stays ❌ — implementing a capability is not measuring
+it, and a module that exists invites the assumption that it was.
+
+**Also corrected:** three tests and a report note still pointed at **A-07**,
+which DEC-028 closed. The evaluation report's morphology note now says why it is
+unevaluated (the analyser is GPL-3.0 and never bundled) rather than naming a
+resolved blocker.
+
+#### The date check flagged an edit made to satisfy it
+
+Appending a fresh `Updated` stamp to a `metrics.md` table row that already
+carried an older `Corrected` one tripped `check_dates.py`: it read only the
+**first** stamp on a line. A table row cannot be split to separate its corrections, so a
+row that accrues them would fail forever. It now considers **every** stamp on a
+line and passes if any matches the commit — the older ones being that line's own
+history. Re-verified that a lone stale stamp still fails.
+
 ### Three decisions the findings forced — DEC-028, DEC-029, DEC-030 — 2026-09-02
 
 Phase C. Every one of these was research-complete before it was written; none

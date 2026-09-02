@@ -53,6 +53,14 @@ It does not verify a stamp is *right*, only that it is not older than the commit
 carrying it. A stamp that is too *recent* — work dated tomorrow — is invisible
 here, and so is a wholly invented date on a commit made the same day.
 
+**Known limit: it cannot tell a stamp from a quotation of one.** Prose that
+discusses a stamp — a changelog entry quoting the line it corrected — reads as
+a stale stamp and fails. That is deliberate: `check_figures.py` solved the same
+problem with a marker vocabulary, and that vocabulary made its checks unable to
+fail **twice**. A false positive you reword around is cheaper than a suppression
+path that silently covers real drift. If this becomes frequent, fix it by
+narrowing the stamp patterns, not by adding an escape hatch.
+
 Usage:
     python3 scripts/check_dates.py            # check against the ceiling
     python3 scripts/check_dates.py --list     # print every drifted line
@@ -215,19 +223,26 @@ def drifted() -> list[tuple[str, int, str, str, int, str]]:
             committed = blame.get(i)
             if committed is None:
                 continue  # uncommitted line — nothing to compare against yet
+            # Every stamp on the line, not just the first. A line that accrues
+            # corrections carries several — "Corrected 2026-08-22 … Updated
+            # 2026-09-02" — and a table row cannot be split across lines to
+            # separate them. It is correctly dated if ANY stamp matches the
+            # commit that wrote it; the older ones are that line's own history.
+            # Found when this check flagged an edit made to satisfy it.
+            stamps: list[datetime.date] = []
             for rx in STAMP_PATTERNS:
-                m = rx.search(text)
-                if not m:
-                    continue
-                try:
-                    stamped = datetime.date.fromisoformat(m.group(1))
-                except ValueError:
-                    continue
-                behind = (committed - stamped).days
-                if behind > GRACE_DAYS:
-                    out.append((rel, i, m.group(1), committed.isoformat(),
-                                behind, text.strip()[:90]))
-                break  # one stamp per line is enough
+                for m in rx.finditer(text):
+                    try:
+                        stamps.append(datetime.date.fromisoformat(m.group(1)))
+                    except ValueError:
+                        continue
+            if not stamps:
+                continue
+            if any((committed - s).days <= GRACE_DAYS for s in stamps):
+                continue
+            newest = max(stamps)
+            out.append((rel, i, newest.isoformat(), committed.isoformat(),
+                        (committed - newest).days, text.strip()[:90]))
 
     if scanned and not blamed:
         raise NoHistoryError(
