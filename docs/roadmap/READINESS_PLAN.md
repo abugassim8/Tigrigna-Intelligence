@@ -2,9 +2,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-01** after thirteen work items |
+| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-02** after fourteen work items |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
-| **Basis** | **25 decisions · 8 experiments · 16 summaries · 129 tests · 4 audits** |
+| **Basis** | **28 decisions · 8 experiments · 16 summaries · 129 tests · 4 audits** |
 
 ---
 
@@ -59,7 +59,8 @@ than degrading silently.
 `embeddings` (six intrinsic checks plus a lexical baseline, DEC-026).
 
 **Also built:** the native-speaker validation instrument (`validation/`, 134
-items), four enforcement scripts, and 20 CI checks.
+items), four enforcement scripts, 21 CI checks, and the **HornMT anchor**
+(2,030 pairs, CC-BY-4.0, screened both sides).
 
 **Not built:** morphology, Tier 1 serving, Tier 2 serving, HTTP API, MCP server,
 SDKs, any deployment.
@@ -72,10 +73,10 @@ been scored.** CI has never run.
 | # | Gap | State now |
 | --- | --- | --- |
 | **G-1** | **No native-speaker validation** | ⚠️ **Unchanged in substance, but no longer blocked on design.** The instrument exists — 134 items, ~25 minutes. Every intrinsic check still catches *broken*, not *wrong* |
-| **G-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 20 checks, not 14.** All written, all locally verified, **none running** |
+| **G-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 21 checks, not 14.** All written, all locally verified, **none running** |
 | **G-3** | **Evaluation anchors are hollow** | ⚠️ **Materially better.** **HornMT is ingested** — 2,030 human-translated pairs, CC-BY-4.0, **68× the 30-sentence sample** and 0 overlap with it. Still one domain (news), and full FLORES+ is **gated, not blocked** — one token (**A-08**) buys 997/1,012 devtest and comparability with published work |
 | **G-4** | **Nothing measured end to end** | Unchanged, and now precisely diagnosed: the runtime **installs** (PyPI is open) and the **weights cannot be fetched** (**A-09**). MADLAD's quality assumed, Tier 2 cold start assumed. Tier 1's bar is recorded (DEC-026) |
-| **G-5** | **The MVP is incomplete by its own definition** | Unchanged. Morphology remains a stub (**A-07**) |
+| **G-5** | **The MVP is incomplete by its own definition** | ⚠️ **Path decided, not closed.** **DEC-028** adopts HornMorpho as a **user-installed** dependency — so morphology becomes reachable, and a clean `pip install` still cannot do it. A hosted API *can*, because HornMorpho is GPL-3.0 rather than AGPL |
 
 ---
 
@@ -86,7 +87,7 @@ leverage, not for order.**
 
 ```mermaid
 graph TD
-    A15["A-15 · install CI<br/>ONE COMMAND"] --> ENF["20 checks enforcing"]
+    A15["A-15 · install CI<br/>ONE COMMAND"] --> ENF["21 checks enforcing"]
     A13["A-13 · native speaker<br/>sheets ready to send"] --> CORRECT["Correctness validated"]
     A02["A-02 · confirm DEC-002"] --> API["HTTP API"]
     A02 --> MCP["MCP server"]
@@ -97,7 +98,7 @@ graph TD
     A08["A-08 · HF token<br/>FLORES+ is GATED"] --> ANCHOR["Full FLORES+ anchor"]
     A01["A-01 · fgaim licences"] --> REUSE["wider model reuse"]
     A01 -.->|licence chain| T1
-    A07["A-07 · morphology under GPL-3.0<br/>A DECISION, not an email"] --> MORPH["Morphology"]
+    A07["DEC-028 · morphology<br/>user-installed, never shipped"] --> MORPH["Morphology<br/>(user installs HornMorpho)"]
     A05["A-05 · parallel data"] --> TRAIN["Training ladder"]
     T2 --> A14["A-14 · cold start"]
     A14 --> DEPLOY["Deployment mode"]
@@ -133,12 +134,12 @@ Ordered by **leverage per minute of your time.**
 
 | # | Action | Your effort | Unlocks |
 | --- | --- | --- | --- |
-| **0.1** | **A-15 — install CI** | **One command** | **20 checks** start enforcing |
+| **0.1** | **A-15 — install CI** | **One command** | **21 checks** start enforcing |
 | **0.2** | **A-13 — send the sheets** | Find a speaker; **~25 min of theirs** | **G-1 — whether any of our Tigrinya is correct** |
 | **0.3** | **A-02 — confirm DEC-002** | Read a 3-min summary, decide | The entire API/MCP/SDK surface |
 | **0.4** | **A-09 — a way to fetch model weights** | Config change | ⚠️ **Re-scoped:** the runtime installs from PyPI and *reading* about models is open. This is now only the weights — scoring anything at all (**G-4**), Tier 1, Tier 2, A-14 |
 | **0.5** | **A-08 — set an `HF_TOKEN`** | **Two minutes** | ⚠️ **Upgraded:** FLORES+ is a *gated* repo, not an egress casualty. The token buys the full 997/1,012 devtest — the real fix for **G-3** |
-| **0.6** | **A-07 — decide morphology's licence position** | **A decision, no email** | HornMorpho is **GPL-3.0** and collides with DEC-020. Morphology, completing Tier 0 |
+| ~~0.6~~ | ~~A-07 — decide morphology's licence position~~ | ✅ **done** | Resolved by **DEC-028** — no longer yours |
 | **0.7** | A-01 — email `fgaim` | Send a drafted email | DEC-003's wider reuse — and ⚠️ **the bi-encoders' licence chain**, which does touch Tier 1 |
 | 0.8 | A-05 — establish terms for the mined 1.4M | Read OPUS/NLLB terms | ⚠️ **Downgraded** — it is re-uploaded OPUS NLLB bitext, and a published fine-tune on it scored chrF **4.99** |
 
@@ -194,8 +195,9 @@ validation is required before anything ships user-facing."*
 
 | Step | Deliverable | Notes |
 | --- | --- | --- |
-| 2.1 | HornMorpho licence resolved, or an alternative chosen | If refused: `fgaim` POS models (**A-01**) or a documented gap |
-| 2.2 | `morphology.py` behind the existing stub API | `is_available()` already lets callers degrade gracefully |
+| ~~2.1~~ | HornMorpho licence resolved | ✅ **DONE** → **DEC-028**. It is **GPL-3.0**; adopted as a **user-installed** dependency we never distribute. `fgaim` POS models were rejected as *worse* — they state no licence at all |
+| 2.2 | `morphology.py` behind the existing stub API | `is_available()` already lets callers degrade gracefully — and **DEC-028 makes that the permanent design**, not a placeholder |
+| 2.2b | ⚠️ **Never package or image it** | DEC-028(c). CI check added; a hosted API may still call it, because HornMorpho is **GPL-3.0, not AGPL** |
 | 2.3 | **Intrinsic checks extended to morphology** | The `metrics.md` row stays ❌ until a measurement exists |
 | 2.4 | Gold data for morphological accuracy | The **one** capability DEC-023 could not free from annotation |
 
@@ -271,6 +273,7 @@ argument for the next audit rather than a claim of thoroughness.
 | **Date correction** (A-17) | **257 corrections across 56 files.** Recomputing the intervals found one wrong by a factor of six *independently of the drift* — "DEC-008 spent three months as policy", in eleven places, when the record says 15 days |
 | **Phase A — HornMT ingested** | The project's **first cleanly-licensed parallel corpus**: 2,030 pairs, CC-BY-4.0, 68× the old anchor. Retracted **"0 cleanly-licensed parallel sentences"** from nine places. Found that screening **could not see the Latin half of a parallel corpus**, and that `flores_en.json` had been recording `BLOCKED` over one `ğ` |
 | **Phase B — the record re-measured** | Five actions described a world that had changed. **A-07's licence is answered** (HornMorpho is **GPL-3.0**, verified from `LICENSE.txt`); **A-09 was one action covering two blockers**; **A-08 guards a gate, not a rate limit**; **A-05 is re-uploaded OPUS bitext**; **A-01 reaches Tier 1 through the chain** |
+| **Phase C — three decisions** | **DEC-028** morphology is user-installed and never distributed (a hosted service *may* use it — GPL, not AGPL); **DEC-029** anchors v2, HornMT primary and TiQuAD out; **DEC-030** parallel data is clean/quarantined/refused, and **licence is identified at source** |
 
 ### ✅ The dates in this record were wrong — and are now fixed
 
@@ -331,18 +334,19 @@ included.
 
 ## 12. What I can do without you
 
-**Two things, and both are now unblocked by measurement rather than permission.**
+**One thing: integrate morphology behind the stub.** DEC-028 settled the
+licence position, so `morphology.py` can now be written against a
+user-installed HornMorpho — steps 2.2 to 2.4 below. It cannot be *tested* end to
+end here (HornMorpho is a manual install and this environment is ephemeral), so
+it lands with the same intrinsic checks DEC-023 uses, and the gold-data question
+in 2.4 stays open.
 
-1. **Ingest TICO-19 and assess the Travis Foundation corpus** — the two other
-   parallel leads. TICO-19 needs `tico-19.github.io`, which is egress-blocked,
-   but the data is mirrored in several reachable places worth trying.
-2. **Write the three decisions Phase C names** — morphology under GPL-3.0,
-   evaluation anchors v2, and the parallel-data position. Each is now a
-   *decision* with the facts assembled, not research waiting on a reply.
+Also available, lower value: **ingest TICO-19** if a reachable mirror can be
+found — `tico-19.github.io` is egress-blocked.
 
 Everything else is finished: validation instrument, three audits, conformance
 suite, consistency check, two experiments, the embeddings design, this
-document's own instrumentation, the date correction, and Phases A and B.
+document's own instrumentation, the date correction, and Phases A, B and C.
 
 What remains beyond the dates is either **blocked on a person** or is work I
 would rather not do blind: designing the API surface before A-02 answers who it

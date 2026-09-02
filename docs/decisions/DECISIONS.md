@@ -88,6 +88,9 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-023 | 2026-08-18 | Primitive evaluation is intrinsic-first; alignment is word-level (corrects DEC-007, DEC-022) | Accepted — **evidence corrected by Amendment 1** |
 | DEC-024 | 2026-08-19 | Load-bearing figures are registered; retired figures are machine-checked | Accepted |
 | DEC-026 | 2026-08-23 | Embedding evaluation is intrinsic-first with a mandatory lexical baseline; cross-lingual retrieval needs a different model class | Accepted |
+| DEC-028 | 2026-09-02 | Morphology adopts HornMorpho as a user-installed dependency we never distribute; a hosted service may use it | Accepted |
+| DEC-029 | 2026-09-02 | Evaluation anchors v2 — HornMT primary, FLORES+ for comparability, TiQuAD out of the MVP set | Accepted |
+| DEC-030 | 2026-09-02 | Parallel data is clean, quarantined or refused; licence is identified at source, never from a re-upload | Accepted |
 
 ---
 
@@ -2159,6 +2162,244 @@ has a specific, measurable job rather than a vague expectation of being better.
 
 **Evidence:** `../research/reports/08_evaluation/003-embedding-evaluation-without-gold-data.md`;
 `experiments/008-embedding-baseline/` `[verified]` 2026-08-23
+
+---
+
+## DEC-028 — Morphology adopts HornMorpho as a user-installed dependency we never distribute
+
+**Decision ID:** DEC-028 · **Date:** 2026-09-02 · **Status:** Accepted
+**Resolves:** A-07 · **Constrained by:** DEC-020 Amendment 1 · **Completes:** DEC-006's MVP, conditionally
+
+**Decision:**
+
+**(a) HornMorpho is adopted, and never redistributed.** `tigrinya-primitives`
+does not depend on it, vendor it, or bundle it. The user installs it themselves;
+the combined work is theirs, not ours.
+
+**(b) `morphology.is_available()` detects it at runtime.** The existing stub
+already has this shape — callers degrade rather than crash. No new mechanism.
+
+**(c) No distributed artefact may contain it — container images included.**
+Shipping an image with HornMorpho inside *is* distribution of a combined work,
+and would put GPL-3.0 obligations on an Apache-2.0 platform. This binds Phase 5
+and DEC-019.
+
+**(d) A hosted service may use it.** HornMorpho is **GPL-3.0, not AGPL-3.0** —
+its §13 is *"Use with the GNU Affero General Public License"*, not AGPL's
+*"Remote Network Interaction"*. Network interaction is not distribution, so the
+HTTP API of DEC-012 may call it server-side. **The distinction is the whole
+decision**: we may run it for users, and may not hand it to them.
+
+**(e) Evaluating it is unaffected.** Measuring morphological accuracy locally is
+use, not distribution.
+
+**Context:**
+A-07 sat on the register for weeks as *"licence unknown — GitHub unreachable"*.
+It was never unknown: `LICENSE.txt` is the full GPLv3 text, fetched in seconds
+from `raw.githubusercontent.com`, which responds and did throughout. v5.3.6
+(April 2026) supports Tigrinya and Tigre.
+
+The licence is worse than the unknown it replaced. **DEC-020 chose Apache-2.0
+explicitly because "no upstream code imposes copyleft"**, and the compatibility
+runs one way: Apache-2.0 may be taken into a GPLv3 work, GPLv3 may not be
+redistributed under Apache-2.0.
+
+⚠️ **One fact makes this easy: HornMorpho is not on PyPI.** There is no name pip
+could resolve, so it cannot be a dependency or an extra even if we wanted one.
+The packaging constraint and the licence constraint point the same way.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| **A** | **User-installed optional dependency** | Keeps DEC-020 intact; no new machinery — the stub already works this way; forced anyway by the absence of a PyPI package | Morphology is absent from a clean install, so DEC-006's MVP is complete only conditionally |
+| B | Bundle it, isolate it out-of-process | Morphology works out of the box | We would still be **distributing** it. The process boundary is a legal judgement, not a technical fact, and it buys nothing we need |
+| C | Relicense the platform GPL-3.0 | Every option opens | Imposes copyleft on the application developers DEC-002 names as primary users — the exact outcome DEC-020 chose Apache-2.0 to avoid |
+| D | Do not adopt; leave morphology a gap | Zero licence risk | **G-5 becomes permanent** and DEC-006's MVP is permanently incomplete |
+| E | `fgaim` POS models instead | Permissive if licensed | ⚠️ **Worse** — they carry **no licence at all** (A-01). Trades a known copyleft for an unknown |
+
+**Chosen:** Option A.
+
+**Reason:**
+Option A is the only one that leaves both DEC-020 and DEC-006 standing. It costs
+one honest sentence in the README — *morphology requires a separate install* —
+and that sentence is true of every GPL-licensed tool a permissive project
+depends on.
+
+The (d) carve-out matters more than it looks. Without it we would have concluded
+that a hosted Tigrinya morphology service is unavailable to us, which is false,
+and would have narrowed the platform on a misreading of which GPL this is.
+
+**Consequences:**
+- *Positive:* Morphology becomes reachable without touching the project licence.
+- *Positive:* The hosted API can offer it even though the package cannot.
+- *Negative:* **G-5 does not fully close.** A clean `pip install` still cannot
+  analyse morphology, and `metrics.md`'s morphology row stays ❌ until something
+  measures it.
+- *Newly constrained:* **Container images must not contain HornMorpho.** This is
+  a build-time rule that needs a check before any image is published.
+- *Not in force until:* HornMorpho is actually integrated behind the stub.
+- *Revisit when:* a permissively-licensed Tigrinya analyser appears, or A-01
+  returns and the `fgaim` POS models turn out to be usable.
+
+**Evidence:** `LICENSE.txt` at `hltdi/HornMorpho` `[verified]` 2026-09-02 — full
+GPLv3 text, §13 confirmed as the Affero-compatibility clause rather than AGPL's
+network clause; PyPI 404 for `hornmorpho` `[verified]` 2026-09-02
+
+---
+
+## DEC-029 — Evaluation anchors v2: HornMT now, FLORES+ for comparability, TiQuAD out
+
+**Decision ID:** DEC-029 · **Date:** 2026-09-02 · **Status:** Accepted
+**Supersedes:** DEC-005's anchor list · **Extends:** DEC-021
+
+**Decision:**
+
+**(a) HornMT is the primary translation anchor**, effective immediately —
+2,030 human-translated pairs, CC-BY-4.0, screened and committed at
+`data/anchors/hornmt/`.
+
+**(b) FLORES+ (full dev/devtest) is the comparability anchor**, and is blocked
+on **A-08** — a read-scope token — not on egress. It is what makes our numbers
+comparable to published work; HornMT alone cannot do that.
+
+**(c) TiQuAD leaves the MVP anchor set.** It evaluates extractive QA, and
+DEC-006's MVP contains no QA capability. DEC-021 established that anchors must
+cover the platform; keeping a QA benchmark as an anchor for a platform without
+QA reproduced exactly the mismatch DEC-021 was raised to fix. It is retained as
+a *future* anchor if QA enters scope and A-04/A-06 resolve.
+
+**(d) Four conditions define an anchor.** All four, or it is not one:
+
+| # | Condition | Why |
+| --- | --- | --- |
+| 1 | **Obtainable** without special permission | TiQuAD's test set is withheld by design — an anchor nobody can run is not an anchor |
+| 2 | **Licence identified at source**, not from a re-upload | DEC-030 |
+| 3 | **Screened** under DEC-015, both sides if parallel | Contamination and quality |
+| 4 | **Variety-signalled** under DEC-010 | A score pooled across varieties describes a language nobody speaks |
+
+**(e) Scores are reported per anchor and never pooled**, per DEC-009/DEC-010.
+
+**Context:**
+DEC-005 named FLORES-200 and TiQuAD. Four months on, **neither is in usable
+service**: TiQuAD's test set is withheld and its copyright is unresolved
+(A-04, A-06), and FLORES+ was reduced to a **30-sentence sample** because the
+full set could not be fetched — while experiment 007 found confidence intervals
+stop being trustworthy below n≈5, which that sample's per-variety breakdowns
+land in. G-3 called the anchors hollow and was right.
+
+Two things changed. HornMT turned out to be public, CC-BY-4.0, and one `curl`
+away — falsifying the `[verified]` claim that there were ~~**0 cleanly-licensed
+parallel sentences**~~ (retracted 2026-09-01). And FLORES+ turned out to be **gated (401), not egress-blocked**,
+which moves it from "impossible" to "one token".
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| **A** | **HornMT primary, FLORES+ for comparability, TiQuAD out** | Something usable *today*; a clear path to comparability; anchors finally cover the MVP | HornMT is single-domain news |
+| B | Wait for FLORES+ and change nothing | Comparable when it lands | Leaves a 30-sentence anchor in force for an unknown wait, and G-3 open |
+| C | Keep TiQuAD as an anchor | Continuity with DEC-005 | Reproduces DEC-021's error — an anchor for a capability the MVP does not have |
+| D | Build our own evaluation set | Exactly fits the platform | Months (A-006), and DEC-023 exists precisely to avoid this |
+
+**Chosen:** Option A.
+
+**Reason:**
+An anchor that cannot be obtained is not a weaker anchor, it is not one. Under
+that test DEC-005's set was empty and had been for months. HornMT is 68× the
+sample in use and independent of it — 0 shared 8-grams, 0 exact segments — so
+adopting it is a strict improvement available now.
+
+⚠️ **What this does not fix.** 2,030 segments of news is one domain and one
+register. It does not make our numbers comparable to anyone else's, and it does
+not settle variety: HornMT's Tigrinya side runs **6,237 Eritrean markers to
+2,181 Ethiopian**, mixed rather than clean, so it is scored `variety=unknown`
+until A-13.
+
+**Consequences:**
+- *Positive:* G-3 moves from hollow to thin. Something real is measurable today.
+- *Positive:* **A-08 is now the cheapest high-value action on the register.**
+- *Negative:* Numbers on HornMT are not comparable to published results.
+- *Newly constrained:* Any future anchor must meet all four conditions in (d).
+- *Revisit when:* A-08 lands, or A-13 returns a variety ruling.
+
+**Evidence:** `data/anchors/hornmt/screening/` `[verified]` 2026-09-02; FLORES+
+gating `[verified]` 2026-09-02 (Hub returns 401 for rows, metadata readable)
+
+---
+
+## DEC-030 — Parallel data is clean, quarantined, or refused — and licence is identified at source
+
+**Decision ID:** DEC-030 · **Date:** 2026-09-02 · **Status:** Accepted
+**Supports:** DEC-008, DEC-015, DEC-017 · **Resolves the framing of:** A-05
+
+**Decision:**
+
+**(a) Three states, and every parallel corpus is in exactly one:**
+
+| State | Corpus | Basis |
+| --- | --- | --- |
+| **Clean** | **HornMT** — 2,030 pairs | CC-BY-4.0 declared by the authors of the corpus itself; screened; committed |
+| **Quarantined** | The **1.4M** `english-tigrinya_sentence-pairs` | No licence on the re-upload; upstream terms unread; contamination unscreenable |
+| **Refused** | **Travis Foundation** — ~126,930 pairs | Declares CC-BY-SA-4.0 over material its own authors say they **do not own** |
+
+**(b) A licence is identified at its source, never from a re-upload.** The 1.4M
+corpus carries no licence and no provenance; its row count (1,398,177) matches
+OPUS's NLLB mined bitext (1,398,173) to within cleaning. **A re-upload cannot
+grant terms, and an absent licence tag on one is evidence of nothing.**
+
+**(c) Quarantine is not a queue.** The 1.4M leaves quarantine only when all
+three hold: OPUS/NLLB terms read at source; a contamination screen run against
+every anchor; provenance recorded. Today none can be done — `opus.nlpl.eu` is
+egress-blocked and the corpus is a 110 MB parquet behind a blocked download.
+
+**(d) A declared licence over unowned material is refused, not quarantined.**
+Travis Foundation's card states plainly that the majority is scraped from a site
+the authors do not own. That is not a licence question awaiting an answer; the
+answer is on the card.
+
+**(e) None of this unblocks training.** 2,030 clean pairs is far below any rung
+of DEC-017's ladder. **DEC-017 stands unchanged.**
+
+**Context:**
+A-05 spent months as *"get licence on 1.4M en–ti parallel sentences"*, filed as
+**Blocking**, described as the insurance policy on DEC-011. Three findings
+undercut that framing at once: the corpus is a **re-upload of OPUS NLLB mined
+bitext**, so no uploader can license it; a published fine-tune on 1.14M cleaned
+pairs from that pool scores **en→ti BLEU 0.133, chrF 4.99** with severe
+repetition; and the clean corpus nobody had looked for was **2,030 pairs of
+CC-BY-4.0 human translation** sitting on GitHub.
+
+**Options:**
+
+| Option | Summary | Pros | Cons |
+| --- | --- | --- | --- |
+| **A** | **Three states, licence at source** | Names what each corpus is; stops A-05 chasing a permission nobody can grant | HornMT is small, and clean data stays scarce |
+| B | Keep pursuing the 1.4M as the primary lead | Largest corpus available | Pursues a permission the uploader cannot give, for data that has already failed once |
+| C | Use the 1.4M under "no licence stated = permissive" | Unblocks volume | Inverts **P-9**. Absence of a licence is absence of a grant |
+| D | Accept Travis Foundation's declared CC-BY-SA-4.0 at face value | 126,930 pairs, 60× HornMT | Accepts a licence the licensor says it cannot give — the failure A-06 exists to prevent, at scale |
+
+**Chosen:** Option A.
+
+**Reason:**
+The distinction that does the work is **licence at source**. Both problem
+corpora fail it in opposite directions — one has no licence because a re-upload
+stripped it, the other has a licence its authors had no standing to grant — and
+neither failure is visible from the Hub tag alone. A rule that reads tags would
+have cleared the second and blocked the first, which is exactly backwards.
+
+**Consequences:**
+- *Positive:* A-05 drops from Blocking to High and asks an answerable question.
+- *Positive:* HornMT is usable now, with attribution carried forward (CC-BY-4.0).
+- *Negative:* Clean parallel data remains scarce — **2,030 pairs, not 1.4M**.
+- *Newly constrained:* Every future corpus needs provenance traced to source
+  before its licence is recorded. This is slower than reading a tag.
+- *Revisit when:* `opus.nlpl.eu` becomes reachable, or TICO-19 is verified.
+
+**Evidence:** row counts `[verified]` 2026-09-02 against the Hub;
+EnTiMT's source table and reported scores `[verified]` 2026-09-02 from its model
+card; Travis Foundation ownership statement `[verified]` 2026-09-02 from its
+repository
 
 ---
 

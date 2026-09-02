@@ -6,6 +6,12 @@
 > unlicensed**, and there are ~~**0 cleanly-licensed parallel sentences**~~
 > **2,030** of them.
 >
+> **DEC-030** now sorts parallel data into **clean / quarantined / refused**, and
+> fixes the rule that decides: **a licence is identified at its source, never
+> from a re-upload.** Both problem corpora fail that test in opposite
+> directions — one lost its licence to a re-upload, the other declares one its
+> authors say they cannot grant.
+>
 > ⚠️ **RETRACTED 2026-09-01 — this was false.** [HornMT](https://github.com/asmelashteka/HornMT) is **2,030 human-translated en–ti pairs under CC-BY-4.0**, now committed at `data/anchors/hornmt/`. The zero was measured behind an egress block that made GitHub unreadable; the corpus was public the whole time.
 >
 > **Evidence:** `../research/summaries/005-data-and-contamination.md`,

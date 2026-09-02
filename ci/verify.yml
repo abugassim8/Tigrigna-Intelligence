@@ -360,6 +360,28 @@ jobs:
       - name: Date stamps match the commits that wrote them (A-17)
         run: python scripts/check_dates.py --list
 
+      # DEC-028(c): HornMorpho is GPL-3.0 and we ship Apache-2.0. Running it is
+      # fine; DISTRIBUTING it is not, and a container image counts. This fails
+      # if it ever appears in anything we package or deploy. It deliberately
+      # does NOT scan docs — the decision has to be able to name the thing it
+      # is about.
+      - name: No packaged or deployed artefact declares HornMorpho (DEC-028)
+        run: |
+          set -euo pipefail
+          hits=$(grep -rniE "hornmorpho" \
+                   --include="pyproject.toml" --include="setup.py" \
+                   --include="setup.cfg" --include="requirements*.txt" \
+                   --include="Dockerfile*" --include="*.dockerfile" \
+                   --include="docker-compose*.y*ml" \
+                   services/ sdk/ infrastructure/ 2>/dev/null || true)
+          if [ -n "$hits" ]; then
+            echo "::error::HornMorpho is GPL-3.0 (DEC-028) and must never be"
+            echo "::error::packaged or shipped in an image. Found:"
+            echo "$hits"
+            exit 1
+          fi
+          echo "no packaged artefact declares HornMorpho"
+
       - name: Every decision names its rejected alternatives
         run: |
           set -euo pipefail

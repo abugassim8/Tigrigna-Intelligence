@@ -37,9 +37,19 @@ purposes — **DEC-020 chose Apache-2.0 precisely because no dependency imposed
 copyleft**, and GPLv3 cannot be redistributed under Apache-2.0.
 
 `morphology.is_available()` returns `False` so callers degrade rather than
-crash, and that stub is also the most likely resolution: **HornMorpho as an
-optional dependency the user installs themselves**, so we never distribute the
-combination. The decision is **A-07**.
+crash — and **DEC-028 makes that stub the permanent design**: HornMorpho is a
+dependency **the user installs themselves**, so we never distribute the
+combination.
+
+| | |
+| --- | --- |
+| **You may** | install HornMorpho yourself and get morphology; run it behind a hosted API |
+| **We may not** | depend on it, vendor it, or ship it inside a container image |
+
+The asymmetry is real and not a technicality: HornMorpho is **GPL-3.0, not
+AGPL-3.0**, so network use is not distribution. We can run it for you; we cannot
+hand it to you. It is also **not on PyPI**, so it could not be a dependency in
+any case.
 
 ## Design, and why
 

@@ -22,6 +22,60 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Three decisions the findings forced — DEC-028, DEC-029, DEC-030 — 2026-09-02
+
+Phase C. Every one of these was research-complete before it was written; none
+needed anything from outside.
+
+**DEC-028 — morphology adopts HornMorpho as a user-installed dependency we
+never distribute.** The asymmetry is the whole decision: HornMorpho is
+**GPL-3.0, not AGPL-3.0** — its §13 is *"Use with the GNU Affero General Public
+License"*, not AGPL's *"Remote Network Interaction"*. **Network use is not
+distribution**, so a hosted API may call it server-side; the package and any
+container image may not contain it. **We may run it for users; we may not hand
+it to them.** Without checking which GPL it is, we would have concluded that a
+hosted Tigrinya morphology service was closed to us, which is false.
+
+One fact made the choice nearly forced: **HornMorpho is not on PyPI**, so there
+is no name pip could resolve. The packaging constraint and the licence
+constraint point the same way, and the existing `morphology.is_available()`
+stub already has the right shape — this decision adds no machinery, it makes
+the placeholder permanent. **A CI check now fails if HornMorpho ever appears in
+anything we package or deploy**, verified by planting it in a real
+`pyproject.toml`.
+
+⚠️ **G-5 does not close.** A clean `pip install` still cannot analyse
+morphology. The path is decided, not walked.
+
+**DEC-029 — evaluation anchors v2.** **HornMT is the primary translation
+anchor** as of today; **FLORES+ is the comparability anchor**, gated behind one
+token (**A-08**); **TiQuAD leaves the MVP anchor set**. It evaluates extractive
+QA, and DEC-006's MVP contains no QA — keeping it reproduced the exact mismatch
+**DEC-021** was raised to fix. Four conditions now define an anchor: obtainable
+without special permission, licence identified at source, screened under
+DEC-015, variety-signalled under DEC-010.
+
+> DEC-005 named FLORES-200 and TiQuAD four months ago. **Neither was in usable
+> service**: TiQuAD's test set is withheld by design, and FLORES+ had been
+> reduced to a **30-sentence sample**. An anchor that cannot be obtained is not
+> a weaker anchor — it is not one. Under that test DEC-005's set was empty.
+
+**DEC-030 — parallel data is clean, quarantined, or refused.** The rule that
+does the work: **a licence is identified at its source, never from a
+re-upload.** Both problem corpora fail it in opposite directions — the 1.4M lost
+its licence *to* a re-upload, and Travis Foundation declares CC-BY-SA-4.0 over
+material its own authors say they do not own. **A rule that read Hub tags would
+have cleared the second and blocked the first**, which is exactly backwards.
+Quarantine is explicitly not a queue: the 1.4M leaves it only when upstream
+terms are read at source, a contamination screen runs, and provenance is
+recorded — none of which is possible today.
+
+**None of this unblocks training.** 2,030 clean pairs is far below any rung of
+DEC-017's ladder, and **DEC-017 stands unchanged**.
+
+**A-07 closes**, resolved by DEC-028 rather than by the email it was waiting
+for. CI reaches **21 checks**.
+
 ### Five actions described a world that had changed — 2026-09-01
 
 Phase B: correcting the record against what is now measurable. Five register

@@ -15,7 +15,7 @@ them potentially unlocks **1.4 million parallel sentences** for the cost of a
 message.
 
 **How to use it:** **A-01 and A-02 are blocking**; A-15 is one command
-and switches on 20 checks that currently enforce nothing. Each item states what
+and switches on 21 checks that currently enforce nothing. Each item states what
 to do, why, and what it unblocks; where a message is needed, a
 **ready-to-send draft** is included — copy, adjust the bracketed fields, send.
 
@@ -45,7 +45,7 @@ itself a research finding.
 | **A-04** | Request the TiQuAD test set | 🟠 High | DEC-005 — canonical evaluation | TODO |
 | **A-05** | Establish terms for the 1.4M en–ti pairs — **identified as OPUS NLLB mined bitext** | 🟠 High *(was Blocking)* | Insurance on DEC-011 — ⚠️ **weakened**: a published fine-tune on this data scored chrF **4.99** | TODO |
 | **A-06** | Legal review of TiQuAD's copyright position | 🟠 High | Whether we can ship anything using it | TODO |
-| **A-07** | **Decide how morphology handles GPL-3.0** — HornMorpho's licence is answered, the architecture is not | 🟠 High | Morphology, completing Tier 0 (DEC-006 critical path); collides with **DEC-020** | TODO |
+| ~~**A-07**~~ | ~~Decide how morphology handles GPL-3.0~~ | ✅ **DONE** | Resolved by **DEC-028** — user-installed, never distributed; a hosted service may use it | **DONE** |
 | **A-08** | Set an `HF_TOKEN` for this environment | 🟠 **High** *(was Medium)* | **FLORES+ is a gated repo** — the token is what unlocks the full 997/1,012 devtest, the fix for G-3 | TODO |
 | **A-09** | **Fetch model weights** — the runtime installs, the weights do not | 🟠 **High** | Scoring any model at all (**G-4**), Tier 1 embeddings. *Re-scoped: reading about models is no longer blocked* | TODO |
 | **A-10** | Introduce the project to GeezLab / L3S | 🟢 Low | Collaboration (G-11) | TODO |
@@ -345,7 +345,7 @@ same conversation.
 
 ---
 
-## 🟠 A-07 — Morphology under GPL-3.0 · **the licence question is ANSWERED**
+## ✅ A-07 — Morphology under GPL-3.0 · **RESOLVED by DEC-028, 2026-09-02**
 
 **HornMorpho is GPL-3.0.** Verified 2026-09-01 from
 [`hltdi/HornMorpho/LICENSE.txt`](https://raw.githubusercontent.com/hltdi/HornMorpho/master/LICENSE.txt)
@@ -380,9 +380,23 @@ result is not available to us as DEC-020 stands.
 | Don't adopt | Morphology stays a documented gap. **G-5 becomes permanent**, and DEC-006's MVP is permanently incomplete by its own definition |
 | `fgaim` POS models instead | ⚠️ **Worse** — those carry **no licence at all** (**A-01**). Trading a known copyleft for an unknown |
 
-**What is needed from you:** pick one. This is the same shape as **A-17** — a
-one-line rule, not an email — and it should become a decision record. There is
-no correspondence to wait for.
+**Resolved 2026-09-02 → DEC-028: Option A.** HornMorpho is adopted as a
+**user-installed dependency we never distribute**. Three consequences worth
+carrying:
+
+1. **No distributed artefact may contain it — container images included.**
+   Shipping an image with HornMorpho inside *is* distribution of a combined
+   work. CI now checks for this.
+2. **A hosted service may use it.** HornMorpho is **GPL-3.0, not AGPL-3.0** —
+   its §13 is *"Use with the GNU Affero General Public License"*, not AGPL's
+   *"Remote Network Interaction"*. Network use is not distribution, so the HTTP
+   API may call it server-side. **We may run it for users; we may not hand it
+   to them.**
+3. **It is not on PyPI**, so it could not have been a dependency or an extra in
+   any case. The packaging and licence constraints point the same way.
+
+DEC-020 survives intact, with Amendment 1 recording that its "no dependency
+imposes copyleft" basis is now conditional.
 
 **Note on scope:** GPL-3.0 does not stop us *evaluating* HornMorpho or measuring
 morphological accuracy against it locally. Only distribution is constrained.
@@ -726,5 +740,6 @@ research finding — record it in `docs/research/` too.)*
 
 | ID | Action | Outcome | Date |
 | --- | --- | --- | --- |
+| **A-07** | Resolve HornMorpho's licence position | **GPL-3.0**, verified from `LICENSE.txt` — never an unknown, just unread. → **DEC-028**: user-installed, never distributed; container images may not contain it; a hosted service may, because it is GPL not AGPL | 2026-09-02 |
 | **A-17** | Decide how the record is dated | **The commit date wins.** 71 drifted stamps corrected across 56 files, and the seven intervals computed from them recomputed — one of which, *"DEC-008 spent three months as policy"*, was wrong by a factor of six in eleven places | 2026-08-24 |
 | **A-12** | Choose the project licence | **DEC-020** — Apache-2.0 code, CC-BY-4.0 docs, inherit for data. Resolved once the upstream licence map was complete: **no code dependency imposes copyleft**; share-alike enters only through data | 2026-08-17 |

@@ -111,7 +111,7 @@ next research is evaluation for the primitives, and it is blocked by nothing.
 | Metric | Value | Basis |
 | --- | --- | --- |
 | Research domains complete | **13** of 13 | `[verified]` |
-| Decisions recorded | **25** — 1 proposed, 1 refuted, 1 not in force | `[verified]` |
+| Decisions recorded | **28** — 1 proposed, 1 refuted, 1 not in force | `[verified]` |
 | **Capabilities with a validated metric** | **1** | `[verified]` |
 | **…inside DEC-006's MVP** | **0** | `[verified]` |
 | Verified share of summary claims | **80%** | `[verified]` |
