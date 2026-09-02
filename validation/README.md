@@ -18,7 +18,7 @@ all six — without a murmur. `tigrinya_eval.primitives` says so in its own
 docstring, and DEC-023 says so in its consequences.
 
 Nothing here has ever been read by someone who speaks Tigrinya. That is the
-single largest correctness risk in the project (**G-1**), and it is the one gap
+single largest correctness risk in the project (**GAP-1**), and it is the one gap
 no amount of engineering closes.
 
 ## What the reviewer receives

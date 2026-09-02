@@ -36,6 +36,13 @@ that are met or abandoned, with a note on which.
 
 ## Primary goals
 
+> **`G-n` means a goal, and only a goal.** The readiness plan's gaps used to be
+> numbered `G-1…G-5` too, so **`G-4` meant both "deliver semantic search and
+> retrieval" (here) and "nothing measured end to end" (there)** — and one
+> document used both senses four lines apart. The gaps were renamed **`GAP-n`**
+> on 2026-09-02; `scripts/check_figures.py` now fails on a citation of either
+> kind that nothing defines.
+
 ### G-1. Make Tigrinya computationally tractable
 
 Provide the foundational primitives — tokenization, morphological analysis,

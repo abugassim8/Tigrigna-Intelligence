@@ -46,12 +46,12 @@ itself a research finding.
 | **A-05** | Establish terms for the ~603K usable en–ti pairs — **OPUS NLLB mined bitext** | 🟡 Medium *(was Blocking, then High)* | ⚠️ **Weakened twice.** Experiment 009: **56.9% of the "1.4M" rows have no English side at all**, and a published fine-tune on this pool scored chrF **4.99** | TODO |
 | **A-06** | Legal review of TiQuAD's copyright position | 🟠 High | Whether we can ship anything using it | TODO |
 | ~~**A-07**~~ | ~~Decide how morphology handles GPL-3.0~~ | ✅ **DONE** | Resolved by **DEC-028** — user-installed, never distributed; a hosted service may use it | **DONE** |
-| **A-08** | Set an `HF_TOKEN` for this environment | 🟠 **High** *(was Medium)* | **FLORES+ is a gated repo** — the token is what unlocks the full 997/1,012 devtest, the fix for G-3 | TODO |
-| **A-09** | **Fetch model weights** — the runtime installs, the weights do not | 🟠 **High** | Scoring any model at all (**G-4**), Tier 1 embeddings. *Re-scoped: reading about models is no longer blocked* | TODO |
+| **A-08** | Set an `HF_TOKEN` for this environment | 🟠 **High** *(was Medium)* | **FLORES+ is a gated repo** — the token is what unlocks the full 997/1,012 devtest, the fix for **GAP-3** | TODO |
+| **A-09** | **Fetch model weights** — the runtime installs, the weights do not | 🟠 **High** | Scoring any model at all (**GAP-4**), Tier 1 embeddings. *Re-scoped: reading about models is no longer blocked* | TODO |
 | **A-10** | Introduce the project to GeezLab / L3S | 🟢 Low | Collaboration (G-11) | TODO |
 | **A-11** | Licence clarification on `fidel` | 🟢 Low | Transliteration option | TODO |
 | ~~**A-12**~~ | ~~Choose the project licence~~ | ✅ **DONE** | Resolved by **DEC-020** | **DONE** |
-| **A-13** | **Find a Tigrinya speaker to review our output** — sheets are built and ready to send | 🔴 **Blocking v0.1** | **Whether any of our Tigrinya is correct** (G-1); DEC-025; whether DEC-010 is precaution or live correction | **READY TO SEND** |
+| **A-13** | **Find a Tigrinya speaker to review our output** — sheets are built and ready to send | 🔴 **Blocking v0.1** | **Whether any of our Tigrinya is correct** (**GAP-1**); DEC-025; whether DEC-010 is precaution or live correction | **READY TO SEND** |
 | **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO — *Tier 0 measured (exp 006); Tier 2 still blocked on A-09* |
 | **A-15** | **Activate the CI workflow** (one command) | 🟠 High | DEC-018 — every checkable rule is unenforced until this is done | TODO |
 | **A-16** | Report epitran's position-sensitive transliteration upstream | 🟢 Low | Nothing — we work around it; but the next user will not know | TODO |
@@ -396,7 +396,7 @@ result is not available to us as DEC-020 stands.
 | **Optional dependency — recommended** | We never distribute HornMorpho. `morphology.is_available()` returns `False` until the *user* installs it themselves, and the combination is theirs, not ours. **The stub API already works this way** — this is the least new machinery of any option |
 | Out-of-process only | Invoke it as a separate program over IPC. The usual copyleft mitigation, but the boundary is a legal judgement rather than a technical fact, and we would still be shipping it |
 | Relicense the platform GPL-3.0 | Contradicts DEC-020, and imposes copyleft on the application developers DEC-002 names as the primary users |
-| Don't adopt | Morphology stays a documented gap. **G-5 becomes permanent**, and DEC-006's MVP is permanently incomplete by its own definition |
+| Don't adopt | Morphology stays a documented gap. **GAP-5 becomes permanent**, and DEC-006's MVP is permanently incomplete by its own definition |
 | `fgaim` POS models instead | ⚠️ **Worse** — those carry **no licence at all** (**A-01**). Trading a known copyleft for an unknown |
 
 **Resolved 2026-09-02 → DEC-028: Option A.** HornMorpho is adopted as a
@@ -441,7 +441,7 @@ step under DEC-008 and the size-tag finding.
 > devtest** — is not held back by general egress at all, only by the absence of
 > a token.
 >
-> This is the fix for **G-3**, "the evaluation anchors are hollow". The
+> This is the fix for **GAP-3**, "the evaluation anchors are hollow". The
 > translation anchor in use is a **30-sentence sample**; experiment 007 found
 > confidence intervals stop being trustworthy below n≈5, which that sample's
 > per-variety breakdowns land in. A read-scope token replaces it with the real
@@ -467,7 +467,7 @@ is real.** Re-measuring the egress policy (see `RESEARCH_ACCESS.md`) split it:
 | `opus.nlpl.eu`, `tico-19.github.io` | ❌ Blocked |
 
 **So A-09 is now precisely one thing: we have the runtime and cannot get the
-weights.** "Score a model through the harness" (**G-4**) still cannot happen.
+weights.** "Score a model through the harness" (**GAP-4**) still cannot happen.
 Everything else once filed under A-09 — comparing candidates, auditing licence
 chains, reading dataset provenance — is done or doable.
 

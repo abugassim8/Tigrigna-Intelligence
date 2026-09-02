@@ -74,12 +74,16 @@ been scored.** CI has never run.
 
 ### The five gaps that actually matter
 
-⚠️ **These are `GAP-n`, renamed 2026-09-02.** They were `G-1…G-5`, which collides
-with `goals.md`'s `G-1…G-11`: **`G-4` means "nothing measured end to end" here
-and "deliver semantic search and retrieval" there**, and this document used both
-senses. The collision persists in ~50 citations across 13 other files, with the
-two meanings mixed, so it is **recorded rather than mass-renamed** — a blind
-substitution would corrupt the sites that mean the goal.
+✅ **These are `GAP-n`, renamed 2026-09-02 and now resolved repo-wide.** They
+were `G-1…G-5`, which collided with `goals.md`'s `G-1…G-11`: **`G-4` meant
+"nothing measured end to end" here and "deliver semantic search and retrieval"
+there**, and this document used both senses four lines apart.
+
+All **22 gap-meaning citations across 6 other files** were reclassified **by
+hand**, one at a time. A blind substitution was never available: **13 genuine
+`G-4` citations mean the goal** and would have been corrupted by it.
+`scripts/check_figures.py` now fails on any `G-n` or `GAP-n` that nothing
+defines, and refuses to run if its own definitions go missing.
 
 | # | Gap | State now |
 | --- | --- | --- |
@@ -358,17 +362,15 @@ included.
 
 ## 12. What I can do without you
 
-**Three things, none of them large.**
+**Two things, neither large.**
 
-1. **Resolve the `G-n` collision across the other 13 files.** This plan's gaps
-   are now `GAP-n`; `goals.md`'s goals are still `G-n`, and ~50 citations
-   elsewhere mix the two senses. It needs reading each site, not a substitution
-   — which is exactly why it is still here.
-2. **Ingest TICO-19** if a reachable mirror can be found. `tico-19.github.io`
+1. **Ingest TICO-19** if a reachable mirror can be found. `tico-19.github.io`
    is egress-blocked, but ~6,142 professionally translated segments would be
    the second clean anchor after HornMT.
-3. **Extend the intrinsic checks to morphology** — the code is written and the
+2. **Extend the intrinsic checks to morphology** — the code is written and the
    analyser is a GPL-3.0 install away, so this can be *prepared* but not run.
+
+*(The `G-n` collision is resolved — see §2.)*
 
 Everything else is finished: validation instrument, three audits, conformance
 suite, consistency check, three experiments, the embeddings design, this

@@ -22,6 +22,53 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The `G-n` collision resolved across the repository — 2026-09-02
+
+`goals.md` numbers goals **G-1…G-11**; the readiness plan numbered its gaps
+**G-1…G-5**. So `G-4` meant *"deliver semantic search and retrieval"* in one
+place and *"nothing measured end to end"* in another, and the plan used both
+senses four lines apart. The plan's gaps became `GAP-n` yesterday; the other
+files are now done.
+
+**22 gap-meaning citations across 6 files**, reclassified **one at a time**:
+
+| File | Renamed |
+| --- | ---: |
+| `CHANGELOG.md` | 7 |
+| `ACTIONS.md` | 6 |
+| `docs/decisions/DECISIONS.md` | 5 |
+| `data/anchors/hornmt/README.md` | 2 |
+| `docs/decisions/rejected_options.md` | 1 |
+| `validation/README.md` | 1 |
+
+**A blind substitution was never available.** **13 genuine `G-4` citations mean
+the goal** — in the embeddings service README, the ecosystem scan, DEC-026 and
+its rejected options, summary 016 — and `sed` would have corrupted every one.
+Each site was read and classified: goal or gap.
+
+**Applied retroactively to earlier CHANGELOG entries**, disclosed here because
+it edits the record: the rename changes *notation*, not any claim. The entries
+refer to the same gaps they always did, under a name that now means one thing.
+
+**Made checkable.** `check_figures.py` gains a third check: every cited `G-n`
+and `GAP-n` must resolve to one that is actually defined — goals from
+`goals.md`'s `### G-n.` headings, gaps from the plan's table. Validated by
+planting one out-of-range id of each kind (both caught), by confirming a valid
+gap id is not misread as a goal id (no false positive), and by deleting the gap
+table to confirm the check **refuses to run** rather than passing vacuously when
+its own definitions vanish.
+
+> The planted ids are described rather than quoted, because naming them here
+> would trip the check — a document cannot cite an id that does not exist, even
+> to say it does not exist. That is the same trade `check_dates.py` records:
+> **reword around a false positive rather than add a suppression path**, since
+> a marker vocabulary is what made two earlier checks unable to fail.
+
+⚠️ **What it cannot catch:** a citation pointing at a *real* id with the *wrong
+meaning* — precisely the defect just fixed — still resolves. This catches the
+cheaper successor: an id nobody defines, which is what a typo or a renumbering
+leaves behind.
+
 ### Readiness plan refreshed across phases A–D — 2026-09-02
 
 The plan had been patched incrementally through four phases and had stopped
@@ -146,7 +193,7 @@ building a confident string out of `str(obj)`. A plausible-looking wrong answer
 is worse here than an admitted gap, and the first real install settles it in a
 minute.
 
-**G-5 does not close.** A clean `pip install` still cannot analyse morphology,
+**GAP-5 does not close.** A clean `pip install` still cannot analyse morphology,
 and the `metrics.md` row stays ❌ — implementing a capability is not measuring
 it, and a module that exists invites the assumption that it was.
 
@@ -186,7 +233,7 @@ the placeholder permanent. **A CI check now fails if HornMorpho ever appears in
 anything we package or deploy**, verified by planting it in a real
 `pyproject.toml`.
 
-⚠️ **G-5 does not close.** A clean `pip install` still cannot analyse
+⚠️ **GAP-5 does not close.** A clean `pip install` still cannot analyse
 morphology. The path is decided, not walked.
 
 **DEC-029 — evaluation anchors v2.** **HornMT is the primary translation
@@ -674,9 +721,9 @@ can be run**, rather than left to interpretation. Against v0.1 the project is at
 and zero speaker validation.
 
 **The five gaps that matter**, separated from the backlog: no native-speaker
-validation (**G-1**), 14 checks enforcing nothing (**G-2**), hollow evaluation
-anchors (**G-3**), nothing measured end to end (**G-4**), and an MVP incomplete
-by DEC-006's own definition (**G-5**).
+validation (**GAP-1**), 14 checks enforcing nothing (**GAP-2**), hollow evaluation
+anchors (**GAP-3**), nothing measured end to end (**GAP-4**), and an MVP incomplete
+by DEC-006's own definition (**GAP-5**).
 
 **⚠️ A-13 was too narrow and the plan says so.** It covered only a variety audit
 of the evaluation anchors. What actually needs a speaker also includes: whether

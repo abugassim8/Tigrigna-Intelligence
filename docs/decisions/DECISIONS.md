@@ -2215,7 +2215,7 @@ The packaging constraint and the licence constraint point the same way.
 | **A** | **User-installed optional dependency** | Keeps DEC-020 intact; no new machinery — the stub already works this way; forced anyway by the absence of a PyPI package | Morphology is absent from a clean install, so DEC-006's MVP is complete only conditionally |
 | B | Bundle it, isolate it out-of-process | Morphology works out of the box | We would still be **distributing** it. The process boundary is a legal judgement, not a technical fact, and it buys nothing we need |
 | C | Relicense the platform GPL-3.0 | Every option opens | Imposes copyleft on the application developers DEC-002 names as primary users — the exact outcome DEC-020 chose Apache-2.0 to avoid |
-| D | Do not adopt; leave morphology a gap | Zero licence risk | **G-5 becomes permanent** and DEC-006's MVP is permanently incomplete |
+| D | Do not adopt; leave morphology a gap | Zero licence risk | **GAP-5 becomes permanent** and DEC-006's MVP is permanently incomplete |
 | E | `fgaim` POS models instead | Permissive if licensed | ⚠️ **Worse** — they carry **no licence at all** (A-01). Trades a known copyleft for an unknown |
 
 **Chosen:** Option A.
@@ -2233,7 +2233,7 @@ and would have narrowed the platform on a misreading of which GPL this is.
 **Consequences:**
 - *Positive:* Morphology becomes reachable without touching the project licence.
 - *Positive:* The hosted API can offer it even though the package cannot.
-- *Negative:* **G-5 does not fully close.** A clean `pip install` still cannot
+- *Negative:* **GAP-5 does not fully close.** A clean `pip install` still cannot
   analyse morphology, and `metrics.md`'s morphology row stays ❌ until something
   measures it.
 - *Newly constrained:* **Container images must not contain HornMorpho.** This is
@@ -2286,7 +2286,7 @@ service**: TiQuAD's test set is withheld and its copyright is unresolved
 (A-04, A-06), and FLORES+ was reduced to a **30-sentence sample** because the
 full set could not be fetched — while experiment 007 found confidence intervals
 stop being trustworthy below n≈5, which that sample's per-variety breakdowns
-land in. G-3 called the anchors hollow and was right.
+land in. GAP-3 called the anchors hollow and was right.
 
 Two things changed. HornMT turned out to be public, CC-BY-4.0, and one `curl`
 away — falsifying the `[verified]` claim that there were ~~**0 cleanly-licensed
@@ -2298,7 +2298,7 @@ which moves it from "impossible" to "one token".
 | Option | Summary | Pros | Cons |
 | --- | --- | --- | --- |
 | **A** | **HornMT primary, FLORES+ for comparability, TiQuAD out** | Something usable *today*; a clear path to comparability; anchors finally cover the MVP | HornMT is single-domain news |
-| B | Wait for FLORES+ and change nothing | Comparable when it lands | Leaves a 30-sentence anchor in force for an unknown wait, and G-3 open |
+| B | Wait for FLORES+ and change nothing | Comparable when it lands | Leaves a 30-sentence anchor in force for an unknown wait, and GAP-3 open |
 | C | Keep TiQuAD as an anchor | Continuity with DEC-005 | Reproduces DEC-021's error — an anchor for a capability the MVP does not have |
 | D | Build our own evaluation set | Exactly fits the platform | Months (A-006), and DEC-023 exists precisely to avoid this |
 
@@ -2317,7 +2317,7 @@ not settle variety: HornMT's Tigrinya side runs **6,237 Eritrean markers to
 until A-13.
 
 **Consequences:**
-- *Positive:* G-3 moves from hollow to thin. Something real is measurable today.
+- *Positive:* GAP-3 moves from hollow to thin. Something real is measurable today.
 - *Positive:* **A-08 is now the cheapest high-value action on the register.**
 - *Negative:* Numbers on HornMT are not comparable to published results.
 - *Newly constrained:* Any future anchor must meet all four conditions in (d).

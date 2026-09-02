@@ -153,7 +153,7 @@ means the alternatives were not actually explored.
 | Shipping embeddings unevaluated | DEC-026 | 2026-08-23 | Violates P-4 on the capability where failure is least visible — retrieval degrades silently for users who chose the other spelling |
 | Bundling HornMorpho and isolating it out-of-process | DEC-028 | 2026-09-02 | We would still be **distributing** it. The process boundary is a legal judgement rather than a technical fact, and it buys nothing the user-install route does not |
 | Relicensing the platform GPL-3.0 to adopt HornMorpho | DEC-028 | 2026-09-02 | Imposes copyleft on the application developers DEC-002 names as primary users — the exact outcome DEC-020 chose Apache-2.0 to avoid |
-| Leaving morphology permanently unimplemented | DEC-028 | 2026-09-02 | Makes **G-5 permanent** and DEC-006's MVP incomplete by its own definition, when a user-install route costs one sentence in the README |
+| Leaving morphology permanently unimplemented | DEC-028 | 2026-09-02 | Makes **GAP-5 permanent** and DEC-006's MVP incomplete by its own definition, when a user-install route costs one sentence in the README |
 | `fgaim` POS models instead of HornMorpho | DEC-028 | 2026-09-02 | **Worse licensing, not better** — they state no licence at all (A-01). Trading a known copyleft for an unknown |
 | Waiting for FLORES+ and changing no anchors | DEC-029 | 2026-09-02 | Leaves a **30-sentence** anchor in force for an unknown wait, when a 2,030-pair CC-BY-4.0 corpus is already screened and committed |
 | Keeping TiQuAD in the MVP anchor set | DEC-029 | 2026-09-02 | Reproduces the exact error DEC-021 was raised to fix — an anchor for extractive QA, which DEC-006's MVP does not contain. Also unobtainable: the test set is withheld by design |

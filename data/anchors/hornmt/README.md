@@ -34,12 +34,12 @@ unreadable. HornMT is CC-BY-4.0, human-translated, and was a single `curl` away
 the whole time.
 
 It also replaces something much weaker. The evaluation anchor in use was a
-**30-sentence FLORES sample** — G-3 in the readiness plan, "the anchors are
+**30-sentence FLORES sample** — GAP-3 in the readiness plan, "the anchors are
 hollow". This is **68× larger** and independent of it: contamination screening
 found **0 shared 8-grams and 0 exact segments** against the FLORES sample and
 against both committed monolingual corpora.
 
-⚠️ **It does not close G-3 by itself.** 2,030 news segments is one domain,
+⚠️ **It does not close GAP-3 by itself.** 2,030 news segments is one domain,
 sourced from news sites and multi-way translated. Full FLORES+ (997 dev / 1,012
 devtest) remains gated behind an HF token — **A-08**.
 

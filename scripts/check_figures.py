@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Fail when a document contradicts the repository about a number.
+"""Fail when a document contradicts the repository about a number or an id.
 
-Two checks, both aimed at the same failure: a number that stopped being true
-and nobody noticed.
+Three checks, aimed at the same failure: something that stopped being true and
+nobody noticed.
 
   1. **Retired figures** — a value registered in `docs/figures.json` as
      superseded, still being asserted as current.
   2. **Derived counts** — a claim about how many decisions, experiments,
      summaries or research domains exist, compared against what is in the tree.
      Nothing is registered for these: the true value is computed.
+  3. **Identifier integrity** — every cited `G-n` (a goal) and `GAP-n` (a
+     readiness gap) resolves to one that is actually defined.
 
 Why this exists
 ---------------
@@ -266,6 +268,61 @@ def check_counts(reg: dict) -> list[str]:
     return problems
 
 
+GOALS = REPO / "docs" / "vision" / "goals.md"
+PLAN = REPO / "docs" / "roadmap" / "READINESS_PLAN.md"
+
+_GOAL_DEF = re.compile(r"^### (G-\d+)\.", re.MULTILINE)
+_GAP_DEF = re.compile(r"^\| \*\*(GAP-\d+)\*\* \|", re.MULTILINE)
+_GOAL_CITE = re.compile(r"(?<!GA)(?<!\w)(G-\d+)\b")
+_GAP_CITE = re.compile(r"\b(GAP-\d+)\b")
+
+
+def check_identifiers() -> list[str]:
+    """Flag a cited goal or gap id that nothing defines.
+
+    Why this exists: `goals.md` numbers goals **G-1…G-11** and the readiness
+    plan numbered its gaps **G-1…G-5**, so `G-4` meant both *"deliver semantic
+    search and retrieval"* and *"nothing measured end to end"* — and the plan
+    used **both senses four lines apart**. The gaps are now `GAP-n`, and ~50
+    citations across 13 files were reclassified by hand, because a blind
+    substitution would have corrupted every site that meant the goal.
+
+    This cannot detect *that* kind of mistake — a citation pointing at a real id
+    with the wrong meaning still resolves. It catches the cheaper successor:
+    an id nobody defines, which is what a typo or a renumbering leaves behind.
+
+    **Known limit, deliberately unfixed:** a document cannot cite a non-existent
+    id even to discuss one, so prose about a negative control has to describe
+    the planted ids rather than quote them. There is no marker escape hatch on
+    purpose — a marker vocabulary is what made two earlier checks in this file
+    unable to fail. Reword around the false positive.
+    """
+    goals = set(_GOAL_DEF.findall(GOALS.read_text(encoding="utf-8")))
+    gaps = set(_GAP_DEF.findall(PLAN.read_text(encoding="utf-8")))
+    if not goals or not gaps:
+        return [f"::error::identifier check found no definitions "
+                f"(goals={len(goals)}, gaps={len(gaps)}) — it cannot fail, "
+                f"so it is broken"]
+
+    problems = []
+    for path in _files():
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except (UnicodeDecodeError, OSError):
+            continue
+        rel = path.relative_to(REPO).as_posix()
+        for i, line in enumerate(lines, 1):
+            for cite, defined, kind in ((_GAP_CITE, gaps, "gap"),
+                                        (_GOAL_CITE, goals, "goal")):
+                for m in cite.finditer(line):
+                    if m.group(1) not in defined:
+                        problems.append(
+                            f"::error file={rel},line={i}::"
+                            f"{m.group(1)} is cited as a {kind} but nothing "
+                            f"defines it\n  {rel}:{i}\n    {line.strip()[:100]}")
+    return problems
+
+
 def _retired_patterns(reg: dict) -> list[tuple[str, str, str, str]]:
     """(pattern, figure_name, retired_value, current_value)"""
     out = []
@@ -301,12 +358,15 @@ def check() -> int:
                      name, retired, current, line.strip()[:100])
                 )
 
-    count_problems = check_counts(reg)
+    count_problems = check_counts(reg) + check_identifiers()
 
     if not violations and not count_problems:
         n = len(patterns)
-        print(f"OK — {n} retired figure pattern(s) and "
-              f"{len(reg.get('counts', []))} derived count(s) checked across "
+        goals = len(_GOAL_DEF.findall(GOALS.read_text(encoding="utf-8")))
+        gaps = len(_GAP_DEF.findall(PLAN.read_text(encoding="utf-8")))
+        print(f"OK — {n} retired figure pattern(s), "
+              f"{len(reg.get('counts', []))} derived count(s) and "
+              f"{goals} goal / {gaps} gap ids checked across "
               f"{len(_files())} files; nothing stale")
         return 0
 
