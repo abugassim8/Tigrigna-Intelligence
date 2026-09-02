@@ -4,7 +4,7 @@
 | --- | --- |
 | **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-02** after fourteen work items |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
-| **Basis** | **28 decisions · 8 experiments · 16 summaries · 145 tests · 4 audits** |
+| **Basis** | **28 decisions · 9 experiments · 16 summaries · 145 tests · 4 audits** |
 
 ---
 
@@ -368,11 +368,12 @@ obtain a licence, reach a blocked host, or read Tigrinya as a speaker.
 **The method is working.** Measurement has overturned the project's own written
 claims repeatedly — DEC-007's token-efficiency rationale, DEC-023's
 1,639/1,639, the 22× cost saving, "384/384 zero gaps", and the CI word-count
-that could not count UTF-8. **Six decisions now carry amendments** (DEC-005,
-007, 009, 016, 020, 023), all of them corrections the project made against
-itself — the newest being **DEC-020**, whose "no dependency imposes copyleft"
-basis survived only because the one dependency on the critical path had never
-been read.
+that could not count UTF-8. **Seven decisions now carry amendments** (DEC-005,
+007, 009, 016, 020, 023, 030), all of them corrections the project made against
+itself — including **DEC-020**, whose "no dependency imposes copyleft" basis
+survived only because the one dependency on the critical path had never been
+read, and **DEC-030**, whose quarantine of the 1.4M corpus rested on licence
+until somebody finally looked at the content.
 
 **The engineering discipline is real and it is not self-congratulation:** seven
 checks have been found that *could not fail*, every one caught by deliberately

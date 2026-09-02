@@ -10,14 +10,15 @@ application, but as infrastructure that others can build on.
 
 > **Status: 13 research domains complete** — every planned domain, from
 > `00_project_definition` through `12_master_blueprint`. **28** decisions
-> recorded and **8** reproducible experiments. **Tier 0 is built**: two Python
+> recorded and **9** reproducible experiments. **Tier 0 is built**: two Python
 > packages (`services/primitives`, `services/evaluation`), both test suites
 > passing.
 > See [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
 >
-> **What is not built:** morphology (blocked on **A-07**), embeddings (**A-01**),
-> the API surface (**A-02**), and no model has been run through the evaluation
-> harness yet (**A-09**). CI is written but **not installed** (**A-15**). Every
+> **What is not built:** embeddings (**A-09**), the API surface (**A-02**), and
+> **no model has been run through the evaluation harness yet** (**A-09**).
+> Morphology *is* built (**DEC-028**) but its analyser is GPL-3.0 and never
+> bundled, so it is absent unless you install it — and unmeasured either way. CI is written but **not installed** (**A-15**). Every
 > remaining blocker needs a person, not more research — see
 > [`ACTIONS.md`](ACTIONS.md).
 >

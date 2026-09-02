@@ -2401,6 +2401,31 @@ EnTiMT's source table and reported scores `[verified]` 2026-09-02 from its model
 card; Travis Foundation ownership statement `[verified]` 2026-09-02 from its
 repository
 
+### Amendment 1 — 2026-09-02: the quarantine's basis widens from licence to content
+
+Quarantine was imposed on **licence** grounds, taking the corpus's *content* on
+trust from its row count. Experiment 009 probed it through the Dataset Viewer
+and the row count does not survive:
+
+| Finding | Measured |
+| --- | --- |
+| Rows with **no English side at all** (`nan`) | **56.9%** — ~794,900 of 1,398,177 |
+| Ordering | **Sorted by descending similarity**, 1.2471 → 1.0500, so any prefix flatters it |
+| Target reuse | One Tigrinya sentence serving several unrelated English sources |
+
+**It is not 1.4M parallel sentences.** It is roughly **603,000 pairs and
+795,000 orphaned Tigrinya sentences**, ordered so that the readable top is the
+best of it.
+
+A fourth hypothesis — that the two columns are **desynchronised by a constant
+lag of 26 rows** — was **refuted by its own pre-committed threshold**, on two
+suggestive data points at one offset. Recorded as unproven rather than quietly
+dropped or quietly promoted; settling it needs the corpus (**A-09**).
+
+**Nothing in the decision changes.** What changes is that the quarantine no
+longer rests on licence alone, and the published en→ti **chrF 4.99** cited above
+stops looking like a tokenizer accident.
+
 ---
 
 <!--

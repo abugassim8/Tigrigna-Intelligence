@@ -1,0 +1,79 @@
+{
+  "_comment": [
+    "Rows observed in michsethowusu/english-tigrinya_sentence-pairs through the",
+    "Hugging Face Dataset Viewer on 2026-09-02. Direct downloads of the corpus",
+    "are egress-blocked (A-09), so this is a SAMPLE recorded by hand, not a",
+    "fetched artefact. It is the evidence for experiment 009 and run.py analyses",
+    "only what is committed here, so the analysis reproduces byte-identically",
+    "even though the fetch does not.",
+    "Total rows in the corpus, per the viewer: 1398177."
+  ],
+  "source": "michsethowusu/english-tigrinya_sentence-pairs",
+  "split": "train",
+  "total_rows": 1398177,
+  "observed": "2026-09-02 via HF Dataset Viewer (dataset_preview)",
+
+  "similarity_by_offset": [
+    {"offset": 0,       "similarity": 1.2471349239349365, "english_present": true},
+    {"offset": 200000,  "similarity": 1.0766823291778564, "english_present": true},
+    {"offset": 300000,  "similarity": 1.0712097883224487, "english_present": true},
+    {"offset": 450000,  "similarity": 1.0657138824462890, "english_present": true},
+    {"offset": 575000,  "similarity": 1.0623772144317627, "english_present": true},
+    {"offset": 594000,  "similarity": 1.0619362592697144, "english_present": true},
+    {"offset": 612500,  "similarity": 1.0615180730819702, "english_present": false},
+    {"offset": 650000,  "similarity": 1.0607025623321533, "english_present": false},
+    {"offset": 700000,  "similarity": 1.0596853494644165, "english_present": false},
+    {"offset": 1398100, "similarity": 1.0500006675720215, "english_present": false}
+  ],
+
+  "_desync_comment": [
+    "Two pairs where the English at row i is a translation of the Tigrinya at",
+    "row i-26. Both were visible inside a single 40-row window at offset 300000,",
+    "which is why the constant lag is legible at all. Chosen as evidence because",
+    "each carries a language-independent anchor: a leading verse number in the",
+    "first, transliterated proper nouns in the second."
+  ],
+  "desync_candidates": [
+    {
+      "tigrinya_row": 300000,
+      "tigrinya": "2 ሎሚ፡ እዛ መንበሪት ወዲ ሰብ ዝዀነት ምድሪ፡ ብብከላን ብዓመጽን ብርኽሰትን ተበላሽያ እያ ዘላ።",
+      "english_same_row": "24 Joʹab the son of Zeruiah had started to take the count, but he did not finish",
+      "english_row": 300026,
+      "english_lagged": "2 Today, we see mankind's home marred by pollution, violence, and immorality.",
+      "anchor": "leading_number"
+    },
+    {
+      "tigrinya_row": 300001,
+      "tigrinya": "ኣሜሪካ ኮነት ጃፓንን ደቡብ ኮርያን ምስ ሰሜን ኮርያ ዝኾነ ዓይነት ዲፕሎማሲያዊ ርክብ ነይሩወን ኣይፈልጥን።",
+      "english_same_row": "Be still my heart...such LOVELIES!",
+      "english_row": 300027,
+      "english_lagged": "Japan and North Korea have never established diplomatic relations.",
+      "anchor": "proper_nouns"
+    }
+  ],
+
+  "_duplicate_comment": [
+    "Adjacent rows whose Tigrinya sides are near-identical (they differ by one",
+    "space) while their English sides are unrelated to each other. A mined",
+    "corpus reusing one target for several sources inflates its row count."
+  ],
+  "near_duplicate_targets": [
+    {
+      "row": 300017,
+      "tigrinya": "መብዛሕትኤን  ኣብያተ/ክ ነቲ ኣብ ሀ ዘሎ ሓሳብ እየን ዝቅበላ ኣነ'ዉን ምስ እዚ ሓሳብ እዚእየዝሰማማዕ ።",
+      "english": "For instance, the Bible does not support the modern-day use of faith healing by charismatics."
+    },
+    {
+      "row": 300018,
+      "tigrinya": "መብዛሕትኤን ኣብያተ/ክ ነቲ ኣብ ሀ ዘሎ ሓሳብ እየን ዝቅበላ ኣነ'ዉን ምስ እዚ ሓሳብ እዚእየዝሰማማዕ ።",
+      "english": "Many of these articles are available on this web site, in France and the USA."
+    }
+  ],
+
+  "_nan_comment": [
+    "Where the English column stops carrying text. Bracketed by bisection:",
+    "present at 594000, absent at 612500. The boundary is taken as the midpoint",
+    "with the bracket width as the uncertainty."
+  ],
+  "english_present_bracket": {"last_present": 594000, "first_absent": 612500}
+}

@@ -43,7 +43,7 @@ itself a research finding.
 | **A-02** | Confirm DEC-002 (who our primary users are) | 🔴 **Blocking** | API, MCP, SDK design | TODO |
 | **A-03** | Report the TiQuAD contamination to `farefaine` | 🟠 High | Ecosystem (G-11); protects others | TODO |
 | **A-04** | Request the TiQuAD test set | 🟠 High | DEC-005 — canonical evaluation | TODO |
-| **A-05** | Establish terms for the 1.4M en–ti pairs — **identified as OPUS NLLB mined bitext** | 🟠 High *(was Blocking)* | Insurance on DEC-011 — ⚠️ **weakened**: a published fine-tune on this data scored chrF **4.99** | TODO |
+| **A-05** | Establish terms for the ~603K usable en–ti pairs — **OPUS NLLB mined bitext** | 🟡 Medium *(was Blocking, then High)* | ⚠️ **Weakened twice.** Experiment 009: **56.9% of the "1.4M" rows have no English side at all**, and a published fine-tune on this pool scored chrF **4.99** | TODO |
 | **A-06** | Legal review of TiQuAD's copyright position | 🟠 High | Whether we can ship anything using it | TODO |
 | ~~**A-07**~~ | ~~Decide how morphology handles GPL-3.0~~ | ✅ **DONE** | Resolved by **DEC-028** — user-installed, never distributed; a hosted service may use it | **DONE** |
 | **A-08** | Set an `HF_TOKEN` for this environment | 🟠 **High** *(was Medium)* | **FLORES+ is a gated repo** — the token is what unlocks the full 997/1,012 devtest, the fix for G-3 | TODO |
@@ -278,6 +278,25 @@ Tigrinya sentence pairs** — by far the largest Tigrinya resource found — wit
 > [Your name]
 
 **Unblocks:** translation work; a large share of the usable data.
+
+> ### ⚠️ Downgraded again 2026-09-02 — and it is not 1.4M
+>
+> Nobody had looked at the content; the row count was taken on trust.
+> **Experiment 009** sampled it through the Dataset Viewer:
+>
+> | | |
+> | --- | --- |
+> | Rows with **no English side** (`nan`) | **56.9%** — ~794,900 of 1,398,177 |
+> | Ordering | **sorted by descending similarity** (1.2471 → 1.0500) |
+> | Target reuse | one Tigrinya sentence across unrelated English sources |
+>
+> So the prize is **~603,000 pairs, not 1.4M**, sorted so the readable top is
+> the best of it. A fifth of the original claim, before licensing is even
+> discussed. **Dropped to Medium.**
+>
+> A suspected **column desync at a constant lag of 26 rows** is recorded as
+> **unproven** — it failed its own pre-committed threshold on two data points,
+> and the threshold was not moved to rescue it. → `experiments/009-mined-corpus-probe/`
 
 > ### ⚠️ Re-scoped 2026-09-01 — this is not an unlicensed original
 >

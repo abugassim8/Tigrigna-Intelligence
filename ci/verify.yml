@@ -76,6 +76,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      # Experiment 009 imports tigrinya_primitives — it uses our own Ge'ez
+      # transliterator to test cross-script anchors, which also gives Tier 0 a
+      # second consumer outside its own tests.
       - name: Install pinned experiment dependencies
         run: |
           python -m pip install --quiet --upgrade pip
@@ -83,6 +86,7 @@ jobs:
             epitran==1.35.2 \
             tokenizers==0.23.1 \
             sacrebleu==2.6.0
+          pip install --quiet -e services/primitives
 
       - name: Re-run every experiment and diff its artefact
         run: |

@@ -22,6 +22,58 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Experiment 009 — the 1.4M "parallel" corpus is 57% not parallel — 2026-09-02
+
+Phase D. Both Phase D experiments were parked behind **A-09**. Re-testing that
+assumption — the Phase B lesson — found the **Hugging Face Dataset Viewer**
+serves rows through the connector even though downloads are blocked. So the
+corpus nobody had looked at became sampleable.
+
+**A-05 spent months filed as Blocking**, described as the insurance policy on
+DEC-011: licence the 1.4M pairs and the training ladder opens. The licence was
+argued about for months. **The content was taken on trust from a row count.**
+
+| Hypothesis | Result |
+| --- | --- |
+| **H1** — a material share of rows have no English side | ✅ **56.9%** — ~794,900 of 1,398,177 rows carry the literal string `nan` |
+| **H2** — sorted by similarity, so any prefix flatters it | ✅ monotone 1.2471 → 1.0500 across ten offsets |
+| **H3** — the columns are desynced by a constant lag | ❌ **REFUTED by its own threshold** |
+| **H4** — one target reused for several sources | ✅ confirmed |
+
+**It is not 1.4M parallel sentences.** It is roughly **603,000 pairs and
+795,000 orphaned Tigrinya sentences**, sorted so the readable top is the best of
+it. A fifth of the original claim disappears before licensing is even discussed.
+**A-05 drops to Medium**, and DEC-030's quarantine now rests on content as well
+as licence (**Amendment 1**).
+
+That also makes the published **en→ti chrF 4.99** DEC-030 cites stop looking
+like a tokenizer accident.
+
+#### H3 is the honest part
+
+At offset 300000, the English at row *i* appeared to translate the Tigrinya at
+row *i−26* — twice, in one 40-row window, at the identical lag, with the
+same-row English scoring **zero** anchors both times. The anchors are
+language-independent: a shared leading verse number, and proper nouns matched by
+transliterating the Tigrinya with **our own Tier 0 primitive** (`ጃፓንን` →
+`d͡ʒapanɨn` → skeleton `jpn`).
+
+**It still failed.** The threshold demanded two anchors per candidate and each
+yielded one. Two data points at one offset are not evidence of a corpus-wide
+defect. **The threshold was not moved**, and the suspicion is recorded as
+unproven rather than quietly promoted.
+
+> ⚠️ **An instrument defect, found and recorded.** The anchor test excluded the
+> sentence-initial word, reasoning that a capital there proves nothing — but
+> *"**Japan** and North Korea…"* begins with its strongest anchor. Fixed by
+> dropping the positional rule for a longer-skeleton requirement, which *costs*
+> `Korea` and *gains* `Japan`. **The verdict did not change.** Fixing a flaw and
+> finding the answer unchanged is worth more than either alone.
+
+**Experiment 009 also gives Tier 0 a second consumer** outside its own tests —
+the transliterator is what makes the cross-script anchor test possible, and CI's
+reproducibility job now installs `services/primitives` for it.
+
 ### Morphology implemented behind the stub — 2026-09-02
 
 `morphology.py` now implements DEC-028: an **adapter over a user-installed
