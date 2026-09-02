@@ -67,6 +67,37 @@ jobs:
           experiments/002-tokenizer-fertility/corpus
           experiments/003-metric-validity/data
 
+      # Morphology runs separately because its analyser is GPL-3.0 and never
+      # installed here (DEC-028), so all five checks SKIP. Running it anyway is
+      # deliberate: it proves the checks execute, and it prints the NOT MEASURED
+      # block in the build log, so "morphology is fine" can never quietly come
+      # to mean "morphology was never looked at".
+      - name: Evaluate morphology (skips without HornMorpho — by design)
+        run: |
+          set -euo pipefail
+          python -m tigrinya_eval.morphology \
+            experiments/003-metric-validity/data | tee /tmp/morph.txt
+          grep -q "NOT MEASURED" /tmp/morph.txt || {
+            echo "::error::morphology reported no NOT MEASURED block. Either "
+            echo "::error::HornMorpho is now installed (then drop this guard and "
+            echo "::error::add --require), or a skip has started reading as a pass."
+            exit 1
+          }
+
+      # The skip must be a third state, not a pass. --require converts it to a
+      # failure; if that ever exits 0 with the analyser absent, the distinction
+      # has collapsed and every morphology property is silently "verified".
+      - name: A skipped morphology check is not a pass
+        run: |
+          set -euo pipefail
+          if python -m tigrinya_eval.morphology --require \
+               experiments/003-metric-validity/data > /dev/null 2>&1; then
+            echo "::error::--require PASSED with no analyser installed — SKIP has "
+            echo "::error::collapsed into PASS and the checks now verify nothing."
+            exit 1
+          fi
+          echo "skip is a distinct state from pass"
+
   reproducibility:
     name: DEC-016 — experiments reproduce byte-identically
     runs-on: ubuntu-latest

@@ -125,15 +125,67 @@ class PropertyResult:
     failures: tuple[Any, ...] = ()
     note: str = ""
 
+    #: The check did not run, and **this is not a pass.** Set only when a
+    #: prerequisite is genuinely absent — an optional GPL-3.0 analyser that was
+    #: never installed (DEC-028) — never when a check errored.
+    #:
+    #: It does not fail the report, because failing a build over an optional
+    #: dependency nobody installed is how a check gets deleted. It is instead
+    #: made loud: `report()` prints a SKIPPED block, `to_dict` carries it, and
+    #: `evaluate_morphology(require=True)` turns it back into a failure for
+    #: anyone who *has* installed the analyser and wants it enforced.
+    skipped: bool = False
+    skip_reason: str = ""
+
+    #: A number worth recording that **no threshold judges yet**, because
+    #: nothing has ever measured it. Reported as MEASURED, never PASS, and
+    #: excluded from `holds` in either direction.
+    #:
+    #: The alternative — inventing a floor and calling it pre-committed — is
+    #: precisely the overclaiming DEC-016 and this module's own docstring
+    #: exist to prevent. A floor chosen before any measurement is not a
+    #: prediction; it is a number that cannot fail.
+    measurement_only: bool = False
+
     @property
     def rate(self) -> float:
         return self.passed / self.total if self.total else 0.0
 
     @property
     def holds(self) -> bool:
+        """Whether this result should let a build pass.
+
+        Skipped and measurement-only results hold vacuously — neither is
+        evidence the property is true, and `report()` says so rather than
+        letting them read as green.
+        """
+        if self.skipped or self.measurement_only:
+            return True
         return self.total > 0 and self.rate >= self.threshold
 
+    @property
+    def verdict(self) -> str:
+        if self.skipped:
+            return "SKIP"
+        if self.measurement_only:
+            return "MEAS"
+        return "PASS" if self.holds else "FAIL"
+
     def __str__(self) -> str:
+        if self.skipped:
+            # First line only. The full reason is printed once, grouped, by
+            # `IntrinsicReport.report()`; repeating it per check buried the
+            # verdict under five identical paragraphs.
+            head = self.skip_reason.splitlines()[0] if self.skip_reason else ""
+            if len(head) > 46:
+                head = head[:45] + "…"
+            return f"SKIP  {self.name:24s} NOT RUN — {head}"
+        if self.measurement_only:
+            return (
+                f"MEAS  {self.name:24s} "
+                f"{self.passed:,}/{self.total:,} = {100 * self.rate:6.2f}%  "
+                f"(no threshold — see note)"
+            )
         kind = "floor" if self.regression_guard else "threshold"
         return (
             f"{'PASS' if self.holds else 'FAIL'}  {self.name:24s} "
@@ -159,6 +211,22 @@ class IntrinsicReport:
     def failures(self) -> tuple[PropertyResult, ...]:
         return tuple(r for r in self.results if not r.holds)
 
+    def skipped(self) -> tuple[PropertyResult, ...]:
+        """Checks that did not run. Not failures, and **not passes either.**"""
+        return tuple(r for r in self.results if r.skipped)
+
+    @property
+    def complete(self) -> bool:
+        """True only if every check actually ran and was judged.
+
+        `holds` answers "should the build go green"; this answers "was the
+        thing measured". They differ exactly when an optional analyser is
+        missing, and conflating them is how "morphology is fine" would come to
+        mean "morphology was never looked at".
+        """
+        return self.holds and not self.skipped() and not any(
+            r.measurement_only for r in self.results)
+
     def report(self) -> str:
         lines = [
             "Tier 0 intrinsic evaluation (DEC-023a)",
@@ -170,9 +238,35 @@ class IntrinsicReport:
         for r in self.results:
             if r.note:
                 lines.append(f"      note: {r.note}")
-        lines += ["", f"  VERDICT: {'PASS' if self.holds else 'FAIL'}"]
+
+        verdict = "PASS" if self.holds else "FAIL"
+        skipped = self.skipped()
+        measured = tuple(r for r in self.results if r.measurement_only)
+        if skipped:
+            # Never let a verdict of PASS stand unqualified when a property was
+            # not measured at all. The word "PASS" travels; the caveat below it
+            # does not, unless it is part of the verdict line.
+            verdict += f" (with {len(skipped)} check(s) NOT RUN)"
+        lines += ["", f"  VERDICT: {verdict}"]
         if not self.holds:
             lines.append("  failing: " + ", ".join(r.name for r in self.failures()))
+        if skipped:
+            lines.append("")
+            lines.append("  ⚠️ NOT MEASURED — these properties are unverified, "
+                         "not verified-true:")
+            # Group by reason. Five checks skipped for one missing dependency is
+            # one fact, and printing it five times buries the verdict above it.
+            by_reason: dict[str, list[str]] = {}
+            for r in skipped:
+                by_reason.setdefault(r.skip_reason, []).append(r.name)
+            for reason, names in by_reason.items():
+                lines.append(f"      {', '.join(names)}")
+                lines += [f"        {ln}" for ln in reason.splitlines()]
+        if measured:
+            lines.append("")
+            lines.append("  Recorded without a threshold (nothing has measured "
+                         "these before):")
+            lines += [f"      {r.name}: {100 * r.rate:.2f}%" for r in measured]
         # The caveat travels with the report, because a report that leaves its
         # caveats behind will be quoted without them.
         lines += ["", "  " + _CAVEAT]
@@ -186,6 +280,8 @@ class IntrinsicReport:
             "words": self.words,
             "unique_words": self.unique_words,
             "holds": self.holds,
+            "complete": self.complete,
+            "skipped": [r.name for r in self.skipped()],
             "caveat": _CAVEAT,
             "results": [
                 {
@@ -196,6 +292,10 @@ class IntrinsicReport:
                     "threshold": r.threshold,
                     "regression_guard": r.regression_guard,
                     "holds": r.holds,
+                    "verdict": r.verdict,
+                    "skipped": r.skipped,
+                    "skip_reason": r.skip_reason,
+                    "measurement_only": r.measurement_only,
                     "note": r.note,
                     "failures": [
                         list(f) if isinstance(f, tuple) else f
@@ -501,10 +601,11 @@ def evaluate_primitives(texts: Sequence[str],
         results.append(check_context_divergence(texts))
 
     notes = (
-        "Morphology is not evaluated here. It is now implemented as an adapter "
-        "(DEC-028), but HornMorpho is GPL-3.0 and is never bundled, so it is "
-        "absent unless the user installed it. Nothing to measure without an "
-        "analyser present. See tigrinya_primitives.morphology.",
+        "Morphology is evaluated separately, by `tigrinya_eval.morphology` — "
+        "five intrinsic checks that SKIP rather than pass when HornMorpho is "
+        "absent (it is GPL-3.0 and never bundled, DEC-028). Run "
+        "`python -m tigrinya_eval.morphology CORPUS` for it; a skip there is "
+        "not evidence the property holds.",
     )
     return IntrinsicReport(
         results=tuple(results),

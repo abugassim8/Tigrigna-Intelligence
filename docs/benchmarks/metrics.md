@@ -1,7 +1,7 @@
 # Metrics
 
 > **Status: translation validated (DEC-009); three of four Tier 0 primitives validated intrinsically (DEC-023).**
-> ⚠️ **Morphology is NOT among them** — **implemented** as of 2026-09-02 (DEC-028), still **unmeasured**: HornMorpho is GPL-3.0 and never bundled, so there is no analyser present to measure.
+> ⚠️ **Morphology is NOT among them** — **implemented** (DEC-028) and its intrinsic checks are now **written and tested** (2026-09-02), but still **unmeasured**: HornMorpho is GPL-3.0 and never bundled, so no analyser is present to measure. The checks report **SKIP**, which is deliberately neither pass nor fail.
 > Remaining capabilities are still unresearched — those rows are a scaffold, not
 > a recommendation.
 >
@@ -49,7 +49,7 @@ finding to record rather than a problem to route around.
 | Semantic search | TBD | No | — | Not yet researched |
 | Cross-language retrieval | TBD | No | — | Not yet researched |
 | Tokenization | **Reversibility** + fertility + UNK rate | **Yes — intrinsic** | see DEC-023 | Property tests, no gold data (exp 004) |
-| Morphological analysis | Consistency + coverage *(accuracy needs gold data)* | ❌ **No — NOT measured** | — | ⚠️ **Corrected 2026-08-22.** This row read *"Yes — intrinsic"* citing exp 004. **Experiment 004 never tested morphology** — H1–H4 were normalisation, transliteration, alignment and tokenization. DEC-023 itself records morphology's intrinsic properties as **untested**, and the capability was **not implemented**. ⚠️ **Updated 2026-09-02:** it now is (**DEC-028**), but as an adapter over a dependency we never bundle — so the row stays ❌ until an analyser is actually present and measured. P-4 does **not** clear it |
+| Morphological analysis | Consistency + coverage *(accuracy needs gold data)* | ❌ **No — NOT measured** | — | ⚠️ **Corrected 2026-08-22.** This row read *"Yes — intrinsic"* citing exp 004. **Experiment 004 never tested morphology** — H1–H4 were normalisation, transliteration, alignment and tokenization. DEC-023 itself records morphology's intrinsic properties as **untested**, and the capability was **not implemented**. ⚠️ **Updated 2026-09-02:** it now is (**DEC-028**), but as an adapter over a dependency we never bundle. **The measuring instrument now exists** — `tigrinya_eval.morphology`, five intrinsic checks (surface, alignment, determinism, coverage, normalisation), each exercised against injected analysers including deliberately broken ones. **The row still stays ❌**, and that is the point: with no analyser installed all five report **SKIP**, a third state that is not a pass. Two of the five are marked **MEAS** — recorded with no threshold, because nothing has ever measured Tigrinya morphological coverage and a floor invented before the first measurement is not a pre-commitment. P-4 does **not** clear it |
 | Lemmatization | TBD | No | — | Not yet researched |
 | Spell correction | TBD | No | — | Not yet researched |
 | Grammar checking | TBD | No | — | Not yet researched |

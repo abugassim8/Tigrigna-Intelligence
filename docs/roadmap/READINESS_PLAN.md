@@ -62,7 +62,7 @@ degrading silently.
 `embeddings` (six intrinsic checks plus a lexical baseline, DEC-026).
 
 **Also built:** the native-speaker validation instrument (`validation/`, 134
-items), four enforcement scripts, 25 CI checks, and the **HornMT anchor**
+items), four enforcement scripts, 27 CI checks, and the **HornMT anchor**
 (2,030 pairs, CC-BY-4.0, screened both sides).
 
 **Not built:** Tier 1 serving, Tier 2 serving, HTTP API, MCP server, SDKs, any
@@ -88,10 +88,10 @@ defines, and refuses to run if its own definitions go missing.
 | # | Gap | State now |
 | --- | --- | --- |
 | **GAP-1** | **No native-speaker validation** | ⚠️ **Unchanged in substance, but no longer blocked on design.** The instrument exists — 134 items, ~25 minutes. Every intrinsic check still catches *broken*, not *wrong* |
-| **GAP-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 25 checks, not 14.** All written, all locally verified, **none running** |
+| **GAP-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 27 checks, not 14.** All written, all locally verified, **none running** |
 | **GAP-3** | **Evaluation anchors are hollow** | ⚠️ **Materially better, and now two-domain.** **HornMT** (2,030 pairs, news, CC-BY-4.0) plus **TICO-19** (3,071 segments × 3 references, COVID/medical, CC0-1.0, **variety-declared at source**). Together **170× the 30-sentence sample**, 0 overlap with it. ⚠️ But TICO-19 revealed the anchors are **not variety-neutral**: HornMT is Ethiopian-consistent at 55.5% (Experiment 010), so scoring on it is scoring one standard. Full FLORES+ still **gated, not blocked** — one token (**A-08**) |
 | **GAP-4** | **Nothing measured end to end** | Unchanged, and now precisely diagnosed: the runtime **installs** (PyPI is open) and the **weights cannot be fetched** (**A-09**). MADLAD's quality assumed, Tier 2 cold start assumed. Tier 1's bar is recorded (DEC-026) |
-| **GAP-5** | **The MVP is incomplete by its own definition** | ⚠️ **Built, and still not closed.** `morphology.py` is implemented against a **user-installed** HornMorpho (**DEC-028**), with 16 tests covering spans, offsets and every failure path via an injected analyser. A clean `pip install` still cannot analyse morphology, and **nothing has measured it** — the `metrics.md` row stays ❌ |
+| **GAP-5** | **The MVP is incomplete by its own definition** | ⚠️ **Built and now measurable, still not closed.** `morphology.py` is implemented against a **user-installed** HornMorpho (**DEC-028**), and `tigrinya_eval.morphology` now provides five intrinsic checks, each with its failure path tested against injected analysers. A clean `pip install` still cannot analyse morphology, so all five report **SKIP** — a third state that is deliberately not a pass. The `metrics.md` row stays ❌ until an analyser is present |
 
 ---
 
@@ -102,7 +102,7 @@ leverage, not for order.**
 
 ```mermaid
 graph TD
-    A15["A-15 · install CI<br/>ONE COMMAND"] --> ENF["25 checks enforcing"]
+    A15["A-15 · install CI<br/>ONE COMMAND"] --> ENF["27 checks enforcing"]
     A13["A-13 · native speaker<br/>sheets ready to send"] --> CORRECT["Correctness validated"]
     A02["A-02 · confirm DEC-002"] --> API["HTTP API"]
     A02 --> MCP["MCP server"]
@@ -149,7 +149,7 @@ Ordered by **leverage per minute of your time.**
 
 | # | Action | Your effort | Unlocks |
 | --- | --- | --- | --- |
-| **0.1** | **A-15 — install CI** | **One command** | **25 checks** start enforcing |
+| **0.1** | **A-15 — install CI** | **One command** | **27 checks** start enforcing |
 | **0.2** | **A-13 — send the sheets** | Find a speaker; **~25 min of theirs** | **GAP-1 — whether any of our Tigrinya is correct** |
 | **0.3** | **A-02 — confirm DEC-002** | Read a 3-min summary, decide | The entire API/MCP/SDK surface |
 | **0.4** | **A-09 — a way to fetch model weights** | Config change | ⚠️ **Re-scoped:** the runtime installs from PyPI and *reading* about models is open. This is now only the weights — scoring anything at all (**GAP-4**), Tier 1, Tier 2, A-14 |
@@ -362,10 +362,23 @@ included.
 
 ## 12. What I can do without you
 
-**One thing, and it is not large.**
+**Nothing. Both items are done.**
 
-1. **Extend the intrinsic checks to morphology** — the code is written and the
-   analyser is a GPL-3.0 install away, so this can be *prepared* but not run.
+~~1. Extend the intrinsic checks to morphology.~~ **Done 2026-09-02** —
+`tigrinya_eval.morphology`, five checks (surface, alignment, determinism,
+coverage, normalisation). Every failure path is exercised today against
+injected analysers, so these are not unverified code waiting for an install.
+What waits for an install is the *measurement*.
+
+⚠️ **The interesting part was the third state.** With no analyser the checks
+report **SKIP** — not pass. Writing the obvious version ("if the analyser is
+missing, return early") would have manufactured a tenth check that could not
+fail, and a bad one: the `metrics.md` morphology row would have flipped to ✅ on
+a machine where morphology had never once run. So `PropertyResult` grew `SKIP`
+(loud, does not fail the build, `--require` converts it to a failure) and
+**`MEAS`** — a number recorded with no threshold, used for coverage because
+nothing has ever measured Tigrinya morphological coverage and a floor invented
+before the first measurement is not a pre-commitment.
 
 *(The `G-n` collision is resolved — see §2. **TICO-19 is ingested** — the
 segment count in the previous version of this list, ~6,142, was double-counting:

@@ -242,14 +242,17 @@ def test_report_carries_the_broken_not_wrong_caveat():
 def test_report_names_morphology_as_unevaluated():
     """Silence about an unevaluated capability reads as a pass.
 
-    Morphology is now *implemented* (DEC-028) and still unevaluated, which is a
-    strictly easier state to misread — "the module exists" invites the
-    assumption that it was measured. The report has to keep saying otherwise,
-    and has to say why: the analyser is GPL-3.0 and never bundled, so there is
-    nothing present to measure.
+    Morphology is now *implemented* (DEC-028) and has intrinsic checks of its
+    own, which is a strictly easier state to misread than before — "the module
+    exists and there are checks" invites the assumption that it was measured.
+    This report must keep pointing at the separate runner and must keep saying
+    why a result there may not be a measurement: the analyser is GPL-3.0 and
+    never bundled, so the checks SKIP rather than pass.
     """
     report = evaluate_primitives(TEXTS).report()
-    assert "Morphology is not evaluated" in report
+    assert "tigrinya_eval.morphology" in report
+    assert "SKIP rather than pass" in report
+    assert "not evidence the property holds" in report
     assert "DEC-028" in report
     assert "GPL-3.0" in report
 

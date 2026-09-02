@@ -123,8 +123,91 @@ def run_figure_plants() -> list[str]:
     return problems
 
 
+# --------------------------------------------------------------------------
+# tigrinya_eval.morphology — the intrinsic checks
+#
+# These are the checks most exposed to the failure this file exists to catch.
+# Their analyser is GPL-3.0 and absent here (DEC-028), so all five SKIP, and a
+# skip that quietly reads as a pass would flip the metrics.md morphology row to
+# ✅ on a machine where morphology has never once run.
+#
+# Injected analysers make that testable today: a broken one must fail, and the
+# skip must stay distinct from a pass.
+# --------------------------------------------------------------------------
+
+MORPH_PLANT = '''
+import sys
+sys.path.insert(0, "services/evaluation/src")
+sys.path.insert(0, "services/primitives/src")
+from tigrinya_eval.morphology import (
+    check_surface, check_alignment, check_determinism, evaluate_morphology)
+
+TEXTS = ["ሰላም ዓለም", "ፀሓይ ትወጽእ ኣላ"]
+n = [0]
+
+def good(w):
+    return [{"seg": "<" + w + ">"}]
+
+def moving(w):
+    n[0] += 1
+    return [{"seg": "<" + w + ":" + str(n[0]) + ">"}]
+
+CASE = sys.argv[1]
+if CASE == "determinism_broken":
+    words = sorted({w for t in TEXTS for w in t.split()})
+    ok = check_determinism(words, analyser=moving).holds
+elif CASE == "determinism_good":
+    words = sorted({w for t in TEXTS for w in t.split()})
+    ok = check_determinism(words, analyser=good).holds
+elif CASE == "surface_broken":
+    import tigrinya_eval.morphology as m
+    real = m._analyse
+    m._analyse = lambda t, a: real(t, a).__class__(
+        surface=real(t, a).surface + "!", analysis=real(t, a).analysis)
+    ok = check_surface(TEXTS, analyser=good).holds
+elif CASE == "alignment_good":
+    ok = check_alignment(TEXTS, analyser=good).holds
+elif CASE == "skip_is_not_complete":
+    r = evaluate_morphology(TEXTS)
+    ok = not r.complete and bool(r.skipped())
+elif CASE == "require_fails_when_absent":
+    ok = not evaluate_morphology(TEXTS, require=True).holds
+else:
+    raise SystemExit("unknown case")
+
+sys.exit(0 if ok else 1)
+'''
+
+MORPH_PLANTS = [
+    ("determinism catches a moving analyser", "determinism_broken", 1),
+    ("determinism passes a stable analyser", "determinism_good", 0),
+    ("surface catches a mangled surface form", "surface_broken", 1),
+    ("alignment passes well-formed spans", "alignment_good", 0),
+    ("a skipped check is not 'complete'", "skip_is_not_complete", 0),
+    ("--require fails when the analyser is absent", "require_fails_when_absent", 0),
+]
+
+
+def run_morphology_plants() -> list[str]:
+    problems = []
+    with tempfile.TemporaryDirectory() as tmp:
+        script = pathlib.Path(tmp) / "plant.py"
+        script.write_text(MORPH_PLANT, encoding="utf-8")
+        for label, case, expect in MORPH_PLANTS:
+            r = subprocess.run([sys.executable, str(script), case],
+                               cwd=REPO, capture_output=True, text=True)
+            status = "PASS" if r.returncode == expect else "FAIL"
+            print(f"  [{status}] morphology: {label} "
+                  f"(exit {r.returncode}, expected {expect})")
+            if r.returncode != expect:
+                detail = (r.stderr or r.stdout).strip().splitlines()[-1:] or [""]
+                problems.append(f"morphology plant misbehaved: {label} — {detail[0]}")
+    return problems
+
+
 def main() -> int:
-    problems = run_screen_plants() + run_figure_plants()
+    problems = (run_screen_plants() + run_figure_plants()
+                + run_morphology_plants())
     print()
     for p in problems:
         print(f"::error::{p}")
@@ -132,8 +215,8 @@ def main() -> int:
         print(f"{len(problems)} planted failure(s) did not behave as specified — "
               f"a check has stopped being able to fail")
         return 1
-    print(f"all {len(SCREEN_PLANTS) + len(FIGURE_PLANTS)} planted cases behaved "
-          f"as specified")
+    total = len(SCREEN_PLANTS) + len(FIGURE_PLANTS) + len(MORPH_PLANTS)
+    print(f"all {total} planted cases behaved as specified")
     return 0
 
 

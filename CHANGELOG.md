@@ -22,6 +22,59 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Morphology intrinsic checks — and a third state that is not a pass — 2026-09-02
+
+**`tigrinya_eval.morphology`: five intrinsic checks over morphological
+analysis** — surface, alignment, determinism, coverage, normalisation. The last
+item in the readiness plan's "what I can do without you" is done.
+
+#### The design problem was not the checks
+
+HornMorpho is GPL-3.0 and never bundled (DEC-028), so it is absent here and on
+any clean install. The obvious way to handle that — return early when the
+analyser is missing — **manufactures a tenth check that could not fail**, and a
+uniquely bad one: the `metrics.md` morphology row would flip from ❌ to ✅ on a
+machine where morphology had never once executed.
+
+So `PropertyResult` grew two states that are neither pass nor fail:
+
+| State | Meaning | Behaviour |
+| --- | --- | --- |
+| **SKIP** | the analyser is genuinely absent | does not fail the build, but the verdict line reads `PASS (with N check(s) NOT RUN)` and a NOT MEASURED block prints. `--require` converts it to a failure |
+| **MEAS** | a number with no threshold judging it | reported, never counted as a pass |
+
+`IntrinsicReport.complete` was added alongside `holds`: `holds` answers "should
+the build go green", `complete` answers "was the thing measured". They differ
+exactly when an optional analyser is missing, and conflating them is how
+"morphology is fine" would come to mean "morphology was never looked at".
+
+**Coverage and normalisation are MEAS, not thresholds.** Nothing has ever
+measured Tigrinya morphological coverage, so any floor written before the first
+real run would be a guess wearing the clothes of a pre-commitment. Coverage is
+also explicitly a **lower bound** — `analyse` falls back to the surface form,
+which conflates "the analyser could not handle this" with "this word is
+genuinely uninflected", and the check says so rather than pretending otherwise.
+
+#### These are tested today, not waiting for an install
+
+Every failure path runs against an **injected analyser**, the same mechanism
+`morphology.analyse` already provides for exactly this reason. 16 new tests plus
+**6 new planted cases** in `scripts/tests/test_plants.py`: a moving analyser
+must fail determinism, a mangled surface must fail the DEC-022 guarantee,
+well-formed spans must still pass, and a skip must never read as complete.
+
+Two CI steps guard the distinction itself — one asserts the NOT MEASURED block
+is present in the build log, the other asserts `--require` still *fails* with no
+analyser. If that second one ever goes green, SKIP has collapsed into PASS and
+every morphology property is silently "verified".
+
+**What genuinely waits for an install** is the measurement, and one thing more:
+`morphology._render` is written against HornMorpho's *documented* output shape,
+which upstream's own docstrings contradict. The report says so on any run where
+an analyser is present.
+
+**CI reaches 27 checks.** The `metrics.md` morphology row stays ❌ — by design.
+
 ### TICO-19 ingested — and it proved the variety gate was reading backwards — 2026-09-02
 
 **A second clean anchor, and a bigger finding than the anchor.**
@@ -121,7 +174,7 @@ commits **16 planted cases** — 7 against the mojibake gate, 9 against
 `check_figures` — asserting both that each check fires and that it does not fire
 on legitimate text. It runs in CI.
 
-**CI reaches 25 checks.**
+**CI reaches 27 checks.**
 
 ### The `G-n` collision resolved across the repository — 2026-09-02
 
