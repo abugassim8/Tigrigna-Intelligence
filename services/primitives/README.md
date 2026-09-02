@@ -31,9 +31,15 @@ a.analysis_is_phonemic                 # False — declared, not implied
 | **Morphological analysis** | ⛔ **blocked on A-07** |
 
 Morphology is deliberately unimplemented. HornMorpho is the only established
-Tigrinya analyser and its **licence is unresolved**; adopting it would pass a
-restriction to downstream users under P-9/A-009. `morphology.is_available()`
-returns `False` so callers can degrade rather than crash.
+Tigrinya analyser, and as of 2026-09-01 its licence is **known: GPL-3.0**
+`[verified]` from its `LICENSE.txt`. That is worse than unresolved for our
+purposes — **DEC-020 chose Apache-2.0 precisely because no dependency imposed
+copyleft**, and GPLv3 cannot be redistributed under Apache-2.0.
+
+`morphology.is_available()` returns `False` so callers degrade rather than
+crash, and that stub is also the most likely resolution: **HornMorpho as an
+optional dependency the user installs themselves**, so we never distribute the
+combination. The decision is **A-07**.
 
 ## Design, and why
 

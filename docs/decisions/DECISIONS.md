@@ -1622,6 +1622,36 @@ matches what the surrounding ecosystem already uses.
 **Evidence:** `../research/summaries/012-licence-and-sustainability.md`;
 licence metadata `[verified]` 2026-08-17
 
+### Amendment 1 — 2026-09-01: a dependency on the critical path *does* impose copyleft
+
+The decision stands. Its stated basis no longer holds unconditionally.
+
+DEC-020 rests on **"no upstream code imposes copyleft"**, and *"revisit when a
+dependency changes licence"*. Neither anticipated the actual case: a dependency
+whose licence never changed, but which had never been read. **HornMorpho is
+GPL-3.0** `[verified]` 2026-09-01 from its `LICENSE.txt` — and DEC-006 puts
+morphology, which HornMorpho is the only established analyser for, on the
+critical path.
+
+The asymmetry is what bites. Apache-2.0 code may be taken into a GPLv3 work;
+**GPLv3 code cannot be redistributed under Apache-2.0**. So "no dependency
+imposes copyleft" is true **only while morphology stays unimplemented** — which
+is to say, only while DEC-006's MVP stays incomplete.
+
+**What is unchanged:** every dependency we actually ship is still permissive, so
+Apache-2.0 remains correct today. **What is now conditional:** it stops being
+correct the moment HornMorpho is linked and distributed.
+
+**A-07 is the decision that resolves it**, and the recommended route keeps
+DEC-020 intact — HornMorpho as an **optional dependency the user installs
+themselves**, so the combination is never ours to distribute. The existing
+`morphology.is_available()` stub already implements that shape.
+
+⚠️ **The lesson for this register:** *"revisit when a dependency changes
+licence"* is the wrong trigger. It assumes the licence was read once. The
+trigger should be **"revisit when a dependency is adopted"**, because the
+dangerous case is a licence that was never checked, not one that moved.
+
 ---
 
 ## DEC-021 — Extend the evaluation anchors to cover the MVP primitives

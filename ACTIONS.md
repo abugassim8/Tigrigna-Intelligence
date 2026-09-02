@@ -45,9 +45,9 @@ itself a research finding.
 | **A-04** | Request the TiQuAD test set | 🟠 High | DEC-005 — canonical evaluation | TODO |
 | **A-05** | Establish terms for the 1.4M en–ti pairs — **identified as OPUS NLLB mined bitext** | 🟠 High *(was Blocking)* | Insurance on DEC-011 — ⚠️ **weakened**: a published fine-tune on this data scored chrF **4.99** | TODO |
 | **A-06** | Legal review of TiQuAD's copyright position | 🟠 High | Whether we can ship anything using it | TODO |
-| **A-07** | Resolve HornMorpho licence + Tigrinya version | 🟡 Medium | Morphology service (DEC-006 critical path) | TODO |
+| **A-07** | **Decide how morphology handles GPL-3.0** — HornMorpho's licence is answered, the architecture is not | 🟠 High | Morphology, completing Tier 0 (DEC-006 critical path); collides with **DEC-020** | TODO |
 | **A-08** | Set an `HF_TOKEN` for this environment | 🟠 **High** *(was Medium)* | **FLORES+ is a gated repo** — the token is what unlocks the full 997/1,012 devtest, the fix for G-3 | TODO |
-| **A-09** | Arrange a session with unrestricted egress | 🟠 **High** | The whole verification backlog — **and Tier 1 embeddings, which nothing else blocks** (DEC-026) | TODO |
+| **A-09** | **Fetch model weights** — the runtime installs, the weights do not | 🟠 **High** | Scoring any model at all (**G-4**), Tier 1 embeddings. *Re-scoped: reading about models is no longer blocked* | TODO |
 | **A-10** | Introduce the project to GeezLab / L3S | 🟢 Low | Collaboration (G-11) | TODO |
 | **A-11** | Licence clarification on `fidel` | 🟢 Low | Transliteration option | TODO |
 | ~~**A-12**~~ | ~~Choose the project licence~~ | ✅ **DONE** | Resolved by **DEC-020** | **DONE** |
@@ -104,9 +104,31 @@ assumes model reuse.
 
 ⚠️ **Corrected 2026-08-23: this does NOT unblock the embeddings service.**
 `tiroberta-bi-encoder` and `tielectra-bi-encoder` are already Apache-2.0 — see
-the parenthesis above. **Tier 1 is blocked on A-09 alone** (DEC-026). This
-entry claimed otherwise for 25 days, and so did the readiness plan's
-dependency graph.
+the parenthesis above. This entry claimed otherwise for 25 days, and so did the
+readiness plan's dependency graph.
+
+> ### ⚠️ Amended 2026-09-01 — the chain, not the tag
+>
+> That correction was right about the **declared licence** and incomplete about
+> what the models are **derived from**. `tiroberta-bi-encoder`'s own card says it
+> is "based on [TiRoBERTa-base](https://huggingface.co/fgaim/tiroberta-base)" —
+> and `fgaim/tiroberta-base` carries **no licence tag at all** `[verified]`
+> against the live Hub. A fine-tune's Apache-2.0 header does not license the
+> weights it started from.
+>
+> **So A-01 does touch Tier 1** — as an unresolved provenance question rather
+> than a blocker on the bi-encoder's own tag. Ask about the base models and the
+> fine-tunes in the same message; the draft above already covers both.
+>
+> The cautionary case is in the wild: `Hailay/entimt-en-tigrinya-mt` declares
+> **cc-by-4.0** over a **cc-by-nc-4.0** NLLB base. A derivative cannot drop the
+> NC. Full audit in `docs/research/references/models.md`.
+>
+> ⚠️ **And a contamination note**, recorded before it can be discovered after the
+> fact: the bi-encoder card says it was trained on "Tigrinya question-answering
+> and information retrieval datasets". The plausible source is **TiQuAD**, which
+> is also one of DEC-005's evaluation anchors — so scoring this model on
+> TiQuAD-derived data would be contaminated. Worth asking the author outright.
 
 **If refused or unanswered:** the reuse plan narrows sharply — see
 `docs/research/summaries/001-tigrinya-nlp-ecosystem-scan.md` for what remains.
@@ -186,6 +208,18 @@ folded into A-01 or A-04).
 TiQuAD's test split (1,122 questions) is **deliberately withheld** to prevent
 contamination and released only on request. Without it we evaluate on validation
 only and must say so — which weakens comparability with published results.
+
+> **Alternative found 2026-09-01: TIGQA.** *TIGQA: An Expert-Annotated
+> Question-Answering Dataset in Tigrinya* (arXiv **2404.17194**) is a second,
+> independent expert-annotated QA set that the original research never located.
+> Worth assessing before pressing on TiQuAD — **if its source text does not carry
+> A-06's unresolved-copyright problem, it may be the better anchor.** The paper
+> itself is unread: `arxiv.org` is still egress-blocked (**A-09**).
+>
+> Hub metadata `[verified]` this session: `fgaim/tiquad` is tagged
+> **cc-by-sa-4.0**, 10.6K QA pairs over 572 paragraphs from 290 news articles;
+> `fgaim/tigrinya-squad` (machine-translated silver training data, explicitly
+> *not* for evaluation) is also cc-by-sa-4.0.
 
 **The authors specify the format.** Send to `fitsum.gaim@kaist.ac.kr`:
 
@@ -311,24 +345,47 @@ same conversation.
 
 ---
 
-## 🟡 A-07 — HornMorpho licence and Tigrinya version status
+## 🟠 A-07 — Morphology under GPL-3.0 · **the licence question is ANSWERED**
 
-HornMorpho is the **only established Tigrinya morphological analyser**, and
-DEC-006 puts morphology on the critical path. Three unknowns:
+**HornMorpho is GPL-3.0.** Verified 2026-09-01 from
+[`hltdi/HornMorpho/LICENSE.txt`](https://raw.githubusercontent.com/hltdi/HornMorpho/master/LICENSE.txt)
+— the full GPLv3 text. Nobody needs to be emailed.
 
-1. **Licence** — unknown. Blocks adoption under **P-9**.
-2. **Tigrinya version** — docs say *"Version 5 replaces Version 4.5 for Amharic.
-   For other languages, see Version 4.3."* **Does v5.3.5 fully support Tigrinya,
-   or should Tigrinya users be on 4.3?**
-3. **Maintenance** — not on PyPI; GitHub-only, hand-built wheel.
+The three unknowns this action was opened for:
 
-**Also check `fgaim/HornMorpho`** — a GeezLab fork exists, and may be the
-Tigrinya-relevant line of development. Ask in A-01 if convenient.
+| Question | Answer |
+| --- | --- |
+| **Licence** | **GPL-3.0** `[verified]` — full text in `LICENSE.txt` |
+| **Tigrinya version** | **v5.3 supports Tigrinya and Tigre** alongside Amharic and Oromo; latest is **5.3.6, April 2026** |
+| **Maintenance** | Confirmed **not on PyPI** (404). `setup.py` declares **no licence metadata at all** — the licence exists only as `LICENSE.txt` |
 
-**Contact:** GitHub issues on `hltdi/HornMorpho`.
+⚠️ **This was answerable the whole time.** The action said *"GitHub is
+unreachable from my session"*. `raw.githubusercontent.com` responds 200 and
+does today — see `RESEARCH_ACCESS.md`. A blocker sat on the register for weeks
+because an access assumption was never re-tested.
 
-**Why I couldn't do this:** GitHub is unreachable from my session and `add_repo`
-refuses cross-owner repositories. See `docs/research/RESEARCH_ACCESS.md`.
+### What it becomes: a decision, and it collides with DEC-020
+
+**DEC-020 chose Apache-2.0 for code, explicitly because "no code dependency
+imposes copyleft".** HornMorpho does. The direction matters: Apache-2.0 code can
+be taken into a GPLv3 work, but **GPLv3 code cannot be redistributed under
+Apache-2.0**. Importing HornMorpho into `services/primitives` and shipping the
+result is not available to us as DEC-020 stands.
+
+| Option | Consequence |
+| --- | --- |
+| **Optional dependency — recommended** | We never distribute HornMorpho. `morphology.is_available()` returns `False` until the *user* installs it themselves, and the combination is theirs, not ours. **The stub API already works this way** — this is the least new machinery of any option |
+| Out-of-process only | Invoke it as a separate program over IPC. The usual copyleft mitigation, but the boundary is a legal judgement rather than a technical fact, and we would still be shipping it |
+| Relicense the platform GPL-3.0 | Contradicts DEC-020, and imposes copyleft on the application developers DEC-002 names as the primary users |
+| Don't adopt | Morphology stays a documented gap. **G-5 becomes permanent**, and DEC-006's MVP is permanently incomplete by its own definition |
+| `fgaim` POS models instead | ⚠️ **Worse** — those carry **no licence at all** (**A-01**). Trading a known copyleft for an unknown |
+
+**What is needed from you:** pick one. This is the same shape as **A-17** — a
+one-line rule, not an email — and it should become a decision record. There is
+no correspondence to wait for.
+
+**Note on scope:** GPL-3.0 does not stop us *evaluating* HornMorpho or measuring
+morphological accuracy against it locally. Only distribution is constrained.
 
 ---
 
@@ -363,23 +420,47 @@ step under DEC-008 and the size-tag finding.
 
 ---
 
-## 🟡 A-09 — Arrange a session with unrestricted egress
+## 🟠 A-09 — Model **weights** cannot be fetched · *re-scoped 2026-09-01*
 
-`arxiv.org`, `aclanthology.org`, publisher domains, Semantic Scholar, Wikipedia,
-and `*.github.io` are **blocked by egress policy** in this environment. That is
-why several findings are marked `[reported]` rather than `[verified]`.
+⚠️ **This was one action covering two different blockers, and only one of them
+is real.** Re-measuring the egress policy (see `RESEARCH_ACCESS.md`) split it:
 
-**The verification backlog** (full list in `docs/research/RESEARCH_ACCESS.md`):
+| | Status |
+| --- | --- |
+| **Reading about models** — licences, cards, provenance, parameter counts, dataset structure | ✅ **Open**, through the Hugging Face connector. Open all along |
+| **Installing the runtime** — `torch`, `transformers`, `sentence-transformers` | ✅ **Open** — PyPI is reachable and they install |
+| **Fetching model weights** | ❌ **Blocked** — `huggingface.co` direct downloads are refused |
+| Papers — `arxiv.org`, `aclanthology.org`, publishers, Semantic Scholar | ❌ Blocked |
+| `opus.nlpl.eu`, `tico-19.github.io` | ❌ Blocked |
+
+**So A-09 is now precisely one thing: we have the runtime and cannot get the
+weights.** "Score a model through the harness" (**G-4**) still cannot happen.
+Everything else once filed under A-09 — comparing candidates, auditing licence
+chains, reading dataset provenance — is done or doable.
+
+### ⚠️ What that cost us
+
+This action's own backlog listed **"HornMT — an unassessed corpus lead"**, under
+the wrong owner (`gebre/HornMT`; it is `asmelashteka/HornMT`). It was never
+assessed because the register said GitHub was unreachable. It is **CC-BY-4.0,
+2,030 human-translated pairs**, it took one `curl`, and it falsifies the
+`[verified]` claim that we had **0 cleanly-licensed parallel sentences**. An
+unre-tested access assumption hid the answer to a blocking question for weeks.
+
+**The lesson is mechanical, not moral:** an access map is a measurement, and
+measurements go stale. `RESEARCH_ACCESS.md` now carries the date it was taken.
+
+### Still genuinely unread
 
 - **arXiv 2507.17974** — the Tigrinya NLP survey. Highest-value source; never read.
-- **arXiv 2509.08812** — MoVoC, incl. the 21→6 fertility claim, and its **released
-  morpheme data** which may be directly reusable.
-- **ACL 2023 TiQuAD paper** — resolve the baseline discrepancy (card says F1
-  56–62; a search summary claimed 81%).
+- **arXiv 2509.08812** — MoVoC, incl. the 21→6 fertility claim and its released
+  morpheme data. *(Its authors' MT model is now assessed — see `models.md`.)*
+- **ACL 2023 TiQuAD paper** — the baseline discrepancy (card says F1 56–62; a
+  search summary claimed 81%).
 - **CoDET (2305.17267)** — the COMET 0.82/0.80 dialect figures behind DEC-004.
 - **TiNC24** — 200K-word NER corpus, never located.
-- **`tigrinyanlp.github.io`** — a Tigrinya NLP resource hub.
-- **HornMT** (`github.com/gebre/HornMT`) — an unassessed corpus lead.
+- ~~**HornMT**~~ ✅ **assessed and ingested** — `data/anchors/hornmt/`.
+- ~~`tigrinyanlp.github.io`~~ — reachable via WebSearch summaries; low value now.
 
 ---
 
@@ -402,6 +483,13 @@ is small, active, and fragmented — nobody else is building the integration lay
 `fidel` (PyPI) does Ge'ez ↔ Latin transliteration but states **no licence**.
 Minor: Epitran already covers our decomposition need (DEC-007), so this is a
 nice-to-have alternative.
+
+**Re-checked against the live PyPI JSON API, 2026-09-01** — this is now
+`[verified]` rather than `[reported]`. Version **0.1.0**, uploaded
+**2024-09-17**; `license` is `null`, `license_expression` is `null`, and there
+are **no licence classifiers at all**. Not a metadata-reporting artefact: the
+package genuinely declares nothing. Unusable under **P-9** until the author
+says otherwise.
 
 **Contact:** `https://github.com/nypava/Fidel`
 

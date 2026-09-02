@@ -22,6 +22,72 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Five actions described a world that had changed — 2026-09-01
+
+Phase B: correcting the record against what is now measurable. Five register
+entries were rewritten, and **not one of them needed the email it was waiting
+for.**
+
+**A-07 — HornMorpho's licence is answered: GPL-3.0.** `[verified]` from
+[`LICENSE.txt`](https://raw.githubusercontent.com/hltdi/HornMorpho/master/LICENSE.txt),
+the full GPLv3 text. v5.3.6 (April 2026), Tigrinya and Tigre supported, **not on
+PyPI**, and `setup.py` declares no licence metadata at all. The action said
+*"GitHub is unreachable from my session"*; `raw.githubusercontent.com` responds
+200 and does today. **A blocker sat on the register for weeks because an access
+assumption was never re-tested.**
+
+It stops being a question and becomes a decision — and a collision. **DEC-020
+chose Apache-2.0 explicitly because "no upstream code imposes copyleft".**
+HornMorpho does, and GPLv3 cannot be redistributed under Apache-2.0. → **DEC-020
+Amendment 1**, the sixth decision to carry one. The recommended resolution keeps
+DEC-020 intact: HornMorpho as an **optional dependency the user installs
+themselves**, which is the shape `morphology.is_available()` already has.
+
+> ⚠️ **The amendment's real lesson is about the trigger.** DEC-020 said *"revisit
+> when a dependency changes licence"*. That assumes the licence was read once.
+> HornMorpho's never changed — it had never been read. The trigger should be
+> **"revisit when a dependency is adopted"**.
+
+**A-09 was one action covering two different blockers.** Re-measured: *reading
+about* models is open through the Hugging Face connector and was open all along;
+PyPI installs `torch` and `sentence-transformers`; **`huggingface.co` direct
+downloads are refused**. So A-09 is now exactly one thing — we have the runtime
+and cannot get the weights.
+
+⚠️ **And it cost us something concrete.** A-09's own backlog listed *"HornMT — an
+unassessed corpus lead"*, under the wrong owner. It was never assessed because
+the register said GitHub was unreachable. It is CC-BY-4.0, took one `curl`, and
+falsifies the `[verified]` claim that we had 0 cleanly-licensed parallel
+sentences.
+
+**A-08 guards a gate, not a rate limit.** `openlanguagedata/flores_plus` returns
+**401** — a gated repo, not an egress denial. A read-scope token is what unlocks
+the full 997/1,012 devtest. Medium → **High**.
+
+**A-05 is re-uploaded OPUS NLLB bitext.** 1,398,177 rows against EnTiMT's
+independently listed 1,398,173. The terms that matter are OPUS's and NLLB's, not
+an uploader's permission. Blocking → **High**.
+
+**A-01 reaches Tier 1 after all — through the chain, not the tag.** The
+2026-08-23 correction ("Tier 1 is blocked on A-09 alone") was right about the
+bi-encoders' declared Apache-2.0 and silent on what they are built from:
+`fgaim/tiroberta-base` carries **no licence at all**. Correcting a dependency
+error by loosening it too far is its own failure mode, and it took nine days to
+notice.
+
+**A-04 gains an alternative and A-11 gains certainty.** TIGQA (arXiv 2404.17194)
+is a second expert-annotated Tigrinya QA set the original research never located
+— worth assessing before pressing on TiQuAD, since it may not carry A-06's
+unresolved-copyright problem. `fidel` re-checked live: `license` null,
+`license_expression` null, **no licence classifiers** — `[reported]` becomes
+`[verified]`.
+
+**Also corrected:** `services/primitives/README.md`, `PROJECT_CONTEXT.md` and
+`RESEARCH_ACCESS.md` all described HornMorpho's licence as unresolved. The
+access page additionally records that its clever GitHub workaround was solving a
+restriction that **had stopped applying** — a fallback that works becomes a
+reason never to re-test the direct route.
+
 ### First cleanly-licensed parallel corpus; "zero" was false — 2026-09-01
 
 **HornMT is committed at `data/anchors/hornmt/`** — **2,030 human-translated

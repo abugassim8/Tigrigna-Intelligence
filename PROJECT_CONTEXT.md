@@ -242,8 +242,10 @@ is the number `03_data_strategy` must plan against.
 
 1. **Licence resolution on the `fgaim` models** — several carry no stated
    licence, including the family's base. Blocks DEC-003 under **P-9**.
-2. **HornMorpho maintenance status** — the only established Tigrinya
-   morphological analyser, now on the critical path via DEC-006.
+2. ~~**HornMorpho maintenance status**~~ — **answered 2026-09-01.** It is
+   **GPL-3.0**, v5.3.6 (April 2026), supports Tigrinya and Tigre, and is **not
+   on PyPI**. The open item is no longer a licence question but an
+   architectural one: GPLv3 collides with DEC-020's Apache-2.0 choice. → **A-07**
 3. **DEC-002 needs owner confirmation** — the user determination is inferential.
 4. **TiQuAD's copyright position needs legal review** — its authors do not own
    the source-article copyright; it is fair-use "academic research purposes

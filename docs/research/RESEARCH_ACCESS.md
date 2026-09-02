@@ -157,6 +157,12 @@ scope, **direct GitHub inspection of external dependencies is unavailable.**
 versioned releases through standard channels), and WebSearch supplied the version
 (5.3.5), language coverage, and the existence of a `fgaim` fork.
 
+> ⚠️ **Superseded 2026-09-01.** `raw.githubusercontent.com` responds, and
+> `LICENSE.txt` fetched directly settles it: **GPL-3.0**. The workaround above
+> was a good workaround for a restriction that had **stopped applying**. Worth
+> keeping as the method, and worth noting as the cost: a fallback route that
+> works becomes a reason never to re-test the direct one.
+
 ---
 
 ## Evidence marking convention
@@ -198,5 +204,6 @@ Sources that need re-checking from a session with unrestricted egress:
 - **CoDET** (2305.17267) — the COMET 0.82/0.80 dialect figures behind DEC-004.
 - **TiNC24** — the reported 200K-word NER corpus, never located.
 - **`tigrinyanlp.github.io`** — a Tigrinya NLP resource hub, blocked.
-- **HornMorpho on GitHub** — maintenance status, licence, and whether Tigrinya
-  support in v5.3 lags Amharic.
+- ~~**HornMorpho on GitHub**~~ ✅ **resolved 2026-09-01** — **GPL-3.0**, v5.3.6
+  (April 2026), Tigrinya and Tigre supported, not on PyPI, and `setup.py`
+  declares no licence metadata at all.

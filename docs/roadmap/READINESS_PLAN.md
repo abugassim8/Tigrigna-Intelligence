@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-08-24** after eleven work items |
+| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-01** after thirteen work items |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
 | **Basis** | **25 decisions · 8 experiments · 16 summaries · 129 tests · 4 audits** |
 
@@ -23,8 +23,8 @@ output, and know what they are getting.
 | --- | --- | --- |
 | **Every MVP capability has a metric** | ✅ **MET** — no `TBD` left in an MVP row | — |
 | **Install-to-first-call** | ✅ **MET** — `pip install` and a working call in the README | — |
-| Tier 0 complete | ⚠️ **3 of 4** — morphology is a stub | **A-07** |
-| Licensing clean | ⚠️ **partial** — bi-encoders Apache-2.0; `fgaim` base models unstated | **A-01** |
+| Tier 0 complete | ⚠️ **3 of 4** — morphology is a stub | **A-07** — no longer a licence *unknown*; HornMorpho is **GPL-3.0**, and the question is architectural |
+| Licensing clean | ⚠️ **partial** — bi-encoders Apache-2.0 but built on an **unlicensed base**; `fgaim` base models unstated | **A-01** |
 | Rules enforce themselves | ❌ CI written, **never run** | **A-15** |
 | **A native speaker has validated the output** | ❌ **instrument built and unsent** | **A-13** |
 
@@ -73,8 +73,8 @@ been scored.** CI has never run.
 | --- | --- | --- |
 | **G-1** | **No native-speaker validation** | ⚠️ **Unchanged in substance, but no longer blocked on design.** The instrument exists — 134 items, ~25 minutes. Every intrinsic check still catches *broken*, not *wrong* |
 | **G-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 20 checks, not 14.** All written, all locally verified, **none running** |
-| **G-3** | **Evaluation anchors are hollow** | Unchanged. One anchor unusable (TiQuAD), the other a **30-sentence sample** — and experiment 007 found confidence intervals stop being trustworthy below n≈5, which that sample's breakdowns land in |
-| **G-4** | **Nothing measured end to end** | Unchanged. MADLAD's quality assumed, Tier 2 cold start assumed. **Tier 1's bar is now recorded** (DEC-026), so the measurement is a script away |
+| **G-3** | **Evaluation anchors are hollow** | ⚠️ **Materially better.** **HornMT is ingested** — 2,030 human-translated pairs, CC-BY-4.0, **68× the 30-sentence sample** and 0 overlap with it. Still one domain (news), and full FLORES+ is **gated, not blocked** — one token (**A-08**) buys 997/1,012 devtest and comparability with published work |
+| **G-4** | **Nothing measured end to end** | Unchanged, and now precisely diagnosed: the runtime **installs** (PyPI is open) and the **weights cannot be fetched** (**A-09**). MADLAD's quality assumed, Tier 2 cold start assumed. Tier 1's bar is recorded (DEC-026) |
 | **G-5** | **The MVP is incomplete by its own definition** | Unchanged. Morphology remains a stub (**A-07**) |
 
 ---
@@ -91,11 +91,13 @@ graph TD
     A02["A-02 · confirm DEC-002"] --> API["HTTP API"]
     A02 --> MCP["MCP server"]
     API --> SDK["Python + JS SDKs"]
-    A09["A-09 · egress"] --> T1["Tier 1 embeddings"]
+    A09["A-09 · model weights<br/>runtime installs, weights do not"] --> T1["Tier 1 embeddings"]
     A09 --> MADLAD["Score MADLAD"]
     A09 --> T2["Tier 2 translation"]
+    A08["A-08 · HF token<br/>FLORES+ is GATED"] --> ANCHOR["Full FLORES+ anchor"]
     A01["A-01 · fgaim licences"] --> REUSE["wider model reuse"]
-    A07["A-07 · HornMorpho"] --> MORPH["Morphology"]
+    A01 -.->|licence chain| T1
+    A07["A-07 · morphology under GPL-3.0<br/>A DECISION, not an email"] --> MORPH["Morphology"]
     A05["A-05 · parallel data"] --> TRAIN["Training ladder"]
     T2 --> A14["A-14 · cold start"]
     A14 --> DEPLOY["Deployment mode"]
@@ -107,14 +109,21 @@ graph TD
     style A15 fill:#2d6a4f,color:#fff
     style A13 fill:#9d0208,color:#fff
     style A09 fill:#bc6c25,color:#fff
+    style A08 fill:#2d6a4f,color:#fff
     style V01 fill:#1d3557,color:#fff
 ```
 
 ⚠️ **This graph previously routed `A-01 → Tier 1 embeddings`, and that was
 wrong for 25 days.** `tiroberta-bi-encoder` and `tielectra-bi-encoder` are
-**Apache-2.0**; A-01's own text said so in parentheses. **Tier 1 is blocked on
-A-09 alone.** A graph that overstates a blocker makes the wrong thing look
-urgent — found while designing the embeddings evaluation (DEC-026).
+**Apache-2.0**; A-01's own text said so in parentheses.
+
+⚠️ **And that correction was itself incomplete — amended 2026-09-01.** It was
+right about the *declared* licence and silent on the *chain*: the bi-encoder's
+card says it is built on `fgaim/tiroberta-base`, which carries **no licence at
+all**. A fine-tune's Apache-2.0 header does not license the weights it started
+from. So **A-01 does reach Tier 1**, as the dotted edge above — a provenance
+question, not a blocker on the bi-encoder's own tag. Correcting a dependency
+error by loosening it too far is its own failure mode.
 
 ---
 
@@ -127,10 +136,11 @@ Ordered by **leverage per minute of your time.**
 | **0.1** | **A-15 — install CI** | **One command** | **20 checks** start enforcing |
 | **0.2** | **A-13 — send the sheets** | Find a speaker; **~25 min of theirs** | **G-1 — whether any of our Tigrinya is correct** |
 | **0.3** | **A-02 — confirm DEC-002** | Read a 3-min summary, decide | The entire API/MCP/SDK surface |
-| **0.4** | **A-09 — a session with egress** | Config change | **Tier 1 embeddings** (nothing else blocks them), scoring MADLAD, Tier 2, A-14 |
-| **0.5** | **A-05 — email re parallel data** | Send a drafted email | The training ladder; 1.4M sentences |
-| **0.6** | A-07 — HornMorpho licence | One email | Morphology, completing Tier 0 |
-| **0.7** | A-01 — email `fgaim` | Send a drafted email | DEC-003's wider reuse. ⚠️ **Not Tier 1** |
+| **0.4** | **A-09 — a way to fetch model weights** | Config change | ⚠️ **Re-scoped:** the runtime installs from PyPI and *reading* about models is open. This is now only the weights — scoring anything at all (**G-4**), Tier 1, Tier 2, A-14 |
+| **0.5** | **A-08 — set an `HF_TOKEN`** | **Two minutes** | ⚠️ **Upgraded:** FLORES+ is a *gated* repo, not an egress casualty. The token buys the full 997/1,012 devtest — the real fix for **G-3** |
+| **0.6** | **A-07 — decide morphology's licence position** | **A decision, no email** | HornMorpho is **GPL-3.0** and collides with DEC-020. Morphology, completing Tier 0 |
+| **0.7** | A-01 — email `fgaim` | Send a drafted email | DEC-003's wider reuse — and ⚠️ **the bi-encoders' licence chain**, which does touch Tier 1 |
+| 0.8 | A-05 — establish terms for the mined 1.4M | Read OPUS/NLLB terms | ⚠️ **Downgraded** — it is re-uploaded OPUS NLLB bitext, and a published fine-tune on it scored chrF **4.99** |
 
 ```bash
 # 0.1 — do this one first
@@ -138,8 +148,8 @@ mkdir -p .github/workflows && git mv ci/verify.yml .github/workflows/verify.yml
 git commit -m "Activate CI verification workflow (DEC-018)" && git push
 ```
 
-**A-03, A-04, A-06, A-08, A-10, A-11, A-16, A-17** run in parallel whenever
-convenient. **A-03 is an ecosystem obligation we have been sitting on** — a
+**A-03, A-04, A-06, A-10, A-11, A-16** run in parallel whenever convenient.
+(**A-17** is closed; **A-08** was promoted into the table above.) **A-03 is an ecosystem obligation we have been sitting on** — a
 confirmed contamination finding in someone else's dataset, still unreported.
 
 ### A-13 — what to send
@@ -243,7 +253,7 @@ earlier, or not at all.
 
 ## 10. Delivered since this plan was written
 
-Eleven items, all unblocked work. **Every one found a defect**, which is the
+Thirteen items, all unblocked work. **Every one found a defect**, which is the
 argument for the next audit rather than a claim of thoroughness.
 
 | Item | What it produced |
@@ -259,6 +269,8 @@ argument for the next audit rather than a claim of thoroughness.
 | **Embeddings evaluation** → DEC-026 | Six properties measurable without annotation; **found the A-01 → Tier 1 dependency error** |
 | **This refresh** | Made this document's own headline numbers checkable — its `Basis` line matched no registered pattern, so nothing verified them. Immediately caught **"six decisions carry amendments"** when the answer is five. Then found the dates |
 | **Date correction** (A-17) | **257 corrections across 56 files.** Recomputing the intervals found one wrong by a factor of six *independently of the drift* — "DEC-008 spent three months as policy", in eleven places, when the record says 15 days |
+| **Phase A — HornMT ingested** | The project's **first cleanly-licensed parallel corpus**: 2,030 pairs, CC-BY-4.0, 68× the old anchor. Retracted **"0 cleanly-licensed parallel sentences"** from nine places. Found that screening **could not see the Latin half of a parallel corpus**, and that `flores_en.json` had been recording `BLOCKED` over one `ğ` |
+| **Phase B — the record re-measured** | Five actions described a world that had changed. **A-07's licence is answered** (HornMorpho is **GPL-3.0**, verified from `LICENSE.txt`); **A-09 was one action covering two blockers**; **A-08 guards a gate, not a rate limit**; **A-05 is re-uploaded OPUS bitext**; **A-01 reaches Tier 1 through the chain** |
 
 ### ✅ The dates in this record were wrong — and are now fixed
 
@@ -310,8 +322,8 @@ included.
 | --- | --- | --- |
 | **No Tigrinya speaker is found** | **Severe** — v0.1 unreachable; correctness can never be claimed | The instrument is ready. This has the longest lead time of anything here |
 | **MADLAD is poor at Tigrinya** | **Severe** — the translation tier fails | Unknown until 4.3. **The single largest unmeasured assumption** |
-| A-05 refused | Training ladder permanently blocked | MADLAD must then be good enough as shipped |
-| Egress stays blocked | Tier 1 **and** Tier 2 impossible | Everything else can proceed |
+| A-05 refused | Training ladder permanently blocked | ⚠️ **Less load-bearing than it looks.** The corpus is re-uploaded OPUS NLLB mined bitext, and a published fine-tune on it scored en→ti chrF **4.99**. MADLAD must be good enough as shipped either way |
+| Model weights stay unfetchable | Tier 1 **and** Tier 2 impossible; **nothing is ever scored** | The runtime installs and the licences are readable, so everything except running a model can proceed |
 | A-01 refused | Wider reuse narrows | ⚠️ **Does not affect Tier 1** — the bi-encoders are already clear |
 | CI never installed | The whole verification apparatus is decorative | One command |
 
@@ -319,12 +331,18 @@ included.
 
 ## 12. What I can do without you
 
-**Nothing substantial.** The date backlog that stood here is corrected — A-17
-answered, 71 stamps fixed, ceiling at 0 — and it was the last unblocked item.
+**Two things, and both are now unblocked by measurement rather than permission.**
 
-Everything else is finished too: validation instrument, three audits,
-conformance suite, consistency check, two experiments, the embeddings design,
-and this document's own instrumentation.
+1. **Ingest TICO-19 and assess the Travis Foundation corpus** — the two other
+   parallel leads. TICO-19 needs `tico-19.github.io`, which is egress-blocked,
+   but the data is mirrored in several reachable places worth trying.
+2. **Write the three decisions Phase C names** — morphology under GPL-3.0,
+   evaluation anchors v2, and the parallel-data position. Each is now a
+   *decision* with the facts assembled, not research waiting on a reply.
+
+Everything else is finished: validation instrument, three audits, conformance
+suite, consistency check, two experiments, the embeddings design, this
+document's own instrumentation, the date correction, and Phases A and B.
 
 What remains beyond the dates is either **blocked on a person** or is work I
 would rather not do blind: designing the API surface before A-02 answers who it
@@ -343,8 +361,11 @@ obtain a licence, reach a blocked host, or read Tigrinya as a speaker.
 **The method is working.** Measurement has overturned the project's own written
 claims repeatedly — DEC-007's token-efficiency rationale, DEC-023's
 1,639/1,639, the 22× cost saving, "384/384 zero gaps", and the CI word-count
-that could not count UTF-8. **Five decisions now carry amendments** (DEC-005,
-007, 009, 016, 023), all of them corrections the project made against itself.
+that could not count UTF-8. **Six decisions now carry amendments** (DEC-005,
+007, 009, 016, 020, 023), all of them corrections the project made against
+itself — the newest being **DEC-020**, whose "no dependency imposes copyleft"
+basis survived only because the one dependency on the critical path had never
+been read.
 
 **The engineering discipline is real and it is not self-congratulation:** seven
 checks have been found that *could not fail*, every one caught by deliberately
