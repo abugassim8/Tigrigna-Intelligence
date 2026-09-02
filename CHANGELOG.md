@@ -22,6 +22,47 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The readiness plan's autonomous backlog reached zero — 2026-09-02
+
+**§12, "What I can do without you", is empty for the first time.** The plan is
+refreshed across phases A–**E** to match, rather than patching the one section.
+
+**What an empty list means, and mostly does not mean.** Not that the project is
+nearly finished — the *unblocked* work has run out, which is a much narrower
+claim. Two consequences, the second more important than the first:
+
+1. Everything remaining needs a person: send an email, install a workflow,
+   obtain a token, read Tigrinya. §4 is now the whole plan.
+2. ⚠️ **This is the point of maximum risk of doing harm.** With nothing left to
+   unblock, the pull is to build the API surface before A-02 says who it is
+   for, or Tier 1 before A-09 lets it be measured — producing more unmeasured
+   artefacts. Nine checks in this repository have been found that could not
+   fail, every one written in good faith. **Building blind is how the tenth
+   gets written.** Stopping is recorded as a deliberate choice, not a default.
+
+**A risk was missing from §11 and is now in it.** Experiment 010 made it
+visible: DEC-004 commits this project to both Tigrinya standards, but **55.5% of
+HornMT's segments carry an Ethiopian-only marker** while TICO-19's Eritrean side
+carries none in 3,071. DEC-010's no-aggregate rule cannot fix a *corpus* that is
+skewed — it only stops the skew being averaged away. Rated **Severe**.
+
+#### The plan's own Basis line had an unverified number
+
+`28 decisions · 10 experiments · 16 summaries · **145 tests** · 5 audits` — the
+decisions, experiments and summaries counts are all derived and checked. **The
+test count was not**, appeared exactly once in the repository, and had drifted
+to 161 unnoticed. That is the same failure this document already records about
+its own Basis line, in the one field that escaped the fix.
+
+It is now enforced in CI rather than by `check_figures.py`, deliberately:
+deriving it needs pytest to collect, because parametrised cases make a static
+`def test_` count wrong (**123 against 161**), and `check_figures.py` has to keep
+running with no install. Verified by planting — a wrong count is caught, and so
+is the **claim being reworded away entirely**, which is how a check like this
+normally dies quietly.
+
+**CI reaches 28 checks.**
+
 ### Morphology intrinsic checks — and a third state that is not a pass — 2026-09-02
 
 **`tigrinya_eval.morphology`: five intrinsic checks over morphological

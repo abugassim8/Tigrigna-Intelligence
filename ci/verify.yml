@@ -67,6 +67,32 @@ jobs:
           experiments/002-tokenizer-fertility/corpus
           experiments/003-metric-validity/data
 
+      # The readiness plan's `Basis` line carries a test count, and unlike the
+      # decisions/experiments/summaries counts beside it, nothing verified it —
+      # so it drifted from 145 to 161 unnoticed. `check_figures.py` cannot own
+      # this one: deriving it needs pytest to collect (parametrised cases make a
+      # static `def test_` count wrong — 123 against 161), and that script must
+      # keep running with no install. So it is enforced here, where pytest
+      # already exists.
+      - name: The plan's test count matches the suite
+        run: |
+          set -euo pipefail
+          actual=$(pytest services --collect-only -q 2>/dev/null \
+                   | tail -2 | grep -oE '^[0-9]+' | head -1)
+          claimed=$(grep -oE '· [0-9]+ tests ·' docs/roadmap/READINESS_PLAN.md \
+                    | grep -oE '[0-9]+')
+          if [ -z "$claimed" ]; then
+            echo "::error::no test count found in the plan's Basis line — the"
+            echo "::error::claim was reworded and this check now verifies nothing."
+            exit 1
+          fi
+          if [ "$actual" != "$claimed" ]; then
+            echo "::error file=docs/roadmap/READINESS_PLAN.md::Basis line says"
+            echo "::error::$claimed tests, the suite collects $actual"
+            exit 1
+          fi
+          echo "plan Basis line agrees with the suite: $actual tests"
+
       # Morphology runs separately because its analyser is GPL-3.0 and never
       # installed here (DEC-028), so all five checks SKIP. Running it anyway is
       # deliberate: it proves the checks execute, and it prints the NOT MEASURED

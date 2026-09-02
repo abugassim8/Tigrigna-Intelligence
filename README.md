@@ -18,9 +18,11 @@ application, but as infrastructure that others can build on.
 > **What is not built:** embeddings (**A-09**), the API surface (**A-02**), and
 > **no model has been run through the evaluation harness yet** (**A-09**).
 > Morphology *is* built (**DEC-028**) but its analyser is GPL-3.0 and never
-> bundled, so it is absent unless you install it — and unmeasured either way. CI is written but **not installed** (**A-15**). Every
-> remaining blocker needs a person, not more research — see
-> [`ACTIONS.md`](ACTIONS.md).
+> bundled, so it is absent unless you install it. Its intrinsic checks now
+> exist and are tested — and with no analyser they report **SKIP**, which is
+> deliberately not a pass. CI is written but **not installed** (**A-15**).
+> **Every remaining task needs a person, not more research** — the autonomous
+> backlog is empty. See [`ACTIONS.md`](ACTIONS.md).
 >
 > **The research changed the plan.** Most of the Tigrinya model layer already
 > exists and is largely openly licensed. Our differentiator is the **primitives
@@ -185,7 +187,7 @@ python -m tigrinya_eval.primitives experiments/003-metric-validity/data
 **If you have time to unblock the project rather than research it, go straight to
 [`ACTIONS.md`](ACTIONS.md).** **Three items are blocking** — A-01, A-02, A-05 —
 and each has a ready-to-send draft. One could unlock 1.4M parallel sentences for
-the cost of a message. **A-15 is one command** and switches on 27 checks that
+the cost of a message. **A-15 is one command** and switches on 28 checks that
 currently enforce nothing.
 
 1. Read [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — the whole thing.

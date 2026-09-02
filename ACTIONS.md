@@ -15,7 +15,7 @@ them potentially unlocks **1.4 million parallel sentences** for the cost of a
 message.
 
 **How to use it:** **A-01 and A-02 are blocking**; A-15 is one command
-and switches on 27 checks that currently enforce nothing. Each item states what
+and switches on 28 checks that currently enforce nothing. Each item states what
 to do, why, and what it unblocks; where a message is needed, a
 **ready-to-send draft** is included — copy, adjust the bracketed fields, send.
 

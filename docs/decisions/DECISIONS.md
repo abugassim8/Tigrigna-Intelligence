@@ -925,7 +925,7 @@ until a native speaker rules, and a better instrument does not discharge that â€
 **A-13 is still open**. What changed is that the speaker will now be shown
 evidence that points the right way.
 
-**This is a different failure from the eight "checks that could not fail", and
+**This is a different failure from the nine "checks that could not fail", and
 should not be counted with them.** Those were tests that passed regardless of
 input. This one is a *measurement*: the variety gate never blocked anything and
 was never supposed to â€” it printed a number, faithfully, on every corpus for a

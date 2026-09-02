@@ -2,9 +2,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-02**, covering phases A–D |
+| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-02**, covering phases A–E |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
-| **Basis** | **28 decisions · 10 experiments · 16 summaries · 145 tests · 5 audits** |
+| **Basis** | **28 decisions · 10 experiments · 16 summaries · 161 tests · 5 audits** |
 
 ---
 
@@ -59,15 +59,20 @@ degrading silently.
 
 **Built and tested — `services/evaluation`:** `metrics` and `harness`
 (chrF/BLEU, variety-scoped), `primitives` (six intrinsic checks, DEC-023a),
-`embeddings` (six intrinsic checks plus a lexical baseline, DEC-026).
+`embeddings` (six intrinsic checks plus a lexical baseline, DEC-026), and
+`morphology` (five intrinsic checks that **SKIP rather than pass** when the
+GPL-3.0 analyser is absent — DEC-028).
 
 **Also built:** the native-speaker validation instrument (`validation/`, 134
-items), four enforcement scripts, 27 CI checks, and the **HornMT anchor**
-(2,030 pairs, CC-BY-4.0, screened both sides).
+items), four enforcement scripts, a **planted-failure suite** (22 cases, CI),
+28 CI checks, and **two evaluation anchors** — **HornMT** (2,030 pairs,
+CC-BY-4.0, news) and **TICO-19** (3,071 segments × 3 references, CC0-1.0,
+COVID/medical, **variety-declared at source**), both screened on every side.
 
 **Not built:** Tier 1 serving, Tier 2 serving, HTTP API, MCP server, SDKs, any
-deployment. **Morphology is built but unmeasured** — its analyser is never
-bundled, so nothing here can run it.
+deployment. **Morphology is built, instrumented, and still unmeasured** — the
+checks exist and their failure paths are tested against injected analysers, but
+the analyser itself is never bundled, so all five report SKIP.
 
 **Never done:** a native speaker has never seen our output. **No model has ever
 been scored.** CI has never run.
@@ -88,7 +93,7 @@ defines, and refuses to run if its own definitions go missing.
 | # | Gap | State now |
 | --- | --- | --- |
 | **GAP-1** | **No native-speaker validation** | ⚠️ **Unchanged in substance, but no longer blocked on design.** The instrument exists — 134 items, ~25 minutes. Every intrinsic check still catches *broken*, not *wrong* |
-| **GAP-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 27 checks, not 14.** All written, all locally verified, **none running** |
+| **GAP-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 28 checks, not 14.** All written, all locally verified, **none running** |
 | **GAP-3** | **Evaluation anchors are hollow** | ⚠️ **Materially better, and now two-domain.** **HornMT** (2,030 pairs, news, CC-BY-4.0) plus **TICO-19** (3,071 segments × 3 references, COVID/medical, CC0-1.0, **variety-declared at source**). Together **170× the 30-sentence sample**, 0 overlap with it. ⚠️ But TICO-19 revealed the anchors are **not variety-neutral**: HornMT is Ethiopian-consistent at 55.5% (Experiment 010), so scoring on it is scoring one standard. Full FLORES+ still **gated, not blocked** — one token (**A-08**) |
 | **GAP-4** | **Nothing measured end to end** | Unchanged, and now precisely diagnosed: the runtime **installs** (PyPI is open) and the **weights cannot be fetched** (**A-09**). MADLAD's quality assumed, Tier 2 cold start assumed. Tier 1's bar is recorded (DEC-026) |
 | **GAP-5** | **The MVP is incomplete by its own definition** | ⚠️ **Built and now measurable, still not closed.** `morphology.py` is implemented against a **user-installed** HornMorpho (**DEC-028**), and `tigrinya_eval.morphology` now provides five intrinsic checks, each with its failure path tested against injected analysers. A clean `pip install` still cannot analyse morphology, so all five report **SKIP** — a third state that is deliberately not a pass. The `metrics.md` row stays ❌ until an analyser is present |
@@ -102,7 +107,7 @@ leverage, not for order.**
 
 ```mermaid
 graph TD
-    A15["A-15 · install CI<br/>ONE COMMAND"] --> ENF["27 checks enforcing"]
+    A15["A-15 · install CI<br/>ONE COMMAND"] --> ENF["28 checks enforcing"]
     A13["A-13 · native speaker<br/>sheets ready to send"] --> CORRECT["Correctness validated"]
     A02["A-02 · confirm DEC-002"] --> API["HTTP API"]
     A02 --> MCP["MCP server"]
@@ -149,7 +154,7 @@ Ordered by **leverage per minute of your time.**
 
 | # | Action | Your effort | Unlocks |
 | --- | --- | --- | --- |
-| **0.1** | **A-15 — install CI** | **One command** | **27 checks** start enforcing |
+| **0.1** | **A-15 — install CI** | **One command** | **28 checks** start enforcing |
 | **0.2** | **A-13 — send the sheets** | Find a speaker; **~25 min of theirs** | **GAP-1 — whether any of our Tigrinya is correct** |
 | **0.3** | **A-02 — confirm DEC-002** | Read a 3-min summary, decide | The entire API/MCP/SDK surface |
 | **0.4** | **A-09 — a way to fetch model weights** | Config change | ⚠️ **Re-scoped:** the runtime installs from PyPI and *reading* about models is open. This is now only the weights — scoring anything at all (**GAP-4**), Tier 1, Tier 2, A-14 |
@@ -275,13 +280,14 @@ shipped** — which nothing has yet measured (**A-09**).
 
 ## 10. Delivered since this plan was written
 
-**Sixteen items, all unblocked work.** Every one found a defect, which is the
+**Nineteen items, all unblocked work.** Every one found a defect, which is the
 argument for the next audit rather than a claim of thoroughness.
 
-**The through-line of phases A–D:** the register described a world that had
+**The through-line of phases A–E:** the register described a world that had
 stopped being true. Five actions were waiting on emails whose answers were
-public; two blockers were one blocker each; and the corpus at the centre of the
-longest-running Blocking item turned out to be **57% empty**. Nothing here
+public; two blockers were one blocker each; the corpus at the centre of the
+longest-running Blocking item turned out to be **57% empty**; and the variety
+gate had been reporting a number that pointed the wrong way. Nothing here
 required permission — only re-testing an assumption nobody had re-tested.
 
 | Item | What it produced |
@@ -301,6 +307,9 @@ required permission — only re-testing an assumption nobody had re-tested.
 | **Phase B — the record re-measured** | Five actions described a world that had changed. **A-07's licence is answered** (HornMorpho is **GPL-3.0**, verified from `LICENSE.txt`); **A-09 was one action covering two blockers**; **A-08 guards a gate, not a rate limit**; **A-05 is re-uploaded OPUS bitext**; **A-01 reaches Tier 1 through the chain** |
 | **Phase C — three decisions** | **DEC-028** morphology is user-installed and never distributed (a hosted service *may* use it — GPL, not AGPL); **DEC-029** anchors v2, HornMT primary and TiQuAD out; **DEC-030** parallel data is clean/quarantined/refused, and **licence is identified at source** |
 | **Morphology built** | `morphology.py` implements DEC-028 — **16 tests, no GPL dependency present**, the analyser injected. Reading HornMorpho's source found two traps it now defends against: `hm.analyze()` returns **`None`** when a language fails to load, and **language data is a separate download**, so `import hm` proves nothing |
+| **Phase E — TICO-19 ingested** | A **second** clean anchor: 3,071 segments × 3 references, CC0-1.0 at source, and the only reachable corpus that **declares its variety**. Found two defects in the screening gate — `×` classified as a decoding failure, and corruption being decided per character when `ዘñዘሮን` and `Vò፥` are opposite verdicts |
+| **Phase E — experiment 010** | The variety gate scored a **declared-Ethiopian** corpus at **91–95% "Eritrean"**. Two of three pre-committed hypotheses **refuted**. **HornMT's README read its own numbers backwards** — 55.5% of its segments carry an Ethiopian-only marker. DEC-010 Amendment 1; **A-13 re-briefed** |
+| **Phase E — morphology instrumented** | Five intrinsic checks, every failure path tested against injected analysers. The finding was the *design*: a missing optional analyser must report a **third state**, not a pass, or the `metrics.md` row flips to ✅ on a machine where morphology never ran. Added `SKIP`, `MEAS`, and `IntrinsicReport.complete` |
 | **Phase D — experiment 009** | The blocker was not real: the HF **Dataset Viewer** serves rows the download API will not. **56.9% of the "1.4M parallel sentences" have no English side**, the corpus is sorted by similarity, and targets repeat. **A-05 → Medium**, DEC-030 Amendment 1. H3 (column desync at lag 26) **refuted by its own threshold** on two data points — and the threshold was not moved |
 
 ### ✅ The dates in this record were wrong — and are now fixed
@@ -352,6 +361,7 @@ included.
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
 | **No Tigrinya speaker is found** | **Severe** — v0.1 unreachable; correctness can never be claimed | The instrument is ready. This has the longest lead time of anything here |
+| **Our anchors are one variety** | **Severe, and newly visible** — DEC-004 commits to both standards, but **55.5% of HornMT's segments carry an Ethiopian-only marker** (Experiment 010) while TICO-19's Eritrean side carries **none in 3,071**. A model tuned against the primary anchor is tuned toward one standard, and DEC-010's no-aggregate rule cannot fix a *corpus* that is skewed | TICO-19 gives a variety-declared counterweight on both sides. **A-13 now asks the speaker to rule on this specifically** |
 | **MADLAD is poor at Tigrinya** | **Severe** — the translation tier fails | Unknown until 4.3. **The single largest unmeasured assumption** |
 | A-05 refused | Training ladder permanently blocked | ⚠️ **Much less load-bearing than it looked.** Experiment 009: **56.9% of the rows are not pairs**, the corpus is sorted, targets repeat, and a published fine-tune scored chrF **4.99**. MADLAD must be good enough as shipped either way |
 | Model weights stay unfetchable | Tier 1 **and** Tier 2 impossible; **nothing is ever scored** | The runtime installs and the licences are readable, so everything except running a model can proceed |
@@ -362,51 +372,50 @@ included.
 
 ## 12. What I can do without you
 
-**Nothing. Both items are done.**
+**Nothing. This list is empty for the first time.**
 
-~~1. Extend the intrinsic checks to morphology.~~ **Done 2026-09-02** —
-`tigrinya_eval.morphology`, five checks (surface, alignment, determinism,
-coverage, normalisation). Every failure path is exercised today against
-injected analysers, so these are not unverified code waiting for an install.
-What waits for an install is the *measurement*.
+Every item that has ever been on it is done: the validation instrument, three
+audits, the conformance suite, the consistency check, four experiments, the
+embeddings design, this document's own instrumentation, the date correction, the
+morphology adapter, both evaluation anchors, and phases A through E.
 
-⚠️ **The interesting part was the third state.** With no analyser the checks
-report **SKIP** — not pass. Writing the obvious version ("if the analyser is
-missing, return early") would have manufactured a tenth check that could not
-fail, and a bad one: the `metrics.md` morphology row would have flipped to ✅ on
-a machine where morphology had never once run. So `PropertyResult` grew `SKIP`
-(loud, does not fail the build, `--require` converts it to a failure) and
-**`MEAS`** — a number recorded with no threshold, used for coverage because
-nothing has ever measured Tigrinya morphological coverage and a floor invented
-before the first measurement is not a pre-commitment.
+### What an empty list actually means
 
-*(The `G-n` collision is resolved — see §2. **TICO-19 is ingested** — the
-segment count in the previous version of this list, ~6,142, was double-counting:
-it is 3,071 segments with two variety-labelled references, not 6,142 distinct
-pairs.)*
+**Not that the project is nearly finished.** It means the *unblocked* work has
+run out, and that is a much narrower claim. Two things follow, and the second
+matters more:
 
-⚠️ **One thing that was not on this list and should have been.** TICO-19 was
-worth ingesting for the anchor, but its real value was as a *calibration set*:
-it is the only reachable corpus that declares its variety, and it showed the
-variety gate had been reporting a number that scored a declared-Ethiopian corpus
-at 91–95% "Eritrean" (Experiment 010). **The project had assumed no such corpus
-existed and never re-checked** — the same stale-access failure named in §13, for
-the third time.
+1. **Everything remaining needs a person.** Not more research — a person. Send
+   an email, install a workflow, obtain a token, read Tigrinya. The list in §4
+   is now the whole plan.
+2. ⚠️ **This is the point of maximum risk of doing harm.** With nothing left to
+   unblock, the temptation is to build the API surface before **A-02** says who
+   it is for, or Tier 1 before **A-09** lets it be measured. That would produce
+   more unmeasured artefacts, and this project's own record says what happens
+   next: **nine** checks have been found that could not fail, every one written
+   in good faith, none caught by review. Building blind is how the tenth gets
+   written.
 
-Everything else is finished: validation instrument, three audits, conformance
-suite, consistency check, three experiments, the embeddings design, this
-document's own instrumentation, the date correction, the morphology adapter, and
-phases A through D.
+**So the correct next action is to wait, and the correct thing to do while
+waiting is nothing.** Stopping is a real option and is being taken deliberately
+rather than by default.
 
-What remains beyond those is either **blocked on a person** or work I would
-rather not do blind: designing the API surface before A-02 answers who it is
-for, or building Tier 1 before A-09 lets it be measured. **Unverified design is
-what this project keeps getting burned by** — **eight** checks have now been
-found that could not fail, each written in good faith and each caught only by
-planting a failure.
+### The one thing I would do if forced to choose
 
-**What I cannot do:** send an email, install the workflow, confirm a user model,
-obtain a licence, reach a blocked host, or read Tigrinya as a speaker.
+Nothing in §4 — but if a person becomes available for **25 minutes**, it is
+**A-13**, and its brief changed in phase E. It used to ask a speaker to confirm
+our anchors are Eritrean. Experiment 010 showed that reading came from a broken
+instrument, and the corrected evidence points the other way. The question is now
+whether the **primary evaluation anchor is Ethiopian-standard** — which, if
+true, means every score this project reports describes one of the two varieties
+DEC-004 commits it to serving.
+
+### What I cannot do
+
+Send an email · install the workflow · confirm a user model · obtain a licence ·
+reach a blocked host · **read Tigrinya as a speaker**.
+
+That last one is not a tooling gap and no amount of engineering closes it.
 
 ---
 
@@ -415,9 +424,12 @@ obtain a licence, reach a blocked host, or read Tigrinya as a speaker.
 **The method is working.** Measurement has overturned the project's own written
 claims repeatedly — DEC-007's token-efficiency rationale, DEC-023's
 1,639/1,639, the 22× cost saving, "384/384 zero gaps", the CI word-count that
-could not count UTF-8, and now two of the largest: **"0 cleanly-licensed
-parallel sentences"** (there were 2,030, public and CC-BY-4.0 throughout) and
-**"1.4M parallel sentences"** (57% of them have no English side).
+could not count UTF-8, and now three of the largest: **"0 cleanly-licensed
+parallel sentences"** (there were 2,030, public and CC-BY-4.0 throughout),
+**"1.4M parallel sentences"** (57% of them have no English side), and
+**HornMT's variety** — recorded as a 74/26 Eritrean lean, and Ethiopian-consistent
+at 55.5% once the instrument was calibrated against a corpus that declares its
+own variety.
 
 **Eight decisions now carry amendments** (DEC-005, 007, 009, **010**, 016, 020,
 023, 030), all of them corrections the project made against itself — including
@@ -426,27 +438,49 @@ the one dependency on the critical path had never been read, and **DEC-030**,
 whose quarantine of the 1.4M corpus rested on licence until somebody finally
 looked at the content.
 
-⚠️ **The pattern across phases A–D is worth naming, because it is not about
+⚠️ **The pattern across phases A–E is worth naming, because it is not about
 Tigrinya.** Every one of those was cheap to check and expensive to leave: a
 `curl`, a licence file, a dataset preview. What kept them standing was not
 difficulty but a **stale assumption about access** — the register said the
 answer was unreachable, so nobody reached for it. The lesson is mechanical:
 **an access map is a measurement, and measurements go stale.**
 
+Phase E is the third repetition and the sharpest, because the stale assumption
+was not about a *host*. TICO-19 was reachable all along; what was assumed was
+that **no corpus declares its variety**, so nothing ever checked whether the
+variety gate worked. It did not, for a month, on every corpus, in the wrong
+direction.
+
 **The engineering discipline is real and it is not self-congratulation:**
-**eight** checks have been found that *could not fail*, every one caught by
-deliberately planting a failure rather than by reading the code. **Four were in
+**nine** checks have been found that *could not fail*, every one caught by
+deliberately planting a failure rather than by reading the code. **Five were in
 the audit tooling itself.** The seventh: the derived-counts check matched no
 phrasing used in *this document*, so the plan of record was the one file whose
 headline numbers nothing verified — and it was wrong when checked. The eighth:
 that same check compared **line by line**, and prose wraps, so the README's
 "**24** decisions / recorded" straddled a break and could not be seen at all.
+The ninth: a retraction marker suppressed claims **in both directions**, so a
+`⚠️` opening the *next* paragraph exempted the claim above it — and one was
+wrong behind exactly that.
 
-**The exposure is equally real, and phases A–D barely touched it.** No speaker
+**Planting is now a committed test rather than a habit** (`scripts/tests/
+test_plants.py`, 22 cases, in CI). That is the response to a discipline that
+depended on remembering to do it.
+
+⚠️ **One failure in phase E could not have been caught by planting, and it is
+worth separating.** The variety gate was not a test that passed regardless of
+input — it never blocked anything and was never meant to. It was a *measurement*
+that printed noise faithfully for a month. **Only a corpus with a known answer
+could catch it**, and the project had assumed none existed. Planting protects
+checks; nothing but external ground truth protects a measurement.
+
+**The exposure is equally real, and phases A–E barely touched it.** No speaker
 has validated a single output. No model has been scored. Nothing is deployed and
-nothing is enforced. Four phases of work made the *record* true and moved the
-*platform* very little — the anchor got 68× bigger and morphology got an
-adapter, and neither is measured.
+nothing is enforced. Five phases of work made the *record* true and moved the
+*platform* very little — there are now two anchors instead of one, and morphology
+has an adapter and five checks, and **none of it is measured**. The morphology
+checks are the clearest case: they are written, tested, and wired into CI, where
+they correctly report that they did not run.
 
 The record's own dates were unreliable until 2026-08-24 — 71 of them — and the
 audit that found it also found *"DEC-008 spent three months as policy"* repeated
