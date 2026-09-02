@@ -455,6 +455,12 @@ jobs:
         run: |
           set -euo pipefail
           pip install --quiet -e services/primitives
+          # rm first: `cp -r src dst` creates dst on a clean runner but nests
+          # src *inside* it when dst already exists. Re-running this step on one
+          # machine then fails with "Only in /tmp/v-sheets: sheets" and reads as
+          # the instrument being non-deterministic, which it is not. Costs
+          # nothing in CI, where /tmp is always clean.
+          rm -rf /tmp/v-sheets
           cp -r validation/sheets /tmp/v-sheets
           cp validation/manifest.json /tmp/v-manifest.json
           cp validation/key.json /tmp/v-key.json
