@@ -4,7 +4,7 @@
 | --- | --- |
 | **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-02**, covering phases A–D |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
-| **Basis** | **28 decisions · 9 experiments · 16 summaries · 145 tests · 5 audits** |
+| **Basis** | **28 decisions · 10 experiments · 16 summaries · 145 tests · 5 audits** |
 
 ---
 
@@ -62,7 +62,7 @@ degrading silently.
 `embeddings` (six intrinsic checks plus a lexical baseline, DEC-026).
 
 **Also built:** the native-speaker validation instrument (`validation/`, 134
-items), four enforcement scripts, 21 CI checks, and the **HornMT anchor**
+items), four enforcement scripts, 25 CI checks, and the **HornMT anchor**
 (2,030 pairs, CC-BY-4.0, screened both sides).
 
 **Not built:** Tier 1 serving, Tier 2 serving, HTTP API, MCP server, SDKs, any
@@ -88,8 +88,8 @@ defines, and refuses to run if its own definitions go missing.
 | # | Gap | State now |
 | --- | --- | --- |
 | **GAP-1** | **No native-speaker validation** | ⚠️ **Unchanged in substance, but no longer blocked on design.** The instrument exists — 134 items, ~25 minutes. Every intrinsic check still catches *broken*, not *wrong* |
-| **GAP-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 21 checks, not 14.** All written, all locally verified, **none running** |
-| **GAP-3** | **Evaluation anchors are hollow** | ⚠️ **Materially better.** **HornMT is ingested** — 2,030 human-translated pairs, CC-BY-4.0, **68× the 30-sentence sample** and 0 overlap with it. Still one domain (news), and full FLORES+ is **gated, not blocked** — one token (**A-08**) buys 997/1,012 devtest and comparability with published work |
+| **GAP-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 25 checks, not 14.** All written, all locally verified, **none running** |
+| **GAP-3** | **Evaluation anchors are hollow** | ⚠️ **Materially better, and now two-domain.** **HornMT** (2,030 pairs, news, CC-BY-4.0) plus **TICO-19** (3,071 segments × 3 references, COVID/medical, CC0-1.0, **variety-declared at source**). Together **170× the 30-sentence sample**, 0 overlap with it. ⚠️ But TICO-19 revealed the anchors are **not variety-neutral**: HornMT is Ethiopian-consistent at 55.5% (Experiment 010), so scoring on it is scoring one standard. Full FLORES+ still **gated, not blocked** — one token (**A-08**) |
 | **GAP-4** | **Nothing measured end to end** | Unchanged, and now precisely diagnosed: the runtime **installs** (PyPI is open) and the **weights cannot be fetched** (**A-09**). MADLAD's quality assumed, Tier 2 cold start assumed. Tier 1's bar is recorded (DEC-026) |
 | **GAP-5** | **The MVP is incomplete by its own definition** | ⚠️ **Built, and still not closed.** `morphology.py` is implemented against a **user-installed** HornMorpho (**DEC-028**), with 16 tests covering spans, offsets and every failure path via an injected analyser. A clean `pip install` still cannot analyse morphology, and **nothing has measured it** — the `metrics.md` row stays ❌ |
 
@@ -102,7 +102,7 @@ leverage, not for order.**
 
 ```mermaid
 graph TD
-    A15["A-15 · install CI<br/>ONE COMMAND"] --> ENF["21 checks enforcing"]
+    A15["A-15 · install CI<br/>ONE COMMAND"] --> ENF["25 checks enforcing"]
     A13["A-13 · native speaker<br/>sheets ready to send"] --> CORRECT["Correctness validated"]
     A02["A-02 · confirm DEC-002"] --> API["HTTP API"]
     A02 --> MCP["MCP server"]
@@ -149,7 +149,7 @@ Ordered by **leverage per minute of your time.**
 
 | # | Action | Your effort | Unlocks |
 | --- | --- | --- | --- |
-| **0.1** | **A-15 — install CI** | **One command** | **21 checks** start enforcing |
+| **0.1** | **A-15 — install CI** | **One command** | **25 checks** start enforcing |
 | **0.2** | **A-13 — send the sheets** | Find a speaker; **~25 min of theirs** | **GAP-1 — whether any of our Tigrinya is correct** |
 | **0.3** | **A-02 — confirm DEC-002** | Read a 3-min summary, decide | The entire API/MCP/SDK surface |
 | **0.4** | **A-09 — a way to fetch model weights** | Config change | ⚠️ **Re-scoped:** the runtime installs from PyPI and *reading* about models is open. This is now only the weights — scoring anything at all (**GAP-4**), Tier 1, Tier 2, A-14 |
@@ -362,15 +362,23 @@ included.
 
 ## 12. What I can do without you
 
-**Two things, neither large.**
+**One thing, and it is not large.**
 
-1. **Ingest TICO-19** if a reachable mirror can be found. `tico-19.github.io`
-   is egress-blocked, but ~6,142 professionally translated segments would be
-   the second clean anchor after HornMT.
-2. **Extend the intrinsic checks to morphology** — the code is written and the
+1. **Extend the intrinsic checks to morphology** — the code is written and the
    analyser is a GPL-3.0 install away, so this can be *prepared* but not run.
 
-*(The `G-n` collision is resolved — see §2.)*
+*(The `G-n` collision is resolved — see §2. **TICO-19 is ingested** — the
+segment count in the previous version of this list, ~6,142, was double-counting:
+it is 3,071 segments with two variety-labelled references, not 6,142 distinct
+pairs.)*
+
+⚠️ **One thing that was not on this list and should have been.** TICO-19 was
+worth ingesting for the anchor, but its real value was as a *calibration set*:
+it is the only reachable corpus that declares its variety, and it showed the
+variety gate had been reporting a number that scored a declared-Ethiopian corpus
+at 91–95% "Eritrean" (Experiment 010). **The project had assumed no such corpus
+existed and never re-checked** — the same stale-access failure named in §13, for
+the third time.
 
 Everything else is finished: validation instrument, three audits, conformance
 suite, consistency check, three experiments, the embeddings design, this
@@ -398,8 +406,8 @@ could not count UTF-8, and now two of the largest: **"0 cleanly-licensed
 parallel sentences"** (there were 2,030, public and CC-BY-4.0 throughout) and
 **"1.4M parallel sentences"** (57% of them have no English side).
 
-**Seven decisions now carry amendments** (DEC-005, 007, 009, 016, 020, 023,
-030), all of them corrections the project made against itself — including
+**Eight decisions now carry amendments** (DEC-005, 007, 009, **010**, 016, 020,
+023, 030), all of them corrections the project made against itself — including
 **DEC-020**, whose "no dependency imposes copyleft" basis survived only because
 the one dependency on the critical path had never been read, and **DEC-030**,
 whose quarantine of the 1.4M corpus rested on licence until somebody finally

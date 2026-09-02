@@ -30,8 +30,11 @@ still being asserted somewhere nobody looked.
 The retraction rule
 -------------------
 A retired figure may appear — retracting a number requires naming it. It must
-appear **within `WINDOW` lines of a retraction marker**. What is forbidden is
-quoting it bare, as current.
+appear with a retraction marker **within `WINDOW` lines above it, or anywhere in
+its own paragraph**. What is forbidden is quoting it bare, as current.
+
+The scope is asymmetric on purpose. A marker in the *following* paragraph used
+to suppress a live claim, and one did: see `_has_marker`.
 
 Deliberately generous markers, because a noisy check gets switched off, and a
 switched-off check is the DEC-008 failure this is meant to prevent. Three costs
@@ -77,11 +80,13 @@ WINDOW = 8
 #: and would neuter the check.
 FIGURE_MARKERS = (
     "⚠️", "~~",
-    "retract", "supersede", "superseded", "amendment", "amended",
+    "retract", "retired", "supersede", "superseded", "amendment", "amended",
     "estimate", "est;", "should not be quoted", "no longer", "was wrong",
     "withdrawn", "corrected", "correction", "misleading", "diluted",
     "containment", "pre-build", "wrongly", "recorded", "originally",
     "first reported", "came from", "used to", "previously",
+    "overturned", "left standing", "still asserting",
+    "figures are quoted", "quote these",
 )
 
 #: Markers for the COUNTS check — a deliberately different set.
@@ -97,6 +102,12 @@ COUNT_MARKERS = (
     "claimed", "actual", "planted", "negative control", "rotted",
     "still said", "document says", "superseded", "corrected", "was wrong",
     "used to", "previously",
+    # A changelog records what was true on a date, so a count in a dated entry
+    # is correct history the moment after it stops being current. Without a way
+    # to say so, every CI-check tally ever written becomes a permanent error.
+    # Deliberately a full phrase, not "entry" — a bare word would exempt most of
+    # the file, which is the mistake COUNT_MARKERS exists to document.
+    "as of this entry",
 )
 
 #: Searched for quoted figures.
@@ -107,19 +118,55 @@ INCLUDE_GLOBS = ("**/*.md", "**/*.py")
 EXCLUDE_PARTS = (
     ".git", "__pycache__", ".pytest_cache", "node_modules",
     "docs/figures.json", "scripts/check_figures.py",
+    # The plant suite asserts this checker can still fail, so it necessarily
+    # quotes retired figures and undefined ids as literals. Same reason this
+    # file is excluded — and the exclusion is safe because every plant's
+    # expected exit status is asserted, so a plant that stopped being detected
+    # fails the suite rather than passing quietly.
+    "scripts/tests/",
 )
 
 
+def _para_end(lowered: list[str], i: int) -> int:
+    """Last line of the blank-line-delimited block containing `i`."""
+    hi = i
+    while hi + 1 < len(lowered) and lowered[hi + 1].strip():
+        hi += 1
+    return hi
+
+
 def _has_marker(lowered: list[str], i: int, markers: tuple) -> bool:
-    """True if a retraction/quotation marker sits within WINDOW lines of `i`.
+    """True if a retraction/quotation marker scopes line `i`.
 
     Shared by both checks. A document that *discusses* a wrong number — a
     retraction, a correction table, this project's own decision records — has
     to be able to name it. Only a bare assertion is a violation.
+
+    **The scope is asymmetric, and that asymmetry is the fix.** It used to be
+    ±WINDOW lines both ways, so a marker in an unrelated *following* paragraph
+    suppressed a live claim. It cost exactly that: `Seven decisions now carry
+    amendments` went unchecked — and was wrong — because a `⚠️` opened the next
+    paragraph seven lines *below*. In a document that uses ⚠️ as often as the
+    readiness plan, whole regions were silently exempt.
+
+    So: **backwards WINDOW lines, forwards only to the end of the current
+    paragraph.** Backwards stays generous because a retraction is normally
+    written before the figure it retracts — "superseded:", "this used to say".
+    Forwards stops at the blank line, which still catches the trailing
+    `⚠️ **Superseded**` this repository attaches to a stale paragraph, and stops
+    a marker from reaching across into the next one.
+
+    Two tighter rules were tried and rejected by measurement: the paragraph
+    alone in both directions (43 errors, breaking legitimate suppressions where
+    the marker is a sentence earlier across a blank line) and a fixed one-line
+    forward window (22 errors, breaking a trailing ⚠️ two lines down).
+
+    This is the ninth check found unable to fail, and the fifth inside the audit
+    tooling itself.
     """
     lo = max(0, i - WINDOW)
-    hi = min(len(lowered), i + WINDOW + 1)
-    context = "\n".join(lowered[lo:hi])
+    hi = _para_end(lowered, i)
+    context = "\n".join(lowered[lo:hi + 1])
     return any(m in context for m in markers)
 
 

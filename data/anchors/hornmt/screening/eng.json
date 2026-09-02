@@ -44,8 +44,8 @@
       "pass": true,
       "label": "n/a",
       "signal": "NOT APPLICABLE — latin script carries no Ge'ez orthographic variety markers",
-      "eritrean_markers": null,
-      "ethiopian_markers": null,
+      "et_marker_segment_pct": null,
+      "segments_with_et_marker": null,
       "detail": "variety is a Ge'ez-side property (DEC-010)"
     },
     {

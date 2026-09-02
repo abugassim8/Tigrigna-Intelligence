@@ -15,7 +15,7 @@ them potentially unlocks **1.4 million parallel sentences** for the cost of a
 message.
 
 **How to use it:** **A-01 and A-02 are blocking**; A-15 is one command
-and switches on 21 checks that currently enforce nothing. Each item states what
+and switches on 25 checks that currently enforce nothing. Each item states what
 to do, why, and what it unblocks; where a message is needed, a
 **ready-to-send draft** is included — copy, adjust the bracketed fields, send.
 
@@ -555,6 +555,23 @@ A-01, A-05, and A-06 resolve. Owned by `11_business`.
 >
 > **If they only have ten minutes, sheet 1 is the one.** It settles a question
 > nothing else can, and the answer changes shipped code.
+>
+> ⚠️ **Re-briefed 2026-09-02 — sheet 5's question changed direction.** It used
+> to ask whether our anchors are Eritrean, on the strength of HornMT scoring
+> "74/26 Eritrean" on the variety gate. **That number was an artefact.**
+> Experiment 010 calibrated the gate against TICO-19, the one reachable corpus
+> that declares its variety at source, and found the gate scored a
+> *declared-Ethiopian* corpus at 91–95% "Eritrean" — the ratio was dominated by
+> ኣ, which both standards use ~4,500 times either way.
+>
+> Measured properly — segments carrying an **Ethiopian-only** form, which fired
+> on **0 of 3,071** declared-Eritrean segments — **HornMT is Ethiopian-consistent
+> at 55.5%**, six times the rate of the corpus TICO-19 labels Ethiopian.
+>
+> So sheet 5 is no longer "confirm our anchors are Eritrean". It is: **our
+> primary anchor appears to be Ethiopian-standard, and we would like a speaker
+> to say whether that reading is right** — because if it is, every score this
+> project reports describes one standard, and DEC-004 commits us to both.
 >
 > **Please offer to pay.** Expert judgement in a low-resource language is scarce
 > and routinely extracted for free. `PROTOCOL.md` invites them to raise it —

@@ -22,6 +22,107 @@ first service is deployed.
 
 ## [Unreleased]
 
+### TICO-19 ingested — and it proved the variety gate was reading backwards — 2026-09-02
+
+**A second clean anchor, and a bigger finding than the anchor.**
+
+TICO-19 is **3,071 English segments** (971 dev, 2,100 test) translated into
+Tigrinya three times, CC0-1.0, licence confirmed at source (DEC-030). It is now
+committed under `data/anchors/tico19/` with a fetcher, eight screening records,
+and a README. `tico-19.github.io` is egress-blocked; `raw.githubusercontent.com`
+serves the same bytes.
+
+⚠️ **It is 3,071 segments with 3 references, not 9,213 pairs**, and `fetch.py`
+asserts that rather than assuming it — all three Tigrinya files translate
+identical English, checked on every fetch.
+
+**Two of the three declare a regional standard at source: `ti-ER` and `ti-ET`.**
+No other corpus this project can reach declares variety at all, which is why
+DEC-010 has held every corpus at `unknown` for a month. Same source text, same
+domain, one variable — a controlled comparison.
+
+#### The variety gate was mostly measuring how much Tigrinya was in the file
+
+[Experiment 010](experiments/010-variety-marker-calibration/) ran that
+comparison against three thresholds fixed before looking. **Two were refuted.**
+
+| | Hypothesis | Threshold | Result |
+| --- | --- | --- | --- |
+| H1 | The reported ratio separates the declared varieties | ≥ 10 points | **REFUTED — 3.3** |
+| H2 | Ethiopian-only markers do not fire on Eritrean text | precision ≥ 0.99 | **CONFIRMED — 1.000** |
+| H3 | They fire often enough to label a segment | recall ≥ 0.50 | **REFUTED — 0.099** |
+
+The gate scored TICO-19's **declared-Ethiopian** corpus at **91–95%
+"Eritrean"**. The ratio pooled ኣ — one of the commonest letters in Tigrinya,
+used by both standards, ~4,500 occurrences either side — with the 261 genuinely
+discriminative ፀ-series counts. One marker, አ, pointed the wrong way outright.
+
+**This is not a ninth "check that could not fail" and is not counted as one.**
+Those were tests that passed regardless of input. This was a *measurement*: the
+gate never blocked anything, printed a number faithfully on every corpus for a
+month, and the number was noise. Planting a failure would not have caught it —
+only a corpus with a known answer could, and the project had assumed none
+existed.
+
+#### The consequence reached the primary anchor
+
+**HornMT's README read its own variety numbers backwards.** It recorded "6,237
+Eritrean-standard markers against 2,181 Ethiopian — 74/26" as an Eritrean lean.
+Calibrated: **55.5% of HornMT segments carry an Ethiopian-only marker, six times
+the rate of the corpus TICO-19 declares Ethiopian.** Corrected in place.
+
+DEC-010 is unchanged and **A-13 is still open** — a speaker still rules. What
+changed is that the evidence put in front of that speaker now points the right
+way.
+
+#### Two screening blocks, both real, neither waved through
+
+- **`test.tir_er` — quality.** The Eritrean test file uses `` ` `` (U+0060) as an
+  apostrophe in **215 places** while spelling the same word with U+2019
+  elsewhere, and carries **6 × U+2D4F TIFINAGH LETTER YAN** standing in for the
+  Roman numeral II. Genuine upstream defects. **Deliberately not repaired** —
+  normalising an anchor silently changes every score computed against it.
+- **`test.eng` — contamination.** 3 shared 8-grams with HornMT, 0 exact
+  segments; all three are the names of the WHO and the CDC. Recorded as a
+  *training* prohibition, which is what the gate means and which anchors are
+  exempt from by never being trained on.
+
+#### Two defects found in the screening gate itself
+
+- **`×` was a "DECODING FAILURE".** `is_mojibake` tested the raw range
+  0x00C0–0x024F, which contains × (U+00D7) and ÷ — maths symbols, category
+  `Sm`. Its docstring had said "letters" from the start; the code never did, and
+  nothing measured the difference until a corpus with arithmetic arrived.
+- **Corruption cannot be decided per character.** `ዘñዘሮን` (the known-corrupted
+  sample) and `Vò፥` (the Italian town of Vò, confirmed against the English side)
+  are both "an accented Latin letter next to Ge'ez", and are opposite verdicts.
+  What separates them is the neighbour's kind: corruption adjoins an Ethiopic
+  *syllable*, a borrowed proper noun may abut Ethiopic *punctuation*. The gate
+  now tests context, clearing TICO-19's 12 legitimate hits while still catching
+  the corrupted sample's single ñ.
+
+#### A ninth check that could not fail — in the audit tooling, again
+
+`check_figures.py` suppressed a claim if a retraction marker sat within ±8 lines
+**in either direction**. A `⚠️` opening the *next* paragraph, seven lines below,
+silently exempted the claim above it — and one was wrong behind exactly that:
+**"Seven decisions now carry amendments"** when the answer was eight. In a
+document that uses ⚠️ as often as the readiness plan, whole regions were exempt.
+
+Scope is now **backwards 8 lines, forwards only to the end of the paragraph**.
+Two tighter rules were tried and rejected by measurement (43 and 22 false
+positives). The fix surfaced 18 further suppressed claims, each triaged: most
+were legitimate retraction prose needing marker vocabulary this repo actually
+uses ("overturned", "left standing", "retired"), and the rest were genuinely
+stale and are fixed.
+
+**Planting is now the test, not a diagnostic.** `scripts/tests/test_plants.py`
+commits **16 planted cases** — 7 against the mojibake gate, 9 against
+`check_figures` — asserting both that each check fires and that it does not fire
+on legitimate text. It runs in CI.
+
+**CI reaches 25 checks.**
+
 ### The `G-n` collision resolved across the repository — 2026-09-02
 
 `goals.md` numbers goals **G-1…G-11**; the readiness plan numbered its gaps
@@ -263,7 +364,8 @@ recorded — none of which is possible today.
 DEC-017's ladder, and **DEC-017 stands unchanged**.
 
 **A-07 closes**, resolved by DEC-028 rather than by the email it was waiting
-for. CI reaches **21 checks**.
+for. CI reaches **21 checks** *(the count as of this entry; it has since
+grown — a changelog records what was true on the day)*.
 
 ### Five actions described a world that had changed — 2026-09-01
 
@@ -1092,6 +1194,9 @@ idempotent (0 failures), transliteration is deterministic (0 failures),
 tokenization round-trips at **100.00%** with zero `[UNK]`. Coverage is **99.72%**
 of character tokens. **P-4 is therefore satisfiable for Tier 0 today**, without
 building the benchmark A-006 anticipated.
+*(The 99.72% was later **retired** to 100.00% — the five misses were digits, which
+a transliterator is supposed to pass through. Left in place as the record of what
+was believed on the day; see `figures.json`.)*
 
 **⚠️ The fourth hypothesis failed, and found a real error in two accepted
 decisions.** DEC-007 requires surface↔analysis alignment offsets and DEC-022 made

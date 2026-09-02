@@ -43,11 +43,16 @@
       "gate": "variety",
       "pass": true,
       "label": "unknown",
-      "signal": "MIXED — both orthographies present in one set",
-      "eritrean_markers": 75,
-      "ethiopian_markers": 3,
+      "signal": "no Ethiopian-only form, but only 8 segments — too few to read",
+      "et_marker_segment_pct": 0.0,
+      "segments_with_et_marker": 0,
+      "segments": 8,
+      "raw_marker_counts_not_a_proportion": {
+        "eritrean": 75,
+        "ethiopian": 3
+      },
       "lexeme_counts": {},
-      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010)."
+      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010). Read `et_marker_segment_pct`, not the raw counts (Experiment 010)."
     },
     {
       "gate": "contamination",

@@ -10,7 +10,7 @@ application, but as infrastructure that others can build on.
 
 > **Status: 13 research domains complete** — every planned domain, from
 > `00_project_definition` through `12_master_blueprint`. **28** decisions
-> recorded and **9** reproducible experiments. **Tier 0 is built**: two Python
+> recorded and **10** reproducible experiments. **Tier 0 is built**: two Python
 > packages (`services/primitives`, `services/evaluation`), both test suites
 > passing.
 > See [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
@@ -185,7 +185,7 @@ python -m tigrinya_eval.primitives experiments/003-metric-validity/data
 **If you have time to unblock the project rather than research it, go straight to
 [`ACTIONS.md`](ACTIONS.md).** **Three items are blocking** — A-01, A-02, A-05 —
 and each has a ready-to-send draft. One could unlock 1.4M parallel sentences for
-the cost of a message. **A-15 is one command** and switches on 21 checks that
+the cost of a message. **A-15 is one command** and switches on 25 checks that
 currently enforce nothing.
 
 1. Read [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — the whole thing.
@@ -193,7 +193,7 @@ currently enforce nothing.
 3. Check [`docs/research/summaries/`](docs/research/summaries/) for what is
    already known.
 4. Check [`docs/decisions/DECISIONS.md`](docs/decisions/DECISIONS.md) —
-   **DEC-001 … DEC-024**, several amended by later measurement.
+   **DEC-001 … DEC-030**, eight amended by later measurement.
 5. Read [`docs/research/RESEARCH_ACCESS.md`](docs/research/RESEARCH_ACCESS.md)
    before searching for anything — it maps which sources are reachable.
 6. **[`docs/roadmap/READINESS_PLAN.md`](docs/roadmap/READINESS_PLAN.md) is the

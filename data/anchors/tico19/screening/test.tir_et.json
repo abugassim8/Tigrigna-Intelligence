@@ -1,16 +1,16 @@
 {
   "corpus": [
-    "data/anchors/hornmt/tir.txt"
+    "data/anchors/tico19/test.tir_et.txt"
   ],
   "corpus_files": 1,
-  "total_chars": 210336,
+  "total_chars": 228830,
   "gates": [
     {
       "gate": "script",
       "pass": true,
       "declared": "geez",
       "ethiopic_pct": {
-        "data/anchors/hornmt/tir.txt": 97.42
+        "data/anchors/tico19/test.tir_et.txt": 87.55
       },
       "mismatches": [],
       "detail": "file contents match the declared geez script"
@@ -18,27 +18,27 @@
     {
       "gate": "licence",
       "pass": true,
-      "declared": "cc-by-4.0",
+      "declared": "cc0-1.0",
       "detail": "usable for shipped artefacts"
     },
     {
       "gate": "quality",
       "pass": true,
       "script": "geez",
-      "worst_foreign_pct": 0.026,
+      "worst_foreign_pct": 0.047,
       "threshold_pct": 0.1,
       "mojibake": {},
       "per_file": {
-        "data/anchors/hornmt/tir.txt": {
-          "chars": 166825,
-          "ethiopic_pct": 97.42,
-          "foreign_pct": 0.03,
+        "data/anchors/tico19/test.tir_et.txt": {
+          "chars": 182813,
+          "ethiopic_pct": 87.55,
+          "foreign_pct": 0.05,
           "foreign_sample": [
-            "‹(SINGLE LEFT-POINTING)",
-            "›(SINGLE RIGHT-POINTIN)",
-            "ʼ(MODIFIER LETTER APOS)",
+            "`(GRAVE ACCENT)",
+            "&(AMPERSAND)",
             "+(PLUS SIGN)",
-            "|(VERTICAL LINE)"
+            "#(NUMBER SIGN)",
+            "$(DOLLAR SIGN)"
           ]
         }
       },
@@ -49,22 +49,22 @@
       "gate": "variety",
       "pass": true,
       "label": "unknown",
-      "signal": "ethiopian-consistent — 55.5% of segments carry an Ethiopian-only form",
-      "et_marker_segment_pct": 55.5,
-      "segments_with_et_marker": 1127,
-      "segments": 2030,
+      "signal": "ethiopian-consistent — 8.8% of segments carry an Ethiopian-only form",
+      "et_marker_segment_pct": 8.8,
+      "segments_with_et_marker": 184,
+      "segments": 2100,
       "raw_marker_counts_not_a_proportion": {
-        "eritrean": 6237,
-        "ethiopian": 2181
+        "eritrean": 6852,
+        "ethiopian": 327
       },
       "lexeme_counts": {
         "ክሳብ(ER) vs እስካብ(ET)": [
-          57,
-          0
+          97,
+          30
         ],
         "ሃገራዊ(ER) vs ብሄራዊ(ET)": [
-          60,
-          22
+          10,
+          13
         ]
       },
       "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010). Read `et_marker_segment_pct`, not the raw counts (Experiment 010)."
@@ -75,15 +75,30 @@
       "ngram_size": 8,
       "overlaps": 0,
       "exact_segment_matches": 0,
-      "eval_segments_below_ngram_size": 0,
+      "eval_segments_below_ngram_size": 10,
       "per_eval_set": {
         "experiments/003-metric-validity/data/flores_ti.txt": {
           "shared_ngrams": 0,
           "exact_segments": 0,
           "segments_below_ngram_size": 0
+        },
+        "data/anchors/hornmt/tir.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 10
+        },
+        "experiments/002-tokenizer-fertility/corpus/tlt_000_clean.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
+        },
+        "experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
         }
       },
-      "detail": "no shared n-grams or exact segments with the supplied evaluation sets"
+      "detail": "no overlap found, but 10 evaluation segment(s) are shorter than 8 words and are only covered by exact matching"
     }
   ],
   "verdict": "CLEARED for use"

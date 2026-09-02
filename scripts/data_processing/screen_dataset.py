@@ -111,11 +111,23 @@ def is_mojibake(ch):
 
     **This is the Ge'ez-side test only.** On a Latin-script side, accented Latin
     is ordinary text rather than corruption — see `is_mojibake_latin`.
+
+    **Letters only, and the word is load-bearing.** The range 0x00C0–0x024F is
+    not all letters: it also holds × (U+00D7 MULTIPLICATION SIGN) and ÷
+    (U+00F7), maths symbols of category `Sm`. Testing the raw range made
+    TICO-19's test split a "DECODING FAILURE" over `4×109` and `1×109` in a
+    virology passage. This docstring said "letters" from the start; the code did
+    not, and nothing measured the difference until a corpus with arithmetic in
+    it arrived.
+
+    This character test is necessary but not sufficient — see `mojibake_hits_in`,
+    which decides whether a hit is corruption or a borrowed proper noun.
     """
     cp = ord(ch)
     return (ch == "\ufffd"
             or 0x80 <= cp <= 0x9F                    # C1 controls
-            or 0x00C0 <= cp <= 0x024F)               # Latin-1 Supplement, Latin Ext-A/B
+            or (0x00C0 <= cp <= 0x024F               # Latin-1 Supp., Latin Ext-A/B
+                and unicodedata.category(ch).startswith("L")))
 
 
 def is_mojibake_latin(ch):
@@ -131,6 +143,57 @@ def is_mojibake_latin(ch):
     character and C1 controls.
     """
     return ch == "\ufffd" or 0x80 <= ord(ch) <= 0x9F
+
+
+def is_ethiopic_letter(ch):
+    """An Ethiopic syllable, not Ethiopic punctuation.
+
+    `\u1361 \u1362 \u1363 \u1365` are category `Po` and sit in the same block as the syllables.
+    The distinction decides `mojibake_hits_in` below, so it cannot be folded into
+    `is_ethiopic`.
+    """
+    return is_ethiopic(ch) and unicodedata.category(ch) == "Lo"
+
+
+def mojibake_hits_in(text, geez=True):
+    """Corruption in `text`, as a list of (index, char) \u2014 context, not class.
+
+    The character test alone cannot answer this, and pretending otherwise costs
+    a corpus in one direction or a corruption detector in the other:
+
+      - `\u12d8\u00f1\u12d8\u122e\u1295` \u2014 the known-corrupted sample. A Latin `\u00f1` **between two Ethiopic
+        syllables**. No Tigrinya word is spelled that way; a Ge'ez codepoint was
+        mangled into it.
+      - `V\u00f2\u1365` \u2014 TICO-19 test line 1368, the Italian town of V\u00f2, confirmed
+        against the English side. `\u00f2` inside a Latin token, then an Ethiopic
+        colon.
+
+    Both are "an accented Latin letter next to Ge'ez" by any per-character rule,
+    and they are opposite verdicts. What separates them is the **neighbour's
+    kind**: corruption sits against an Ethiopic *syllable*, a borrowed proper
+    noun sits inside a Latin token and may abut Ethiopic *punctuation*.
+
+    So on the Ge'ez side an accented Latin letter is corruption only when it
+    directly adjoins an Ethiopic syllable. The replacement character and C1
+    controls stay unconditional in both scripts \u2014 those are never legitimate,
+    wherever they sit.
+
+    Measured on what is committed: this clears TICO-19's \u00c5 (\u00c5ngstr\u00f6m), T\u00dcV,
+    Ate\u015f, ovi\u010d, rit\u00e9 and V\u00f2 \u2014 12 hits across three files \u2014 and still catches the
+    corrupted sample's single \u00f1. That asymmetry is the whole point; a rule that
+    cleared both would be a rule that had stopped working.
+    """
+    test = is_mojibake if geez else is_mojibake_latin
+    hits = []
+    for i, ch in enumerate(text):
+        if not test(ch):
+            continue
+        if geez and ch != "\ufffd" and not (0x80 <= ord(ch) <= 0x9F):
+            neighbours = text[i - 1:i] + text[i + 1:i + 2]
+            if not any(is_ethiopic_letter(c) for c in neighbours):
+                continue                    # borrowed proper noun, not corruption
+        hits.append((i, ch))
+    return hits
 
 
 def gate_script(texts, declared):
@@ -195,7 +258,6 @@ def gate_quality(texts, script="geez"):
     actually threatens an aligned corpus.
     """
     geez = script == "geez"
-    moji_test = is_mojibake if geez else is_mojibake_latin
     per_file, worst = {}, 0.0
     scramble_flags = []
     mojibake_hits = {}
@@ -211,7 +273,7 @@ def gate_quality(texts, script="geez"):
             foreign = [c for c in chars if is_ethiopic(c)]
         rate = 100 * len(foreign) / len(chars)
         worst = max(worst, rate)
-        moji = sorted({c for c in chars if moji_test(c)})
+        moji = sorted({c for _, c in mojibake_hits_in(text, geez)})
         if moji:
             mojibake_hits[name] = [f"{c} (U+{ord(c):04X} {unicodedata.name(c, '?')[:24]})"
                                    for c in moji[:8]]
@@ -267,12 +329,32 @@ def gate_variety(texts, script="geez"):
     Off the Ge'ez side there is nothing to count — the ጸ/ፀ and ኣ/አ contrasts do
     not exist in Latin script — so it reports N/A rather than "no signal",
     which would read as evidence of uniformity where no test was run.
+
+    **The marker counts are not a proportion, and Experiment 010 measured how
+    badly.** TICO-19 ships the same 3,071 segments translated as `ti-ER` and
+    `ti-ET`; the declared-**Ethiopian** file scores **91–95% "Eritrean"** on
+    `eritrean_markers / (eritrean_markers + ethiopian_markers)`. The pooled
+    ratio moves 3.3 points between two corpora that differ only in variety.
+
+    The cause is that ኣ appears ~4,500 times in *both* files — it is one of the
+    commonest letters in Tigrinya and both standards use it — so pooling it with
+    the 261 genuinely discriminative ፀ-series counts buries the signal under a
+    constant. አ is worse: it is twice as frequent in the *Eritrean* file.
+
+    What does discriminate is **presence of an Ethiopian-only form** — a
+    ፀ-series character, `እስካብ`, or `ብሄራዊ`. Those fired on 0 of 3,071
+    declared-Eritrean segments (precision 1.000) and 9–12% of Ethiopian ones. So
+    `et_marker_segment_pct` is reported alongside, and it is the number to read:
+    it is low-recall, so it labels a corpus and never a sentence.
+
+    Both numbers stay `SIGNAL ONLY`. DEC-010 is unchanged — a speaker rules
+    (A-13) — but the evidence put in front of that speaker is now calibrated.
     """
     if script != "geez":
         return {"gate": "variety", "pass": True, "label": "n/a",
                 "signal": f"NOT APPLICABLE — {script} script carries no "
                           f"Ge'ez orthographic variety markers",
-                "eritrean_markers": None, "ethiopian_markers": None,
+                "et_marker_segment_pct": None, "segments_with_et_marker": None,
                 "detail": "variety is a Ge'ez-side property (DEC-010)"}
     text = "\n".join(texts.values())
     er = sum(text.count(c) for c in TSADE_ER) + text.count(ALEF_GE)
@@ -283,26 +365,44 @@ def gate_variety(texts, script="geez"):
         if a or b:
             lex[f"{er_form}(ER) vs {et_form}(ET)"] = [a, b]
 
-    mixed = er > 0 and et > 0
-    if et == 0 and er > 0:
-        signal = "eritrean-leaning"
-    elif er == 0 and et > 0:
-        signal = "ethiopian-leaning"
-    elif mixed:
-        signal = "MIXED — both orthographies present in one set"
-    else:
+    # The calibrated measure: how many *segments* carry an Ethiopian-only form.
+    segs = [ln for ln in text.split("\n") if ln.strip()]
+    et_segs = sum(1 for s in segs
+                  if any(c in s for c in TSADE_ET)
+                  or any(f in s for f in LEXEMES.values()))
+    et_pct = round(100 * et_segs / len(segs), 1) if segs else 0.0
+
+    if not segs:
         signal = "no signal"
+    elif et_segs == 0:
+        signal = ("eritrean-consistent — no Ethiopian-only form in any segment"
+                  if len(segs) >= 100 else
+                  f"no Ethiopian-only form, but only {len(segs)} segments — "
+                  f"too few to read")
+    elif et_pct >= 5.0:
+        signal = (f"ethiopian-consistent — {et_pct}% of segments carry an "
+                  f"Ethiopian-only form")
+    else:
+        signal = (f"trace — {et_pct}% of segments carry an Ethiopian-only form; "
+                  f"inconclusive")
 
     return {
         "gate": "variety",
         "pass": True,  # never blocks; DEC-010 requires a label, not a rejection
         "label": "unknown",
         "signal": signal,
-        "eritrean_markers": er,
-        "ethiopian_markers": et,
+        # The calibrated number. Precision 1.000, recall 0.099 (Experiment 010):
+        # reads a corpus, never a sentence.
+        "et_marker_segment_pct": et_pct,
+        "segments_with_et_marker": et_segs,
+        "segments": len(segs),
+        # Retained for continuity, NOT a variety proportion — see the docstring
+        # and Experiment 010. Named to stop it being read as one.
+        "raw_marker_counts_not_a_proportion": {"eritrean": er, "ethiopian": et},
         "lexeme_counts": lex,
         "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). "
-                  "Label stays `unknown` until confirmed (DEC-010).",
+                  "Label stays `unknown` until confirmed (DEC-010). Read "
+                  "`et_marker_segment_pct`, not the raw counts (Experiment 010).",
     }
 
 
@@ -390,7 +490,7 @@ def report(record):
         print(f"\n  [{mark}] {g['gate'].upper()}")
         print(f"        {g['detail']}")
         for k in ("declared", "worst_foreign_pct", "signal",
-                  "eritrean_markers", "ethiopian_markers", "overlaps"):
+                  "et_marker_segment_pct", "overlaps"):
             if k in g:
                 print(f"        {k}: {g[k]}")
         for flag in g.get("review_flags", []):

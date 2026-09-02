@@ -1,16 +1,16 @@
 {
   "corpus": [
-    "experiments/003-metric-validity/data/flores_en.txt"
+    "data/anchors/tico19/dev.eng.txt"
   ],
   "corpus_files": 1,
-  "total_chars": 4584,
+  "total_chars": 138099,
   "gates": [
     {
       "gate": "script",
       "pass": true,
       "declared": "latin",
       "ethiopic_pct": {
-        "experiments/003-metric-validity/data/flores_en.txt": 0.0
+        "data/anchors/tico19/dev.eng.txt": 0.0
       },
       "mismatches": [],
       "detail": "file contents match the declared latin script"
@@ -18,7 +18,7 @@
     {
       "gate": "licence",
       "pass": true,
-      "declared": "cc-by-sa-4.0",
+      "declared": "cc0-1.0",
       "detail": "usable for shipped artefacts"
     },
     {
@@ -29,8 +29,8 @@
       "threshold_pct": 0.1,
       "mojibake": {},
       "per_file": {
-        "experiments/003-metric-validity/data/flores_en.txt": {
-          "chars": 3874,
+        "data/anchors/tico19/dev.eng.txt": {
+          "chars": 117048,
           "ethiopic_pct": 0.0,
           "foreign_pct": 0.0,
           "foreign_sample": []
@@ -54,15 +54,20 @@
       "ngram_size": 8,
       "overlaps": 0,
       "exact_segment_matches": 0,
-      "eval_segments_below_ngram_size": 0,
+      "eval_segments_below_ngram_size": 7,
       "per_eval_set": {
-        "experiments/002-tokenizer-fertility/corpus/tlt_000_clean.txt": {
+        "experiments/003-metric-validity/data/flores_en.txt": {
           "shared_ngrams": 0,
           "exact_segments": 0,
           "segments_below_ngram_size": 0
+        },
+        "data/anchors/hornmt/eng.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 7
         }
       },
-      "detail": "no shared n-grams or exact segments with the supplied evaluation sets"
+      "detail": "no overlap found, but 7 evaluation segment(s) are shorter than 8 words and are only covered by exact matching"
     }
   ],
   "verdict": "CLEARED for use"

@@ -43,9 +43,14 @@
       "gate": "variety",
       "pass": true,
       "label": "unknown",
-      "signal": "MIXED — both orthographies present in one set",
-      "eritrean_markers": 90,
-      "ethiopian_markers": 16,
+      "signal": "ethiopian-consistent — 23.3% of segments carry an Ethiopian-only form",
+      "et_marker_segment_pct": 23.3,
+      "segments_with_et_marker": 7,
+      "segments": 30,
+      "raw_marker_counts_not_a_proportion": {
+        "eritrean": 90,
+        "ethiopian": 16
+      },
       "lexeme_counts": {
         "ክሳብ(ER) vs እስካብ(ET)": [
           0,
@@ -56,7 +61,7 @@
           1
         ]
       },
-      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010)."
+      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010). Read `et_marker_segment_pct`, not the raw counts (Experiment 010)."
     },
     {
       "gate": "contamination",

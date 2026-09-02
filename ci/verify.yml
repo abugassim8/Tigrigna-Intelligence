@@ -234,6 +234,62 @@ jobs:
             > /dev/null
           echo "HornMT clears both sides"
 
+      # Upstream is a ZIP of TSVs and the committed files are line-per-segment
+      # text, so the *derivation* is part of the artefact. fetch.py verifies the
+      # archive digest, all six member digests, re-derives, and compares
+      # byte-for-byte — then asserts the three Tigrinya references really do
+      # share one English source, which is what makes it 3,071 segments and not
+      # 9,213 pairs.
+      - name: TICO-19 anchor matches upstream and stays aligned
+        run: python data/anchors/tico19/fetch.py
+
+      # Two TICO-19 sides are BLOCKED and the blocks are real, so this cannot
+      # just assert exit 0. It pins the known state: six sides clear, and the
+      # two failures stay exactly the size they were explained at. A block that
+      # grows is a corpus that changed under the anchor.
+      - name: TICO-19 screening matches its recorded state
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, pathlib, sys
+          EXPECTED = {
+              "dev.eng": "CLEARED for use", "dev.tir_er": "CLEARED for use",
+              "dev.tir_et": "CLEARED for use", "dev.tir_ti": "CLEARED for use",
+              "test.tir_et": "CLEARED for use", "test.tir_ti": "CLEARED for use",
+              "test.tir_er": "BLOCKED — quality",
+              "test.eng": "BLOCKED — contamination",
+          }
+          bad = []
+          for name, want in EXPECTED.items():
+              rec = json.loads(pathlib.Path(
+                  f"data/anchors/tico19/screening/{name}.json").read_text("utf-8"))
+              if rec["verdict"] != want:
+                  bad.append(f"{name}: {rec['verdict']!r}, recorded as {want!r}")
+              gates = {g["gate"]: g for g in rec["gates"]}
+              if name == "test.eng" and gates["contamination"]["overlaps"] != 3:
+                  bad.append(f"test.eng overlaps = "
+                             f"{gates['contamination']['overlaps']}, explained as 3")
+              if name == "test.tir_er" and gates["quality"]["worst_foreign_pct"] > 0.16:
+                  bad.append(f"test.tir_er foreign rate rose to "
+                             f"{gates['quality']['worst_foreign_pct']}")
+          for b in bad:
+              print(f"::error::{b}")
+          sys.exit(1 if bad else 0)
+          PY
+          echo "TICO-19 screening matches the state its README explains"
+
+      # The variety gate reported a ratio for a month that scored TICO-19's
+      # declared-ETHIOPIAN corpus at 91-95% "Eritrean". Experiment 010 caught it
+      # against source-declared labels; this keeps the calibration honest.
+      - name: Variety markers still separate the declared varieties
+        run: python experiments/010-variety-marker-calibration/run.py --check
+
+      # Nine checks in this repo have been found that could not fail, five of
+      # them in the audit tooling. None was caught by reading the code. Planting
+      # is therefore the test, not a one-off diagnostic.
+      - name: Planted failures are still detected
+        run: python scripts/tests/test_plants.py
+
       # --script switches off two Ge'ez-specific gates, so it is the one input
       # here that could wave a corpus through. It is detected, not asserted:
       # Tigrinya declared latin must fail before it can skip anything.

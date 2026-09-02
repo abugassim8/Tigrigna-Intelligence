@@ -55,11 +55,42 @@ Both sides are screened and cleared. `screening/tir.json` and `screening/eng.jso
 | Variety | ⚠️ **signal only** | n/a — Latin carries no Ge'ez variety markers |
 | Contamination | ✅ 0 overlaps vs FLORES sample, TLT, Haddas | ✅ 0 overlaps vs FLORES English |
 
-**The variety signal is the interesting one.** Across 2,030 segments the
-Tigrinya side carries **6,237 Eritrean-standard markers against 2,181
-Ethiopian** — 74/26. That is a far larger sample than anything measured before,
-and it is **mixed, not clean**. Under DEC-010 the label stays `unknown` until a
-speaker rules on it (**A-13**); the numbers are evidence, not a verdict.
+**The variety signal is the interesting one, and this file used to read it
+backwards.**
+
+> *Superseded (2026-09-02).* This section reported "**6,237 Eritrean-standard
+> markers against 2,181 Ethiopian** — 74/26" and read it as an Eritrean lean,
+> hedged as "evidence, not a verdict". **The hedge was right and the direction
+> was wrong.**
+
+[Experiment 010](../../../experiments/010-variety-marker-calibration/)
+calibrated those markers against TICO-19, which declares its variety at source.
+The pooled ratio turned out to be dominated by ኣ — one of the commonest letters
+in Tigrinya, used by *both* standards, appearing ~4,500 times either way. It
+buries the discriminative markers under a constant, and it scores TICO-19's
+**declared-Ethiopian** corpus at 91–95% "Eritrean". The 74/26 was that artefact,
+not a lean.
+
+Measured the calibrated way — segments carrying an **Ethiopian-only** form
+(ፀ-series, `እስካብ`, `ብሄራዊ`), which fired on 0 of 3,071 declared-Eritrean
+segments:
+
+| corpus | segments with an Ethiopian-only form |
+| --- | ---: |
+| TICO-19, **declared Eritrean** | 0 / 3,071 — 0.0% |
+| TICO-19, **declared Ethiopian** | 303 / 3,071 — 9.9% |
+| **HornMT (this corpus)** | **1,127 / 2,030 — 55.5%** |
+
+**HornMT is Ethiopian-consistent, at six times the rate of the corpus TICO-19
+labels Ethiopian.** Under DEC-010 the label still stays `unknown` until a speaker
+rules (**A-13**) — but this is now the evidence that speaker is shown, and it
+points the opposite way from what this file said when it was written earlier the
+same day. The corpus that corrected it was one `curl` away throughout, which is
+the second time on this anchor that the binding constraint was a stale belief
+about reachability rather than the data.
+
+That matters beyond bookkeeping: HornMT is the primary evaluation anchor, so a
+model tuned against it is being tuned toward whatever variety it is written in.
 
 ## Reproducing the committed copy
 

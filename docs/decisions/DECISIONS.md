@@ -72,7 +72,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-007 | 2026-07-29 | Consonant–vowel decomposition as the substrate beneath tokenization | Accepted — **amended twice; token-efficiency rationale REFUTED 2026-08-03** |
 | DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
 | DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted — **caveat added by Amendment 1** |
-| DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted |
+| DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted — **evidence corrected by Amendment 1** |
 | DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted |
 | DEC-012 | 2026-08-10 | Library-first; services are thin wrappers over libraries | Accepted |
 | DEC-013 | 2026-08-10 | Tier by resource profile; never co-locate tiers in one process | Accepted |
@@ -878,6 +878,61 @@ we have committed to serving.
   use**, extending the DEC-008 screening gate — which now covers contamination,
   licence, quality, and variety.
 - *New work created:* native-speaker variety audit of both anchors (**A-13**).
+
+### Amendment 1 — 2026-09-02: the variety instrument was reading backwards
+
+The decision is unchanged and is reinforced. **The evidence it was resting on
+was not.**
+
+DEC-010 created a variety gate that reports `eritrean_markers` and
+`ethiopian_markers`, and for a month nothing could check whether those numbers
+tracked variety — no reachable corpus declared its own. TICO-19 does: the same
+3,071 English segments translated once as `ti-ER` and once as `ti-ET`, same
+domain, same lengths, one variable.
+
+[Experiment 010](../../experiments/010-variety-marker-calibration/) ran that
+comparison against three pre-committed thresholds. **Two of the three were
+refuted.**
+
+| | Hypothesis | Threshold | Result |
+| --- | --- | --- | --- |
+| H1 | The reported ratio separates the declared varieties | ≥ 10 points | **REFUTED — 3.3** |
+| H2 | Ethiopian-only markers do not fire on Eritrean text | precision ≥ 0.99 | **CONFIRMED — 1.000** |
+| H3 | They fire often enough to label a segment | recall ≥ 0.50 | **REFUTED — 0.099** |
+
+The ratio pooled ኣ — one of the commonest letters in Tigrinya, used by both
+standards, ~4,500 occurrences on either side — with the 261 genuinely
+discriminative ፀ-series counts, burying the signal under a constant. One marker,
+አ, pointed the wrong way outright. The gate scored the **declared-Ethiopian**
+corpus at **91–95% "Eritrean"**.
+
+**What changed:**
+
+1. The pooled ratio is **withdrawn as evidence of variety proportion**. It
+   survives in the record renamed `raw_marker_counts_not_a_proportion`, because
+   deleting it would erase the numbers earlier records were read against.
+2. The gate now reports **`et_marker_segment_pct`** — the share of segments
+   carrying an Ethiopian-only form. Precision 1.000, recall 0.099: it reads a
+   **corpus**, never a sentence.
+3. **HornMT's variety reading was corrected.** Its README recorded a 74/26
+   "Eritrean lean"; calibrated, **55.5% of its segments carry an Ethiopian-only
+   marker — six times the rate of the corpus TICO-19 declares Ethiopian.** The
+   project's primary evaluation anchor leans the opposite way from what was
+   recorded.
+
+**What did not change:** the label. DEC-010 holds every corpus at `unknown`
+until a native speaker rules, and a better instrument does not discharge that —
+**A-13 is still open**. What changed is that the speaker will now be shown
+evidence that points the right way.
+
+**This is a different failure from the eight "checks that could not fail", and
+should not be counted with them.** Those were tests that passed regardless of
+input. This one is a *measurement*: the variety gate never blocked anything and
+was never supposed to — it printed a number, faithfully, on every corpus for a
+month, and the number was mostly counting how much Tigrinya was in the file.
+
+Planting a failure would not have caught it. The only thing that could was a
+corpus with a known answer, and the project had assumed none existed.
 - *Important limit:* `unknown` is a real and expected label. **Most existing
   Tigrinya resources do not state their variety**, and guessing would defeat the
   purpose.

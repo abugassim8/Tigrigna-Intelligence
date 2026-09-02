@@ -49,16 +49,21 @@
       "gate": "variety",
       "pass": true,
       "label": "unknown",
-      "signal": "eritrean-leaning",
-      "eritrean_markers": 62,
-      "ethiopian_markers": 0,
+      "signal": "no Ethiopian-only form, but only 1 segments — too few to read",
+      "et_marker_segment_pct": 0.0,
+      "segments_with_et_marker": 0,
+      "segments": 1,
+      "raw_marker_counts_not_a_proportion": {
+        "eritrean": 62,
+        "ethiopian": 0
+      },
       "lexeme_counts": {
         "ክሳብ(ER) vs እስካብ(ET)": [
           2,
           0
         ]
       },
-      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010)."
+      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010). Read `et_marker_segment_pct`, not the raw counts (Experiment 010)."
     },
     {
       "gate": "contamination",
