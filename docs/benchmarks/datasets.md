@@ -43,8 +43,9 @@ we produce.
 | ID | Name | Capability | Size | Source | Licence | Contamination checked | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | **E-01** | FLORES+ Tigrinya sample (`flores_ti.txt`) | Translation (target side) | **30 sentences**, 661 words | `alexei-v-ivanov-amd/flores_plus`, `tir_Ethi` ids 0–29 | **CC-BY-SA-4.0** | ✅ **yes** — `CLEARED`, record committed | **In use** — produced DEC-009 |
-| **E-02** | FLORES+ English sample (`flores_en.txt`) | Translation (source side) | **30 sentences**, 708 words | same, `eng_Latn` ids 0–29 | **CC-BY-SA-4.0** | ✅ yes — `BLOCKED — quality`, **expected**: it is English, and the gate measures non-Ethiopic characters | **In use** as the source side |
-| **E-03** | FLORES+ devtest (full) | Translation | 1,012 sentences `[reported]` | FLORES+ | CC-BY-SA-4.0 | ❌ not obtained | ⚠️ **Blocked — egress (A-09)** |
+| **E-02** | FLORES+ English sample (`flores_en.txt`) | Translation (source side) | **30 sentences**, 708 words | same, `eng_Latn` ids 0–29 | **CC-BY-SA-4.0** | ✅ yes — `CLEARED` since 2026-09-01, screened with `--script latin`; it recorded `BLOCKED — quality` for weeks because the Ge'ez gate was applied to English and flagged one `ğ` | **In use** as the source side |
+| **E-05** | **HornMT** (`data/anchors/hornmt/`) | Translation, both directions | **2,030 pairs** — 43,511 ti words / 47,627 en words `[verified]` | [`asmelashteka/HornMT`](https://github.com/asmelashteka/HornMT) | **CC-BY-4.0** | ✅ **yes** — `CLEARED` both sides; 0 overlaps vs E-01/E-02, TLT, Haddas | ✅ **In use — the primary anchor** |
+| **E-03** | FLORES+ devtest (full) | Translation | 997 dev / 1,012 devtest `[verified]` from the dataset card | [`openlanguagedata/flores_plus`](https://huggingface.co/datasets/openlanguagedata/flores_plus) | CC-BY-SA-4.0 | ❌ not obtained | ⚠️ **Blocked — the repo is GATED, needs an HF token (A-08)**, not general egress |
 | **E-04** | TiQuAD | Extractive QA | 6,508 Q / 10,637 A `[verified]` | `farefaine` / upstream | CC-BY-SA-4.0, **upstream copyright unresolved** | ⚠️ **contamination CONFIRMED in a third-party corpus** | ⚠️ **Not obtained** — test set not public (**A-04**), copyright unresolved (**A-06**) |
 
 **One of DEC-005's two anchors is unusable and the other is a 30-sentence
@@ -69,6 +70,39 @@ intrinsic properties, and they carry screening records for the same reason:
 | `tlt_000_clean.txt` | `mewaeltsegay/TigrinyaLargeText` | MIT | `CLEARED` |
 | `haddas_001_colscrambled.txt` | `SIMBA9657/haddas-tigrinya-corpus` | CC-BY-SA-4.0 | `CLEARED` |
 | `tlt_001_CORRUPTED_sample.txt` | same as `tlt_000` | MIT | `BLOCKED — quality`, **intentionally** — it is the negative control for the quality gate |
+
+### ⚠️ Corrected 2026-09-01 — "0 cleanly-licensed parallel sentences" was false
+
+The register recorded, `[verified]`, that no cleanly-licensed en–ti parallel
+data existed. **HornMT is 2,030 human-translated pairs under CC-BY-4.0** and was
+public throughout. The zero was measured behind an egress block that made GitHub
+unreadable, and the measurement was never revisited when the block changed.
+
+**What the 1.4M corpus actually is.** A-05 chases "1.4M en–ti parallel
+sentences". `michsethowusu/english-tigrinya_sentence-pairs` holds exactly
+**1,398,177** rows with no licence tag and no provenance on its card; the EnTiMT
+project's source table independently lists **"OPUS NLLB (mined) — 1,398,173"**.
+It is web-mined bitext re-uploaded without attribution, not an unlicensed
+original. **A-05's question is therefore about OPUS/NLLB's terms, not about
+emailing an uploader.**
+
+⚠️ **It has already been tried.** EnTiMT fine-tuned NLLB-600M on 1.14M cleaned
+pairs from this pool and reports **en→ti BLEU 0.133, chrF 4.99**, with output
+collapsing into repeated n-grams. The plan's risk table calls A-05 "the only
+remedy if MADLAD underperforms"; that remedy has a published failure attached.
+
+⚠️ **We cannot screen it ourselves yet.** The corpus lives only on Hugging Face
+as a 110 MB parquet, and direct `huggingface.co` downloads remain blocked
+(**A-09**). The contamination check that would settle whether it leaks FLORES+
+is written and runnable — it just has nothing to read.
+
+### Other clean parallel sources found, not yet ingested
+
+| Source | Pairs | Licence | Note |
+| --- | ---: | --- | --- |
+| **HornMT** | 2,030 | **CC-BY-4.0** | ✅ ingested — E-05 |
+| TICO-19 | ~6,142 | unverified — `tico-19.github.io` is egress-blocked | professionally translated, COVID-19 domain |
+| Travis Foundation `Tigrinya-Parallel-Corpus` | ~126,930 | **declares CC-BY-SA-4.0, but** | ⚠️ the majority is scraped from a Jehovah's Witnesses site the authors say they *do not own*; the rest is volunteer-translated Wikipedia text. Same unresolved-upstream problem as **A-06** |
 
 ### What is not here, and why it matters
 

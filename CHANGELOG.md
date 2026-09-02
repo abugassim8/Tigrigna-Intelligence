@@ -22,6 +22,92 @@ first service is deployed.
 
 ## [Unreleased]
 
+### First cleanly-licensed parallel corpus; "zero" was false — 2026-09-01
+
+**HornMT is committed at `data/anchors/hornmt/`** — **2,030 human-translated
+English–Tigrinya news pairs under CC-BY-4.0**, screened and cleared on both
+sides. It is **68× larger** than the 30-sentence FLORES sample that has served
+as the translation anchor, and independent of it: contamination screening found
+**0 shared 8-grams and 0 exact segments** against that sample and both committed
+monolingual corpora.
+
+**⚠️ It retracts a `[verified]` claim.** The record said, in nine places, that
+there were **0 cleanly-licensed parallel sentences**. That was false. HornMT was
+public and CC-BY-4.0 the whole time; the zero was measured behind an egress
+block that made GitHub unreadable, and never revisited when the block changed.
+Registered as a retired figure so `check_figures.py` catches any site still
+quoting it.
+
+**What it does not fix.** 2,030 news segments is one domain. Full FLORES+ (997
+dev / 1,012 devtest) is what makes our numbers comparable to published work, and
+it turns out to be **gated, not blocked** — `401 Unauthorized`, fixed by a
+read-scope token. **A-08 moves from Medium to High**; it was filed as "removes
+anonymous rate limits".
+
+**A-05 is re-scoped from Blocking to High.** The "1.4M unlicensed pairs" is
+`michsethowusu/english-tigrinya_sentence-pairs`, **1,398,177** rows with no
+licence and no provenance — and EnTiMT's independent source table lists **"OPUS
+NLLB (mined) — 1,398,173"**. It is re-uploaded web-mined bitext, so the question
+is OPUS/NLLB's terms, not an uploader's permission. It has also **already been
+tried**: a published fine-tune of NLLB-600M on 1.14M cleaned pairs from this
+pool scores **en→ti BLEU 0.133, chrF 4.99** with severe repetition. Calling A-05
+"the only remedy if MADLAD underperforms" no longer survives contact.
+
+#### Screening could not see the Latin half of a parallel corpus
+
+Pointing the DEC-015 gates at HornMT's English side **blocked a correct file**.
+The quality gate reads "foreign" as "not Ethiopic" and treats Latin-1/Extended
+letters as decoding failure, so 47 characters in 302,570 — `é í ü á ó ō ı ô ñ ğ
+Č Ç`, every one inside a proper noun (Peña, Erdoğan, São) — read as corruption.
+That is the identical mistake this gate's own docstring records for ASCII Latin
+inside Tigrinya, one script over.
+
+`--script {geez,latin}` fixes it, and is **detected, not asserted**: unlike
+licence, script is measurable from the bytes, so a Tigrinya corpus declared
+`latin` fails the new script gate before it can skip the Ge'ez gates. On a Latin
+side the tests invert and stay strict — corruption is the replacement character
+and C1 controls, and "foreign" means **Ge'ez**, which is the signature of
+crossed or mis-split parallel files. Four planted failures confirm each path.
+
+**This had already bitten us.** `flores_en.json`, the screening record for the
+English half of DEC-005's own anchor, has been sitting in the repo recording
+**`BLOCKED — quality`** over a single `ğ`. All five existing records were
+regenerated; the known-corrupted sample still blocks, as it should.
+
+#### The counts check could not see a claim that wrapped
+
+`check_figures.py` compares documents line by line, and prose wraps. The README
+said **"\*\*24\*\* decisions\nrecorded"** while the repository had 25 — the claim
+straddled a line break, so no pattern could match it and the check **could not
+fail on the file most people read first**. It now also tests each line joined
+with the next. Found by hand; the eighth check found unable to fail.
+
+#### Licence chains, audited against the live Hub
+
+A declared licence on a fine-tune is not a licence for what it was built from.
+
+| Model | Declares | Base | Base declares | Chain |
+| --- | --- | --- | --- | --- |
+| `tiroberta-bi-encoder` | apache-2.0 | `tiroberta-base` | **NOT STATED** | ⚠️ unresolved |
+| `tielectra-bi-encoder` | apache-2.0 | TiELECTRA | **NOT STATED** | ⚠️ unresolved |
+| `Hailay/entimt-en-tigrinya-mt` | cc-by-4.0 | `nllb-200-distilled-600M` | **cc-by-nc-4.0** | ❌ conflict |
+
+**A-01 does touch Tier 1 after all** — through the chain, not the tag. The
+2026-08-23 correction ("Tier 1 is blocked on A-09 alone") was right about the
+bi-encoder's declared licence and incomplete about the weights it was fine-tuned
+from. Also recorded: the bi-encoder card says it was trained on "Tigrinya
+question-answering and information retrieval datasets", plausibly TiQuAD — which
+is one of DEC-005's evaluation anchors, so **scoring it on TiQuAD-derived data
+would be contaminated**.
+
+#### Egress re-measured after a month
+
+`RESEARCH_ACCESS.md` was written 2026-07-29 and not re-checked while five
+actions leaned on it. `api.github.com` now returns **403** where it returned
+200; PyPI installs **torch** and **sentence-transformers**; `huggingface.co`
+direct downloads are **refused**. So A-09 was one blocker covering two things:
+*reading about* models is open and was open all along, *running* them is not.
+
 ### A-17 answered: the commit date wins; 71 dates corrected — 2026-08-24
 
 **The rule: when a document's stamp and the commit carrying it disagree, the

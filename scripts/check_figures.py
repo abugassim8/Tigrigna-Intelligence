@@ -159,6 +159,23 @@ def _digitise(line: str) -> str:
     return _WORD_RX.sub(lambda m: str(_WORD_NUMBERS[m.group(1).lower()]), line)
 
 
+def _unwrapped(lines: list[str], i: int) -> str:
+    """Line `i` joined with the next, blockquote markers and wrapping removed.
+
+    The counts check was line-based, and prose wraps. The README said
+    "**24** decisions\n> recorded" while the repository had 25 — the claim
+    straddled a line break, so the pattern `\*\*(\d+)\*\* decisions recorded`
+    could not match it and the check could not fail on the one file most people
+    read first. Found by hand, not by the checker.
+
+    Joining two lines is enough for prose wrapped at 80 columns; a claim spread
+    over three lines would still slip through, and that is a known limit rather
+    than a solved problem.
+    """
+    joined = " ".join(lines[i:i + 2])
+    return " ".join(joined.replace(">", " ").split())
+
+
 def _derive(spec: dict) -> int:
     """Compute a count from the repository as it actually is."""
     kind = spec["kind"]
@@ -228,9 +245,10 @@ def check_counts(reg: dict) -> list[str]:
                 continue
             lowered = [ln.lower() for ln in lines]
             for i, line in enumerate(lines):
-                probe = _digitise(line)
+                probes = {_digitise(line), _digitise(_unwrapped(lines, i))}
                 for rx in claims:
-                    m = rx.search(probe)
+                    m = next((hit for hit in (rx.search(p) for p in probes) if hit),
+                             None)
                     if not m:
                         continue
                     claimed = int(m.group(1))

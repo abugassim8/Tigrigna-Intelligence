@@ -6,6 +6,16 @@
   "total_chars": 3203,
   "gates": [
     {
+      "gate": "script",
+      "pass": true,
+      "declared": "geez",
+      "ethiopic_pct": {
+        "experiments/003-metric-validity/data/flores_ti.txt": 96.42
+      },
+      "mismatches": [],
+      "detail": "file contents match the declared geez script"
+    },
+    {
       "gate": "licence",
       "pass": true,
       "declared": "cc-by-sa-4.0",
@@ -14,6 +24,7 @@
     {
       "gate": "quality",
       "pass": true,
+      "script": "geez",
       "worst_foreign_pct": 0.0,
       "threshold_pct": 0.1,
       "mojibake": {},

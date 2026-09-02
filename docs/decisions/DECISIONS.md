@@ -1339,8 +1339,13 @@ threshold. **Training from scratch is foreclosed.**
 proposes it. This decision makes that burden concrete, and audits what we could
 actually do if the burden were met.
 
-The audit produced the governing fact: **we have zero cleanly-licensed parallel
-training data.** The 1.4M en–ti pairs are unlicensed (**A-05**); FLORES+ and
+The audit produced the governing fact: ~~**we have zero cleanly-licensed
+parallel training data.**~~
+
+⚠️ **RETRACTED 2026-09-01 — this was false.** [HornMT](https://github.com/asmelashteka/HornMT) is **2,030 human-translated en–ti pairs under CC-BY-4.0**, now committed at `data/anchors/hornmt/`. The zero was measured behind an egress block that made GitHub unreadable; the corpus was public the whole time. DEC-017's conclusion is unchanged —
+2,030 pairs is far below any training rung — but the premise as written was
+wrong.
+ The 1.4M en–ti pairs are unlicensed (**A-05**); FLORES+ and
 TiQuAD are our evaluation anchors, so training on them is contamination
 (**DEC-008**). Monolingual: 15,053 documents, both corpora carrying documented
 defects.

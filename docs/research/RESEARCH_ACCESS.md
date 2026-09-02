@@ -85,8 +85,31 @@ verify anything load-bearing.**
 
 ### `curl` to non-blocked hosts
 
-`api.github.com` responds (200). `raw.githubusercontent.com` responds. Note the
-repo-scope restriction below before using these.
+`raw.githubusercontent.com` responds (200) — this is how HornMT was obtained.
+Note the repo-scope restriction below before using these.
+
+> ⚠️ **Re-measured 2026-09-01, and two entries changed.** This page was written
+> on 2026-07-29 and not re-checked for a month, while five actions in the
+> register were justified by it.
+>
+> | Route | 2026-07-29 | 2026-09-01 |
+> | --- | --- | --- |
+> | `raw.githubusercontent.com` | ✅ | ✅ **200** |
+> | `api.github.com` | ✅ 200 | ❌ **403** — use `raw.` or the GitHub MCP |
+> | PyPI | ✅ | ✅ **`torch` and `sentence-transformers` install** |
+> | `huggingface.co` direct download | *(untested)* | ❌ **connection refused** — the MCP reads metadata and text files, but **weights cannot be fetched** |
+> | `opus.nlpl.eu` | *(untested)* | ❌ blocked |
+> | `tico-19.github.io` | *(untested)* | ❌ blocked |
+>
+> **The consequence for A-09.** "Egress is blocked" was one blocker covering two
+> different things. *Reading about* models — licences, cards, provenance,
+> parameter counts — is open through the MCP and was open the whole time.
+> *Running* them is not: PyPI gives us the runtime, and nothing gives us the
+> weights. **A-09 is now only the second half.**
+>
+> Separately, `openlanguagedata/flores_plus` returns **401** rather than a proxy
+> denial — it is a **gated repo**, not an egress block, and a token fixes it
+> (**A-08**).
 
 ---
 

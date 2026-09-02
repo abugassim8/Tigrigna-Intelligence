@@ -74,8 +74,10 @@ in order, and each needs a *measured* trigger rather than an intuition:
 | ✗ | From scratch | **Foreclosed** — A-002's 40M-token ceiling makes it indefensible |
 
 **The ladder is currently blocked at the bottom by data, not compute.** There
-are **0 cleanly-licensed parallel sentences** (**A-05**), so rungs 2 and 3 have
-nothing to train on regardless of hardware.
+are ~~**0 cleanly-licensed parallel sentences**~~ **2,030** (**A-05**) — far too
+few to train a rung on, but not zero.
+
+⚠️ **RETRACTED 2026-09-01 — this was false.** [HornMT](https://github.com/asmelashteka/HornMT) is **2,030 human-translated en–ti pairs under CC-BY-4.0**, now committed at `data/anchors/hornmt/`. The zero was measured behind an egress block that made GitHub unreadable; the corpus was public the whole time. The ladder stays blocked; the reason is now *scale*, not *licence*.
 
 ## Evaluation gates (P-4, DEC-009, DEC-010)
 

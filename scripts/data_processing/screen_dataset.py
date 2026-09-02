@@ -108,6 +108,9 @@ def is_mojibake(ch):
     character, C1 controls, and Latin-1 Supplement / Latin Extended letters,
     which is what UTF-8 read as Latin-1 produces. The known-corrupted sample is
     caught by exactly this — a stray `ñ`.
+
+    **This is the Ge'ez-side test only.** On a Latin-script side, accented Latin
+    is ordinary text rather than corruption — see `is_mojibake_latin`.
     """
     cp = ord(ch)
     return (ch == "\ufffd"
@@ -115,7 +118,61 @@ def is_mojibake(ch):
             or 0x00C0 <= cp <= 0x024F)               # Latin-1 Supplement, Latin Ext-A/B
 
 
-def gate_quality(texts):
+def is_mojibake_latin(ch):
+    """The same test for a Latin-script file, where accented letters are real.
+
+    Applying the Ge'ez test to HornMT's English side blocked it on **47
+    characters in 302,570** — é í ü á ó ō ı ô ñ ğ Č Ç, every one inside a proper
+    noun (Peña, Erdoğan, São). That is the identical mistake this gate's own
+    docstring records for Latin letters inside Tigrinya, one script over: the
+    alphabet a language legitimately borrows from is not corruption.
+
+    What still signals a decoding failure in any script: the replacement
+    character and C1 controls.
+    """
+    return ch == "\ufffd" or 0x80 <= ord(ch) <= 0x9F
+
+
+def gate_script(texts, declared):
+    """Gate 0 — the declared script is what the file actually holds.
+
+    A parallel corpus has two sides and only one of them is Ge'ez. Screening was
+    built for monolingual Tigrinya, so pointing it at HornMT's English side
+    blocked a correct file: the quality gate reads "foreign" as "not Ethiopic"
+    and the variety gate counts ጸ-series letters that cannot occur. Without a
+    script declaration the English half of every parallel anchor is either
+    unscreened or wrongly blocked.
+
+    `--script latin` switches off two Ge'ez-specific tests, so it is the one
+    input here that could be used to wave a corpus through. It is therefore
+    **detected, not asserted** — the opposite of `--licence`, which cannot be
+    read off the bytes. A Tigrinya file declared `latin` fails this gate before
+    it can skip anything.
+    """
+    per_file, wrong = {}, []
+    for name, text in texts.items():
+        chars = [c for c in text if not c.isspace()]
+        if not chars:
+            continue
+        ethiopic = 100 * sum(1 for c in chars if is_ethiopic(c)) / len(chars)
+        per_file[name] = round(ethiopic, 2)
+        if declared == "geez" and ethiopic < 50:
+            wrong.append(f"{name}: declared geez but only {ethiopic:.1f}% Ethiopic")
+        if declared == "latin" and ethiopic > 5:
+            wrong.append(f"{name}: declared latin but {ethiopic:.1f}% Ethiopic — "
+                         f"a Ge'ez corpus must not skip the Ge'ez gates")
+    return {
+        "gate": "script",
+        "pass": not wrong,
+        "declared": declared,
+        "ethiopic_pct": per_file,
+        "mismatches": wrong,
+        "detail": (f"file contents match the declared {declared} script"
+                   if not wrong else "declared script contradicts the contents"),
+    }
+
+
+def gate_quality(texts, script="geez"):
     """Gate 2 — encoding corruption and extraction damage.
 
     Two separate tests, because one number could not separate them:
@@ -130,7 +187,15 @@ def gate_quality(texts):
     The scramble signal stays a flag for human review, because distinguishing
     scrambled columns from unusual prose is not reliably automatable and a false
     verdict would be worse than none.
+
+    On a **Latin** side the two tests point the other way, and stay just as
+    strict: corruption is the replacement character and C1 controls only, and
+    "foreign" means **Ethiopic** — Ge'ez in the English half of a parallel file
+    is the signature of a crossed or mis-split pair, which is the failure that
+    actually threatens an aligned corpus.
     """
+    geez = script == "geez"
+    moji_test = is_mojibake if geez else is_mojibake_latin
     per_file, worst = {}, 0.0
     scramble_flags = []
     mojibake_hits = {}
@@ -138,12 +203,15 @@ def gate_quality(texts):
         chars = [c for c in text if not c.isspace()]
         if not chars:
             continue
-        foreign = [c for c in chars
-                   if not is_ethiopic(c) and not c.isdigit() and c not in PUNCT
-                   and not (c.isascii() and c.isalpha())]
+        if geez:
+            foreign = [c for c in chars
+                       if not is_ethiopic(c) and not c.isdigit() and c not in PUNCT
+                       and not (c.isascii() and c.isalpha())]
+        else:
+            foreign = [c for c in chars if is_ethiopic(c)]
         rate = 100 * len(foreign) / len(chars)
         worst = max(worst, rate)
-        moji = sorted({c for c in chars if is_mojibake(c)})
+        moji = sorted({c for c in chars if moji_test(c)})
         if moji:
             mojibake_hits[name] = [f"{c} (U+{ord(c):04X} {unicodedata.name(c, '?')[:24]})"
                                    for c in moji[:8]]
@@ -154,7 +222,7 @@ def gate_quality(texts):
         digity = sum(1 for w in ws if any(c.isdigit() for c in w)
                      and any(is_ethiopic(c) for c in w))
         digit_rate = 100 * digity / max(len(ws), 1)
-        if digit_rate > 1.0:
+        if geez and digit_rate > 1.0:
             scramble_flags.append(f"{name}: {digit_rate:.1f}% mixed digit/Ge'ez tokens")
 
         per_file[name] = {
@@ -168,14 +236,18 @@ def gate_quality(texts):
     ok = worst < 0.1 and not mojibake_hits
     if mojibake_hits:
         detail = ("DECODING FAILURE — replacement or Latin-1/Extended characters "
-                  "inside Ge'ez text")
+                  "inside Ge'ez text" if geez else
+                  "DECODING FAILURE — replacement character or C1 controls")
     elif not ok:
-        detail = "unexpected non-Latin foreign characters inside Ge'ez text"
+        detail = ("unexpected non-Latin foreign characters inside Ge'ez text"
+                  if geez else "Ge'ez characters inside the Latin side — "
+                               "crossed or mis-split parallel files")
     else:
         detail = "no encoding corruption detected"
     return {
         "gate": "quality",
         "pass": ok,
+        "script": script,
         "worst_foreign_pct": round(worst, 3),
         "threshold_pct": 0.1,
         "mojibake": mojibake_hits,
@@ -185,13 +257,23 @@ def gate_quality(texts):
     }
 
 
-def gate_variety(texts):
+def gate_variety(texts, script="geez"):
     """Gate 3 — orthographic variety signal (DEC-010).
 
     Never returns a verdict on variety. It reports the evidence and labels
     the set `unknown` unless the signal is unambiguous, because attributing a
     variety needs a native speaker (ACTIONS.md A-13).
+
+    Off the Ge'ez side there is nothing to count — the ጸ/ፀ and ኣ/አ contrasts do
+    not exist in Latin script — so it reports N/A rather than "no signal",
+    which would read as evidence of uniformity where no test was run.
     """
+    if script != "geez":
+        return {"gate": "variety", "pass": True, "label": "n/a",
+                "signal": f"NOT APPLICABLE — {script} script carries no "
+                          f"Ge'ez orthographic variety markers",
+                "eritrean_markers": None, "ethiopian_markers": None,
+                "detail": "variety is a Ge'ez-side property (DEC-010)"}
     text = "\n".join(texts.values())
     er = sum(text.count(c) for c in TSADE_ER) + text.count(ALEF_GE)
     et = sum(text.count(c) for c in TSADE_ET) + text.count(ALEF_AM)
@@ -324,6 +406,10 @@ def main():
     ap.add_argument("--licence", default=None, help="declared licence, e.g. mit")
     ap.add_argument("--eval-set", action="append", default=[],
                     help="evaluation file to check contamination against (repeatable)")
+    ap.add_argument("--script", choices=("geez", "latin"), default="geez",
+                    help="script of these files (default geez). Verified against "
+                         "the contents, not taken on trust — a Ge'ez corpus "
+                         "declared latin fails the script gate")
     ap.add_argument("--json", help="write the screening record here")
     args = ap.parse_args()
 
@@ -332,9 +418,10 @@ def main():
         sys.exit("No corpus files found.")
 
     gates = [
+        gate_script(texts, args.script),
         gate_licence(args.licence),
-        gate_quality(texts),
-        gate_variety(texts),
+        gate_quality(texts, args.script),
+        gate_variety(texts, args.script),
         gate_contamination(texts, args.eval_set),
     ]
     blocking = [g for g in gates if not g["pass"]]

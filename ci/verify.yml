@@ -192,11 +192,15 @@ jobs:
           done
           echo "committed corpora pass the quality gate"
 
+      # `data/anchors/` was added for HornMT and the glob did not cover it, so
+      # the most important corpus in the repo would have been the one exempt
+      # from DEC-015. Verified by deleting a record and watching this fail.
       - name: Every committed corpus carries a screening record (DEC-015)
         run: |
           set -euo pipefail
           fail=0
-          for f in experiments/*/corpus/*.txt experiments/*/data/*.txt; do
+          for f in experiments/*/corpus/*.txt experiments/*/data/*.txt \
+                   data/anchors/*/*.txt; do
             [ -e "$f" ] || continue
             rec="$(dirname "$f")/screening/$(basename "$f" .txt).json"
             if [ ! -f "$rec" ]; then
@@ -205,6 +209,40 @@ jobs:
             fi
           done
           exit $fail
+
+      # An anchor everything is scored against must be provably the upstream
+      # corpus, and provably still aligned line-for-line. fetch.py compares
+      # SHA-256 and re-checks that both sides split to 2,030 on "\n" with no
+      # exotic separator, which is how a parallel corpus silently desyncs.
+      - name: HornMT anchor matches upstream and stays aligned
+        run: python data/anchors/hornmt/fetch.py
+
+      - name: Parallel anchors are screened on both sides
+        run: |
+          set -euo pipefail
+          python scripts/data_processing/screen_dataset.py \
+            data/anchors/hornmt/tir.txt --licence cc-by-4.0 --script geez \
+            --eval-set experiments/003-metric-validity/data/flores_ti.txt \
+            > /dev/null
+          python scripts/data_processing/screen_dataset.py \
+            data/anchors/hornmt/eng.txt --licence cc-by-4.0 --script latin \
+            --eval-set experiments/003-metric-validity/data/flores_en.txt \
+            > /dev/null
+          echo "HornMT clears both sides"
+
+      # --script switches off two Ge'ez-specific gates, so it is the one input
+      # here that could wave a corpus through. It is detected, not asserted:
+      # Tigrinya declared latin must fail before it can skip anything.
+      - name: The script declaration cannot be used as an escape hatch
+        run: |
+          set -euo pipefail
+          if python scripts/data_processing/screen_dataset.py \
+               data/anchors/hornmt/tir.txt --licence cc-by-4.0 --script latin \
+               --eval-set data/anchors/hornmt/eng.txt > /dev/null 2>&1; then
+            echo "::error::a Ge'ez corpus declared latin PASSED — gate is broken"
+            exit 1
+          fi
+          echo "script declaration is verified against the contents"
 
       - name: Known-corrupted sample is still detected
         run: |

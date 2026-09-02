@@ -193,8 +193,9 @@ case where training becomes justified.
 > indefensible regardless of preference.
 >
 > ⚠️ **The ladder is blocked at the bottom, and not by compute.** There are
-> **0 cleanly-licensed parallel sentences** (**A-05**), so rungs 2 and 3 have
-> nothing to train on. This assumption is *supported* but currently *untestable*.
+> ~~**0 cleanly-licensed parallel sentences**~~ **2,030** (**A-05**) — corrected
+> 2026-09-01, HornMT is CC-BY-4.0 — which is still nowhere near enough for rungs
+> 2 and 3. This assumption is *supported* but currently *untestable*.
 
 Where model work is genuinely required, adapting an existing model is preferred
 over training from scratch. Corollary of A-004 and the reuse-first philosophy.

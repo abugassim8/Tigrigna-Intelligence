@@ -8,7 +8,9 @@
 | **Status** | Current |
 | **Confidence** | High on the licence audit and cost arithmetic; **no training run** |
 
-**One-line answer:** We have **zero cleanly-licensed parallel training data**, so
+**One-line answer:** ~~We have **zero cleanly-licensed parallel training
+data**~~ — **corrected 2026-09-01: we have 2,030** (HornMT, CC-BY-4.0), which is
+still far below any training rung, so
 if the translation model we adopted without measuring turns out to be inadequate,
 **we currently cannot fine-tune our way out of it** — which makes **A-05** the
 insurance policy on DEC-011 rather than a nice-to-have.

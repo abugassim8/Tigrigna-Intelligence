@@ -6,6 +6,16 @@
   "total_chars": 4584,
   "gates": [
     {
+      "gate": "script",
+      "pass": true,
+      "declared": "latin",
+      "ethiopic_pct": {
+        "experiments/003-metric-validity/data/flores_en.txt": 0.0
+      },
+      "mismatches": [],
+      "detail": "file contents match the declared latin script"
+    },
+    {
       "gate": "licence",
       "pass": true,
       "declared": "cc-by-sa-4.0",
@@ -13,36 +23,30 @@
     },
     {
       "gate": "quality",
-      "pass": false,
-      "worst_foreign_pct": 0.026,
+      "pass": true,
+      "script": "latin",
+      "worst_foreign_pct": 0.0,
       "threshold_pct": 0.1,
-      "mojibake": {
-        "experiments/003-metric-validity/data/flores_en.txt": [
-          "ğ (U+011F LATIN SMALL LETTER G WIT)"
-        ]
-      },
+      "mojibake": {},
       "per_file": {
         "experiments/003-metric-validity/data/flores_en.txt": {
           "chars": 3874,
           "ethiopic_pct": 0.0,
-          "foreign_pct": 0.03,
-          "foreign_sample": [
-            "ğ(LATIN SMALL LETTER G)"
-          ]
+          "foreign_pct": 0.0,
+          "foreign_sample": []
         }
       },
       "review_flags": [],
-      "detail": "DECODING FAILURE — replacement or Latin-1/Extended characters inside Ge'ez text"
+      "detail": "no encoding corruption detected"
     },
     {
       "gate": "variety",
       "pass": true,
-      "label": "unknown",
-      "signal": "no signal",
-      "eritrean_markers": 0,
-      "ethiopian_markers": 0,
-      "lexeme_counts": {},
-      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010)."
+      "label": "n/a",
+      "signal": "NOT APPLICABLE — latin script carries no Ge'ez orthographic variety markers",
+      "eritrean_markers": null,
+      "ethiopian_markers": null,
+      "detail": "variety is a Ge'ez-side property (DEC-010)"
     },
     {
       "gate": "contamination",
@@ -61,5 +65,5 @@
       "detail": "no shared n-grams or exact segments with the supplied evaluation sets"
     }
   ],
-  "verdict": "BLOCKED — quality"
+  "verdict": "CLEARED for use"
 }

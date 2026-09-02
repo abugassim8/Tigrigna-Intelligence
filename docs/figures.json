@@ -265,6 +265,25 @@
       "basis": "experiment 006, 20-word sentence, median of 200",
       "note": "the ~2 s in the break-even model is a TIER 2 assumption and is not retired by this",
       "retired": []
+    },
+    {
+      "id": "clean-parallel-sentences",
+      "name": "Cleanly-licensed en-ti parallel sentences",
+      "current": "2,030 (HornMT, CC-BY-4.0)",
+      "basis": "downloaded, screened and committed 2026-09-01; data/anchors/hornmt/",
+      "note": "The 0 was measured behind an egress block that made GitHub unreadable. HornMT was public and CC-BY-4.0 the whole time.",
+      "retired": [
+        {
+          "value": "0 cleanly-licensed parallel sentences",
+          "patterns": [
+            "0 cleanly-licensed parallel",
+            "zero cleanly-licensed parallel",
+            "**0** cleanly-licensed parallel"
+          ],
+          "reason": "false — HornMT is 2,030 human-translated pairs under CC-BY-4.0",
+          "superseded": "2026-09-01"
+        }
+      ]
     }
   ]
 }

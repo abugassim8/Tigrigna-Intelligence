@@ -40,7 +40,7 @@ next research is evaluation for the primitives, and it is blocked by nothing.
   | Layer | Examples |
   | --- | --- |
   | **Measured** | 1.957× expansion · BLEU 1.08× harsher · raw Ge'ez wins 10/10 · TiQuAD contamination confirmed · 5/5 experiments reproduce |
-  | **Verified fact** | Every licence in the stack · **0** cleanly-licensed parallel sentences |
+  | **Verified fact** | Every licence in the stack · ~~**0**~~ **2,030** cleanly-licensed parallel sentences *(retracted 2026-09-01 — HornMT is CC-BY-4.0)* |
   | **Arithmetic** | Tiers 191/1,593 MB · LoRA 23× cheaper *(Tier 0 now measured at 113.4 MB; saving ~14×, not the 22× first computed)* |
   | **Designed, unbuilt** | Tier 1 · Tier 2 · morphology · the API surface |
   | **Assumed** | MADLAD's quality · cold start · COMET · DEC-002's user model |

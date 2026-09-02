@@ -6,6 +6,16 @@
   "total_chars": 1743,
   "gates": [
     {
+      "gate": "script",
+      "pass": true,
+      "declared": "geez",
+      "ethiopic_pct": {
+        "experiments/002-tokenizer-fertility/corpus/tlt_001_CORRUPTED_sample.txt": 98.77
+      },
+      "mismatches": [],
+      "detail": "file contents match the declared geez script"
+    },
+    {
       "gate": "licence",
       "pass": true,
       "declared": "mit",
@@ -14,6 +24,7 @@
     {
       "gate": "quality",
       "pass": false,
+      "script": "geez",
       "worst_foreign_pct": 0.072,
       "threshold_pct": 0.1,
       "mojibake": {

@@ -1,16 +1,16 @@
 {
   "corpus": [
-    "experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt"
+    "data/anchors/hornmt/tir.txt"
   ],
   "corpus_files": 1,
-  "total_chars": 2689,
+  "total_chars": 210336,
   "gates": [
     {
       "gate": "script",
       "pass": true,
       "declared": "geez",
       "ethiopic_pct": {
-        "experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt": 99.67
+        "data/anchors/hornmt/tir.txt": 97.42
       },
       "mismatches": [],
       "detail": "file contents match the declared geez script"
@@ -18,22 +18,28 @@
     {
       "gate": "licence",
       "pass": true,
-      "declared": "cc-by-sa-4.0",
+      "declared": "cc-by-4.0",
       "detail": "usable for shipped artefacts"
     },
     {
       "gate": "quality",
       "pass": true,
       "script": "geez",
-      "worst_foreign_pct": 0.0,
+      "worst_foreign_pct": 0.026,
       "threshold_pct": 0.1,
       "mojibake": {},
       "per_file": {
-        "experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt": {
-          "chars": 2149,
-          "ethiopic_pct": 99.67,
-          "foreign_pct": 0.0,
-          "foreign_sample": []
+        "data/anchors/hornmt/tir.txt": {
+          "chars": 166825,
+          "ethiopic_pct": 97.42,
+          "foreign_pct": 0.03,
+          "foreign_sample": [
+            "‹(SINGLE LEFT-POINTING)",
+            "›(SINGLE RIGHT-POINTIN)",
+            "ʼ(MODIFIER LETTER APOS)",
+            "+(PLUS SIGN)",
+            "|(VERTICAL LINE)"
+          ]
         }
       },
       "review_flags": [],
@@ -44,12 +50,16 @@
       "pass": true,
       "label": "unknown",
       "signal": "MIXED — both orthographies present in one set",
-      "eritrean_markers": 95,
-      "ethiopian_markers": 1,
+      "eritrean_markers": 6237,
+      "ethiopian_markers": 2181,
       "lexeme_counts": {
-        "ሃገራዊ(ER) vs ብሄራዊ(ET)": [
-          1,
+        "ክሳብ(ER) vs እስካብ(ET)": [
+          57,
           0
+        ],
+        "ሃገራዊ(ER) vs ብሄራዊ(ET)": [
+          60,
+          22
         ]
       },
       "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010)."
@@ -63,6 +73,16 @@
       "eval_segments_below_ngram_size": 0,
       "per_eval_set": {
         "experiments/003-metric-validity/data/flores_ti.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
+        },
+        "experiments/002-tokenizer-fertility/corpus/tlt_000_clean.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
+        },
+        "experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt": {
           "shared_ngrams": 0,
           "exact_segments": 0,
           "segments_below_ngram_size": 0

@@ -59,7 +59,7 @@ than degrading silently.
 `embeddings` (six intrinsic checks plus a lexical baseline, DEC-026).
 
 **Also built:** the native-speaker validation instrument (`validation/`, 134
-items), four enforcement scripts, and 17 CI checks.
+items), four enforcement scripts, and 20 CI checks.
 
 **Not built:** morphology, Tier 1 serving, Tier 2 serving, HTTP API, MCP server,
 SDKs, any deployment.
@@ -72,7 +72,7 @@ been scored.** CI has never run.
 | # | Gap | State now |
 | --- | --- | --- |
 | **G-1** | **No native-speaker validation** | ⚠️ **Unchanged in substance, but no longer blocked on design.** The instrument exists — 134 items, ~25 minutes. Every intrinsic check still catches *broken*, not *wrong* |
-| **G-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 17 checks, not 14.** All written, all locally verified, **none running** |
+| **G-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 20 checks, not 14.** All written, all locally verified, **none running** |
 | **G-3** | **Evaluation anchors are hollow** | Unchanged. One anchor unusable (TiQuAD), the other a **30-sentence sample** — and experiment 007 found confidence intervals stop being trustworthy below n≈5, which that sample's breakdowns land in |
 | **G-4** | **Nothing measured end to end** | Unchanged. MADLAD's quality assumed, Tier 2 cold start assumed. **Tier 1's bar is now recorded** (DEC-026), so the measurement is a script away |
 | **G-5** | **The MVP is incomplete by its own definition** | Unchanged. Morphology remains a stub (**A-07**) |
@@ -86,7 +86,7 @@ leverage, not for order.**
 
 ```mermaid
 graph TD
-    A15["A-15 · install CI<br/>ONE COMMAND"] --> ENF["17 checks enforcing"]
+    A15["A-15 · install CI<br/>ONE COMMAND"] --> ENF["20 checks enforcing"]
     A13["A-13 · native speaker<br/>sheets ready to send"] --> CORRECT["Correctness validated"]
     A02["A-02 · confirm DEC-002"] --> API["HTTP API"]
     A02 --> MCP["MCP server"]
@@ -124,7 +124,7 @@ Ordered by **leverage per minute of your time.**
 
 | # | Action | Your effort | Unlocks |
 | --- | --- | --- | --- |
-| **0.1** | **A-15 — install CI** | **One command** | **17 checks** start enforcing |
+| **0.1** | **A-15 — install CI** | **One command** | **20 checks** start enforcing |
 | **0.2** | **A-13 — send the sheets** | Find a speaker; **~25 min of theirs** | **G-1 — whether any of our Tigrinya is correct** |
 | **0.3** | **A-02 — confirm DEC-002** | Read a 3-min summary, decide | The entire API/MCP/SDK surface |
 | **0.4** | **A-09 — a session with egress** | Config change | **Tier 1 embeddings** (nothing else blocks them), scoring MADLAD, Tier 2, A-14 |

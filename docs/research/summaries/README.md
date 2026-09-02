@@ -118,7 +118,8 @@ implementation at all** — now executable.
 
 ### 010 — Training strategy
 
-**Zero cleanly-licensed parallel training data.** So if MADLAD (adopted without
+~~**Zero cleanly-licensed parallel training data.**~~ **2,030 pairs** — corrected
+2026-09-01, HornMT is CC-BY-4.0, and far too few to train on. So if MADLAD (adopted without
 quality measurement) underperforms, **we cannot fine-tune our way out** — which
 makes **A-05 the insurance policy on DEC-011**. If triggered, LoRA is ~23×
 cheaper than a full fine-tune. From-scratch is foreclosed by A-002.

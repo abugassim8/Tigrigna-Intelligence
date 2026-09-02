@@ -14,8 +14,8 @@ a single email — and unblock disproportionately large amounts of work. One of
 them potentially unlocks **1.4 million parallel sentences** for the cost of a
 message.
 
-**How to use it:** **A-01, A-02 and A-05 are blocking**; A-15 is one command
-and switches on 17 checks that currently enforce nothing. Each item states what
+**How to use it:** **A-01 and A-02 are blocking**; A-15 is one command
+and switches on 20 checks that currently enforce nothing. Each item states what
 to do, why, and what it unblocks; where a message is needed, a
 **ready-to-send draft** is included — copy, adjust the bracketed fields, send.
 
@@ -43,10 +43,10 @@ itself a research finding.
 | **A-02** | Confirm DEC-002 (who our primary users are) | 🔴 **Blocking** | API, MCP, SDK design | TODO |
 | **A-03** | Report the TiQuAD contamination to `farefaine` | 🟠 High | Ecosystem (G-11); protects others | TODO |
 | **A-04** | Request the TiQuAD test set | 🟠 High | DEC-005 — canonical evaluation | TODO |
-| **A-05** | Get licence on 1.4M en–ti parallel sentences | 🔴 **Blocking** | **The only remedy if MADLAD underperforms** — insurance on DEC-011 | TODO |
+| **A-05** | Establish terms for the 1.4M en–ti pairs — **identified as OPUS NLLB mined bitext** | 🟠 High *(was Blocking)* | Insurance on DEC-011 — ⚠️ **weakened**: a published fine-tune on this data scored chrF **4.99** | TODO |
 | **A-06** | Legal review of TiQuAD's copyright position | 🟠 High | Whether we can ship anything using it | TODO |
 | **A-07** | Resolve HornMorpho licence + Tigrinya version | 🟡 Medium | Morphology service (DEC-006 critical path) | TODO |
-| **A-08** | Set an `HF_TOKEN` for this environment | 🟡 Medium | Removes anonymous rate limits | TODO |
+| **A-08** | Set an `HF_TOKEN` for this environment | 🟠 **High** *(was Medium)* | **FLORES+ is a gated repo** — the token is what unlocks the full 997/1,012 devtest, the fix for G-3 | TODO |
 | **A-09** | Arrange a session with unrestricted egress | 🟠 **High** | The whole verification backlog — **and Tier 1 embeddings, which nothing else blocks** (DEC-026) | TODO |
 | **A-10** | Introduce the project to GeezLab / L3S | 🟢 Low | Collaboration (G-11) | TODO |
 | **A-11** | Licence clarification on `fidel` | 🟢 Low | Transliteration option | TODO |
@@ -245,8 +245,31 @@ Tigrinya sentence pairs** — by far the largest Tigrinya resource found — wit
 
 **Unblocks:** translation work; a large share of the usable data.
 
+> ### ⚠️ Re-scoped 2026-09-01 — this is not an unlicensed original
+>
+> `michsethowusu/english-tigrinya_sentence-pairs` holds exactly **1,398,177**
+> rows with no licence tag and no provenance on its card. EnTiMT's independently
+> compiled source table lists **"OPUS NLLB (mined) — 1,398,173"**. It is
+> **web-mined OPUS/NLLB bitext re-uploaded without attribution**, so the
+> question is what OPUS and NLLB's terms allow — not what an uploader will grant.
+> Emailing the uploader was never the right move.
+>
+> **And the payoff is much smaller than assumed.** EnTiMT fine-tuned
+> NLLB-600M on 1.14M cleaned pairs from this pool for 13 hours and reports
+> **en→ti BLEU 0.133, chrF 4.99**, with output degenerating into repeated
+> n-grams. Whether that is the data or their tokenizer transplant is not
+> isolated — but "the only remedy if MADLAD underperforms" now has a published
+> failure attached, and it should stop being described as insurance.
+>
+> **Dropped from Blocking to High** for that reason. What would actually settle
+> it is a contamination screen against FLORES+, which is written and runnable
+> and has nothing to read: the corpus exists only as a 110 MB parquet on
+> Hugging Face, and direct downloads are still blocked (**A-09**).
+
 **⚠️ Escalated to Blocking, 2026-08-17 (DEC-017).** The training-strategy audit
-found we have **zero cleanly-licensed parallel training data** — FLORES+ and
+found we have ~~**zero cleanly-licensed parallel training data**~~ **2,030 pairs**
+*(corrected 2026-09-01 — HornMT, CC-BY-4.0; still far below a training rung)* —
+FLORES+ and
 TiQuAD are evaluation anchors, so training on them is contamination, and this
 1.4M-pair corpus is the only other parallel data that exists.
 
@@ -309,7 +332,7 @@ refuses cross-owner repositories. See `docs/research/RESEARCH_ACCESS.md`.
 
 ---
 
-## 🟡 A-08 — Set an `HF_TOKEN` for this environment
+## 🟠 A-08 — Set an `HF_TOKEN` for this environment
 
 The Hugging Face tools run **anonymously**, with rate limits — which is partly
 why the connector dropped repeatedly mid-session and slowed the corpus work.
@@ -319,6 +342,24 @@ enough) and add it per `https://hf.co/settings/mcp/`.
 
 **Unblocks:** faster, more reliable dataset inspection — which is now a required
 step under DEC-008 and the size-tag finding.
+
+> ### ⚠️ Upgraded 2026-09-01 — this is not just about rate limits
+>
+> **`openlanguagedata/flores_plus` is a GATED repository.** Anonymous access
+> returns metadata but `401 Unauthorized` on the rows. That single fact
+> reassigns a blocker: the full FLORES+ Tigrinya split — **997 dev / 1,012
+> devtest** — is not held back by general egress at all, only by the absence of
+> a token.
+>
+> This is the fix for **G-3**, "the evaluation anchors are hollow". The
+> translation anchor in use is a **30-sentence sample**; experiment 007 found
+> confidence intervals stop being trustworthy below n≈5, which that sample's
+> per-variety breakdowns land in. A read-scope token replaces it with the real
+> benchmark.
+>
+> HornMT (2,030 pairs, CC-BY-4.0, now at `data/anchors/hornmt/`) already made
+> the anchor 68× larger without a token. FLORES+ is what makes our numbers
+> **comparable to published work**, which HornMT alone cannot do.
 
 ---
 

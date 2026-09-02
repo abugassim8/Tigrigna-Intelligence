@@ -3,7 +3,10 @@
 > **Status: the screening policy is decided and executable; there is almost no
 > data to apply it to.** DEC-008 and DEC-015 settle how data enters the system.
 > The corpus itself is the constraint: **~99% of discovered Tigrinya data is
-> unlicensed**, and there are **0 cleanly-licensed parallel sentences**.
+> unlicensed**, and there are ~~**0 cleanly-licensed parallel sentences**~~
+> **2,030** of them.
+>
+> ⚠️ **RETRACTED 2026-09-01 — this was false.** [HornMT](https://github.com/asmelashteka/HornMT) is **2,030 human-translated en–ti pairs under CC-BY-4.0**, now committed at `data/anchors/hornmt/`. The zero was measured behind an egress block that made GitHub unreadable; the corpus was public the whole time.
 >
 > **Evidence:** `../research/summaries/005-data-and-contamination.md`,
 > `../research/summaries/009-pipeline-and-screening.md`
