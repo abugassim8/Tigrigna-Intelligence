@@ -22,6 +22,44 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Readiness plan refreshed across phases A–D — 2026-09-02
+
+The plan had been patched incrementally through four phases and had stopped
+reading as one document. Reconciled, and three inconsistencies fell out of the
+reconciliation rather than out of the work.
+
+**⚠️ `G-4` meant two different things in the same document.** `goals.md` numbers
+goals `G-1…G-11`; the plan numbered its gaps `G-1…G-5`. So **`G-4` was both
+"nothing measured end to end" and "deliver semantic search and retrieval"** —
+and the plan used *both senses*, four lines apart. The plan's gaps are now
+`GAP-n`.
+
+The collision persists in **~50 citations across 13 other files with the two
+meanings mixed**, so it is **recorded, not mass-renamed**: a blind substitution
+would corrupt every site that means the goal. Listed in §12 as work outstanding.
+
+**Also reconciled:** the header claimed *fourteen* work items over a section
+listing *fifteen* (now sixteen, with Phase D); Tier 0 was still described as
+"3 of 4 — morphology is a stub" after DEC-028 and the adapter landed; Phase 2
+was still headed "blocked on A-07" after A-07 closed; Phase 4 still warned that
+*"if MADLAD underperforms, A-05 is the only remedy"*, which experiment 009 had
+just measured as worth about a fifth of its face value; and the count of checks
+found unable to fail was **seven** in a document whose own changelog had already
+recorded an **eighth**.
+
+**The through-line, now stated in §13.** Across phases A–D the register
+described a world that had stopped being true: five actions waiting on emails
+whose answers were public, two blockers that were one blocker each, and the
+corpus at the centre of the longest-running Blocking item **57% empty**. What
+kept those standing was not difficulty — a `curl`, a licence file, a dataset
+preview — but a **stale assumption about access**. The register said the answer
+was unreachable, so nobody reached.
+
+**And the counterweight, also now stated:** four phases made the *record* true
+and moved the *platform* very little. The anchor got 68× bigger and morphology
+got an adapter, and **neither is measured**. No speaker has validated a single
+output; no model has been scored.
+
 ### Experiment 009 — the 1.4M "parallel" corpus is 57% not parallel — 2026-09-02
 
 Phase D. Both Phase D experiments were parked behind **A-09**. Re-testing that

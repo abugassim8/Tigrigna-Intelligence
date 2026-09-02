@@ -2,9 +2,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-02** after fourteen work items |
+| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-02**, covering phases A–D |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
-| **Basis** | **28 decisions · 9 experiments · 16 summaries · 145 tests · 4 audits** |
+| **Basis** | **28 decisions · 9 experiments · 16 summaries · 145 tests · 5 audits** |
 
 ---
 
@@ -23,13 +23,15 @@ output, and know what they are getting.
 | --- | --- | --- |
 | **Every MVP capability has a metric** | ✅ **MET** — no `TBD` left in an MVP row | — |
 | **Install-to-first-call** | ✅ **MET** — `pip install` and a working call in the README | — |
-| Tier 0 complete | ⚠️ **3 of 4** — morphology is a stub | **A-07** — no longer a licence *unknown*; HornMorpho is **GPL-3.0**, and the question is architectural |
+| Tier 0 complete | ⚠️ **4 of 4 built, 3 of 4 usable out of the box** — morphology needs an analyser the user installs | **DEC-028** *(A-07 closed)* — HornMorpho is GPL-3.0 and never bundled |
 | Licensing clean | ⚠️ **partial** — bi-encoders Apache-2.0 but built on an **unlicensed base**; `fgaim` base models unstated | **A-01** |
 | Rules enforce themselves | ❌ CI written, **never run** | **A-15** |
 | **A native speaker has validated the output** | ❌ **instrument built and unsent** | **A-13** |
 
-**Two of six met outright, one at three-quarters.** The two that remain fully
-open are the two that need a person, and one of them is a single command.
+**Two of six met outright.** Tier 0 is now *built* in full and *usable* in
+three-quarters — morphology works only for a user who installs a GPL-3.0
+analyser themselves. The two criteria still fully open are the two that need a
+person, and one of them is a single command.
 
 ### v0.5 — *Serving*
 
@@ -72,13 +74,20 @@ been scored.** CI has never run.
 
 ### The five gaps that actually matter
 
+⚠️ **These are `GAP-n`, renamed 2026-09-02.** They were `G-1…G-5`, which collides
+with `goals.md`'s `G-1…G-11`: **`G-4` means "nothing measured end to end" here
+and "deliver semantic search and retrieval" there**, and this document used both
+senses. The collision persists in ~50 citations across 13 other files, with the
+two meanings mixed, so it is **recorded rather than mass-renamed** — a blind
+substitution would corrupt the sites that mean the goal.
+
 | # | Gap | State now |
 | --- | --- | --- |
-| **G-1** | **No native-speaker validation** | ⚠️ **Unchanged in substance, but no longer blocked on design.** The instrument exists — 134 items, ~25 minutes. Every intrinsic check still catches *broken*, not *wrong* |
-| **G-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 21 checks, not 14.** All written, all locally verified, **none running** |
-| **G-3** | **Evaluation anchors are hollow** | ⚠️ **Materially better.** **HornMT is ingested** — 2,030 human-translated pairs, CC-BY-4.0, **68× the 30-sentence sample** and 0 overlap with it. Still one domain (news), and full FLORES+ is **gated, not blocked** — one token (**A-08**) buys 997/1,012 devtest and comparability with published work |
-| **G-4** | **Nothing measured end to end** | Unchanged, and now precisely diagnosed: the runtime **installs** (PyPI is open) and the **weights cannot be fetched** (**A-09**). MADLAD's quality assumed, Tier 2 cold start assumed. Tier 1's bar is recorded (DEC-026) |
-| **G-5** | **The MVP is incomplete by its own definition** | ⚠️ **Built, and still not closed.** `morphology.py` is implemented against a **user-installed** HornMorpho (**DEC-028**), with 16 tests covering spans, offsets and every failure path via an injected analyser. A clean `pip install` still cannot analyse morphology, and **nothing has measured it** — the `metrics.md` row stays ❌ |
+| **GAP-1** | **No native-speaker validation** | ⚠️ **Unchanged in substance, but no longer blocked on design.** The instrument exists — 134 items, ~25 minutes. Every intrinsic check still catches *broken*, not *wrong* |
+| **GAP-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 21 checks, not 14.** All written, all locally verified, **none running** |
+| **GAP-3** | **Evaluation anchors are hollow** | ⚠️ **Materially better.** **HornMT is ingested** — 2,030 human-translated pairs, CC-BY-4.0, **68× the 30-sentence sample** and 0 overlap with it. Still one domain (news), and full FLORES+ is **gated, not blocked** — one token (**A-08**) buys 997/1,012 devtest and comparability with published work |
+| **GAP-4** | **Nothing measured end to end** | Unchanged, and now precisely diagnosed: the runtime **installs** (PyPI is open) and the **weights cannot be fetched** (**A-09**). MADLAD's quality assumed, Tier 2 cold start assumed. Tier 1's bar is recorded (DEC-026) |
+| **GAP-5** | **The MVP is incomplete by its own definition** | ⚠️ **Built, and still not closed.** `morphology.py` is implemented against a **user-installed** HornMorpho (**DEC-028**), with 16 tests covering spans, offsets and every failure path via an injected analyser. A clean `pip install` still cannot analyse morphology, and **nothing has measured it** — the `metrics.md` row stays ❌ |
 
 ---
 
@@ -101,7 +110,7 @@ graph TD
     A01["A-01 · fgaim licences"] --> REUSE["wider model reuse"]
     A01 -.->|licence chain| T1
     A07["DEC-028 · morphology<br/>user-installed, never shipped"] --> MORPH["Morphology<br/>(user installs HornMorpho)"]
-    A05["A-05 · parallel data"] --> TRAIN["Training ladder"]
+    A05["A-05 · parallel data<br/>~603K usable, not 1.4M"] -.->|weak| TRAIN["Training ladder"]
     T2 --> A14["A-14 · cold start"]
     A14 --> DEPLOY["Deployment mode"]
     MORPH --> MVP["Tier 0 COMPLETE"]
@@ -137,13 +146,13 @@ Ordered by **leverage per minute of your time.**
 | # | Action | Your effort | Unlocks |
 | --- | --- | --- | --- |
 | **0.1** | **A-15 — install CI** | **One command** | **21 checks** start enforcing |
-| **0.2** | **A-13 — send the sheets** | Find a speaker; **~25 min of theirs** | **G-1 — whether any of our Tigrinya is correct** |
+| **0.2** | **A-13 — send the sheets** | Find a speaker; **~25 min of theirs** | **GAP-1 — whether any of our Tigrinya is correct** |
 | **0.3** | **A-02 — confirm DEC-002** | Read a 3-min summary, decide | The entire API/MCP/SDK surface |
-| **0.4** | **A-09 — a way to fetch model weights** | Config change | ⚠️ **Re-scoped:** the runtime installs from PyPI and *reading* about models is open. This is now only the weights — scoring anything at all (**G-4**), Tier 1, Tier 2, A-14 |
-| **0.5** | **A-08 — set an `HF_TOKEN`** | **Two minutes** | ⚠️ **Upgraded:** FLORES+ is a *gated* repo, not an egress casualty. The token buys the full 997/1,012 devtest — the real fix for **G-3** |
+| **0.4** | **A-09 — a way to fetch model weights** | Config change | ⚠️ **Re-scoped:** the runtime installs from PyPI and *reading* about models is open. This is now only the weights — scoring anything at all (**GAP-4**), Tier 1, Tier 2, A-14 |
+| **0.5** | **A-08 — set an `HF_TOKEN`** | **Two minutes** | ⚠️ **Upgraded:** FLORES+ is a *gated* repo, not an egress casualty. The token buys the full 997/1,012 devtest — the real fix for **GAP-3** |
 | ~~0.6~~ | ~~A-07 — decide morphology's licence position~~ | ✅ **done** | Resolved by **DEC-028** — no longer yours |
 | **0.7** | A-01 — email `fgaim` | Send a drafted email | DEC-003's wider reuse — and ⚠️ **the bi-encoders' licence chain**, which does touch Tier 1 |
-| 0.8 | A-05 — establish terms for the mined 1.4M | Read OPUS/NLLB terms | ⚠️ **Downgraded** — it is re-uploaded OPUS NLLB bitext, and a published fine-tune on it scored chrF **4.99** |
+| 0.8 | A-05 — establish terms for the mined corpus | Read OPUS/NLLB terms | ⚠️ **Downgraded twice.** Re-uploaded OPUS NLLB bitext; **experiment 009 found 56.9% of its rows have no English side at all**, so the prize is **~603K pairs, not 1.4M**. A published fine-tune on this pool scored chrF **4.99** |
 
 ```bash
 # 0.1 — do this one first
@@ -193,7 +202,7 @@ validation is required before anything ships user-facing."*
 
 ---
 
-## 6. Phase 2 — Complete Tier 0 (blocked on A-07)
+## 6. Phase 2 — Complete Tier 0 (**built**; blocked on measurement, not licence)
 
 | Step | Deliverable | Notes |
 | --- | --- | --- |
@@ -228,17 +237,22 @@ validated, citing an experiment that never tested it. An audit caught it.
 | --- | --- | --- |
 | ~~4.1~~ | Design embeddings evaluation | ✅ **DONE** → **DEC-026**. Six properties, plus a lexical floor: the baseline scores **0.2232** on orthographic invariance against a **0.80** floor, so the neural model has a specific job |
 | 4.2 | Tier 1 built and evaluated | The bar is recorded; running it is one script |
-| 4.3 | **Score MADLAD-400-3B** | Closes **G-4** |
+| 4.3 | **Score MADLAD-400-3B** | Closes **GAP-4** |
 | 4.4 | Convert to CTranslate2 int8 (DEC-014) | |
 | 4.5 | **Measure Tier 2 cold start** → closes A-14 | Experiment 006's method applies unchanged |
 | 4.6 | Deployment mode from measured duty cycle | DEC-019 states the rule; A-14 supplies the number |
 
-⚠️ **G-4 — cross-language retrieval — is unreachable with the adopted model.**
-It is monolingual. Serving G-4 needs a **different model class**, which is an
-undecided Tier 1 scope question (DEC-026).
+⚠️ **Goal G-4 — semantic search and cross-language retrieval — is unreachable
+with the adopted model.** `tiroberta-bi-encoder` is monolingual. Serving it needs
+a **different model class**, an undecided Tier 1 scope question (DEC-026). *(This
+is `goals.md`'s G-4, not GAP-4 above — the collision the note in §2 describes.)*
 
-⚠️ **If MADLAD underperforms, A-05 is the only remedy** — an email sent months
-earlier, or not at all.
+⚠️ **"If MADLAD underperforms, A-05 is the only remedy" no longer holds.**
+Experiment 009 measured the remedy: **56.9% of the 1.4M rows have no English
+side**, the corpus is sorted so any prefix flatters it, and a published
+fine-tune on that pool scored **en→ti chrF 4.99**. The insurance policy is worth
+about a fifth of its stated face value, and **MADLAD has to be good enough as
+shipped** — which nothing has yet measured (**A-09**).
 
 ---
 
@@ -257,8 +271,14 @@ earlier, or not at all.
 
 ## 10. Delivered since this plan was written
 
-Thirteen items, all unblocked work. **Every one found a defect**, which is the
+**Sixteen items, all unblocked work.** Every one found a defect, which is the
 argument for the next audit rather than a claim of thoroughness.
+
+**The through-line of phases A–D:** the register described a world that had
+stopped being true. Five actions were waiting on emails whose answers were
+public; two blockers were one blocker each; and the corpus at the centre of the
+longest-running Blocking item turned out to be **57% empty**. Nothing here
+required permission — only re-testing an assumption nobody had re-tested.
 
 | Item | What it produced |
 | --- | --- |
@@ -277,6 +297,7 @@ argument for the next audit rather than a claim of thoroughness.
 | **Phase B — the record re-measured** | Five actions described a world that had changed. **A-07's licence is answered** (HornMorpho is **GPL-3.0**, verified from `LICENSE.txt`); **A-09 was one action covering two blockers**; **A-08 guards a gate, not a rate limit**; **A-05 is re-uploaded OPUS bitext**; **A-01 reaches Tier 1 through the chain** |
 | **Phase C — three decisions** | **DEC-028** morphology is user-installed and never distributed (a hosted service *may* use it — GPL, not AGPL); **DEC-029** anchors v2, HornMT primary and TiQuAD out; **DEC-030** parallel data is clean/quarantined/refused, and **licence is identified at source** |
 | **Morphology built** | `morphology.py` implements DEC-028 — **16 tests, no GPL dependency present**, the analyser injected. Reading HornMorpho's source found two traps it now defends against: `hm.analyze()` returns **`None`** when a language fails to load, and **language data is a separate download**, so `import hm` proves nothing |
+| **Phase D — experiment 009** | The blocker was not real: the HF **Dataset Viewer** serves rows the download API will not. **56.9% of the "1.4M parallel sentences" have no English side**, the corpus is sorted by similarity, and targets repeat. **A-05 → Medium**, DEC-030 Amendment 1. H3 (column desync at lag 26) **refuted by its own threshold** on two data points — and the threshold was not moved |
 
 ### ✅ The dates in this record were wrong — and are now fixed
 
@@ -328,7 +349,7 @@ included.
 | --- | --- | --- |
 | **No Tigrinya speaker is found** | **Severe** — v0.1 unreachable; correctness can never be claimed | The instrument is ready. This has the longest lead time of anything here |
 | **MADLAD is poor at Tigrinya** | **Severe** — the translation tier fails | Unknown until 4.3. **The single largest unmeasured assumption** |
-| A-05 refused | Training ladder permanently blocked | ⚠️ **Less load-bearing than it looks.** The corpus is re-uploaded OPUS NLLB mined bitext, and a published fine-tune on it scored en→ti chrF **4.99**. MADLAD must be good enough as shipped either way |
+| A-05 refused | Training ladder permanently blocked | ⚠️ **Much less load-bearing than it looked.** Experiment 009: **56.9% of the rows are not pairs**, the corpus is sorted, targets repeat, and a published fine-tune scored chrF **4.99**. MADLAD must be good enough as shipped either way |
 | Model weights stay unfetchable | Tier 1 **and** Tier 2 impossible; **nothing is ever scored** | The runtime installs and the licences are readable, so everything except running a model can proceed |
 | A-01 refused | Wider reuse narrows | ⚠️ **Does not affect Tier 1** — the bi-encoders are already clear |
 | CI never installed | The whole verification apparatus is decorative | One command |
@@ -337,24 +358,27 @@ included.
 
 ## 12. What I can do without you
 
-**One thing: integrate morphology behind the stub.** DEC-028 settled the
-licence position, so `morphology.py` can now be written against a
-user-installed HornMorpho — steps 2.2 to 2.4 below. It cannot be *tested* end to
-end here (HornMorpho is a manual install and this environment is ephemeral), so
-it lands with the same intrinsic checks DEC-023 uses, and the gold-data question
-in 2.4 stays open.
+**Three things, none of them large.**
 
-Also available, lower value: **ingest TICO-19** if a reachable mirror can be
-found — `tico-19.github.io` is egress-blocked.
+1. **Resolve the `G-n` collision across the other 13 files.** This plan's gaps
+   are now `GAP-n`; `goals.md`'s goals are still `G-n`, and ~50 citations
+   elsewhere mix the two senses. It needs reading each site, not a substitution
+   — which is exactly why it is still here.
+2. **Ingest TICO-19** if a reachable mirror can be found. `tico-19.github.io`
+   is egress-blocked, but ~6,142 professionally translated segments would be
+   the second clean anchor after HornMT.
+3. **Extend the intrinsic checks to morphology** — the code is written and the
+   analyser is a GPL-3.0 install away, so this can be *prepared* but not run.
 
 Everything else is finished: validation instrument, three audits, conformance
-suite, consistency check, two experiments, the embeddings design, this
-document's own instrumentation, the date correction, and Phases A, B and C.
+suite, consistency check, three experiments, the embeddings design, this
+document's own instrumentation, the date correction, the morphology adapter, and
+phases A through D.
 
-What remains beyond the dates is either **blocked on a person** or is work I
-would rather not do blind: designing the API surface before A-02 answers who it
-is for, or building Tier 1 before A-09 lets it be measured. **Unverified design
-is what this project keeps getting burned by** — seven checks have now been
+What remains beyond those is either **blocked on a person** or work I would
+rather not do blind: designing the API surface before A-02 answers who it is
+for, or building Tier 1 before A-09 lets it be measured. **Unverified design is
+what this project keeps getting burned by** — **eight** checks have now been
 found that could not fail, each written in good faith and each caught only by
 planting a failure.
 
@@ -367,27 +391,44 @@ obtain a licence, reach a blocked host, or read Tigrinya as a speaker.
 
 **The method is working.** Measurement has overturned the project's own written
 claims repeatedly — DEC-007's token-efficiency rationale, DEC-023's
-1,639/1,639, the 22× cost saving, "384/384 zero gaps", and the CI word-count
-that could not count UTF-8. **Seven decisions now carry amendments** (DEC-005,
-007, 009, 016, 020, 023, 030), all of them corrections the project made against
-itself — including **DEC-020**, whose "no dependency imposes copyleft" basis
-survived only because the one dependency on the critical path had never been
-read, and **DEC-030**, whose quarantine of the 1.4M corpus rested on licence
-until somebody finally looked at the content.
+1,639/1,639, the 22× cost saving, "384/384 zero gaps", the CI word-count that
+could not count UTF-8, and now two of the largest: **"0 cleanly-licensed
+parallel sentences"** (there were 2,030, public and CC-BY-4.0 throughout) and
+**"1.4M parallel sentences"** (57% of them have no English side).
 
-**The engineering discipline is real and it is not self-congratulation:** seven
-checks have been found that *could not fail*, every one caught by deliberately
-planting a failure rather than by reading the code. **Three were in the audit
-tooling itself** — the seventh being that the derived-counts check matched no
+**Seven decisions now carry amendments** (DEC-005, 007, 009, 016, 020, 023,
+030), all of them corrections the project made against itself — including
+**DEC-020**, whose "no dependency imposes copyleft" basis survived only because
+the one dependency on the critical path had never been read, and **DEC-030**,
+whose quarantine of the 1.4M corpus rested on licence until somebody finally
+looked at the content.
+
+⚠️ **The pattern across phases A–D is worth naming, because it is not about
+Tigrinya.** Every one of those was cheap to check and expensive to leave: a
+`curl`, a licence file, a dataset preview. What kept them standing was not
+difficulty but a **stale assumption about access** — the register said the
+answer was unreachable, so nobody reached for it. The lesson is mechanical:
+**an access map is a measurement, and measurements go stale.**
+
+**The engineering discipline is real and it is not self-congratulation:**
+**eight** checks have been found that *could not fail*, every one caught by
+deliberately planting a failure rather than by reading the code. **Four were in
+the audit tooling itself.** The seventh: the derived-counts check matched no
 phrasing used in *this document*, so the plan of record was the one file whose
-headline numbers nothing verified. It was wrong when checked.
+headline numbers nothing verified — and it was wrong when checked. The eighth:
+that same check compared **line by line**, and prose wraps, so the README's
+"**24** decisions / recorded" straddled a break and could not be seen at all.
 
-**The exposure is equally real.** No speaker has validated a single output. No
-model has been scored. Nothing is deployed and nothing is enforced. The record's
-own dates were unreliable until 2026-08-24 — 71 of them — and the audit that
-found it also found *"DEC-008 spent three months as policy"* repeated in eleven
-places when the record says 15 days. **Both are fixed; that they survived this
-long is the point.**
+**The exposure is equally real, and phases A–D barely touched it.** No speaker
+has validated a single output. No model has been scored. Nothing is deployed and
+nothing is enforced. Four phases of work made the *record* true and moved the
+*platform* very little — the anchor got 68× bigger and morphology got an
+adapter, and neither is measured.
+
+The record's own dates were unreliable until 2026-08-24 — 71 of them — and the
+audit that found it also found *"DEC-008 spent three months as policy"* repeated
+in eleven places when the record says 15 days. **Both are fixed; that they
+survived this long is the point.**
 
 **A platform that is rigorous about everything except whether its Tigrinya is
 correct has its priorities inverted.** That remains the honest description, and
