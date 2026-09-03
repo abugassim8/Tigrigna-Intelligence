@@ -42,12 +42,17 @@ Tracked as **A-15** in [`../ACTIONS.md`](../ACTIONS.md).
 the failure DEC-018 exists to prevent, so the gap is recorded loudly rather than
 left to be discovered later.
 
-### One defect has already been fixed for you
+### Two defects have already been fixed for you
 
-The `intrinsic` job installed both packages **without** the `[dev]` extra, so
-`pytest` was absent — and a step added 2026-09-02 calls `pytest --collect-only`
-to verify the readiness plan's test count. **It would have failed on the first
-real run.** Now fixed.
+1. The `intrinsic` job installed both packages **without** the `[dev]` extra, so
+   `pytest` was absent — and a step added 2026-09-02 calls `pytest
+   --collect-only` to verify the readiness plan's test count. **It would have
+   failed on the first real run.**
+2. The validation-instrument step was **not re-runnable on one machine**: `cp -r
+   src /tmp/v-sheets` nests `src` inside an existing destination, so a second
+   local run failed with `Only in /tmp/v-sheets: sheets` — which reads as the
+   instrument being non-deterministic when it is not. Harmless on a clean
+   runner, actively misleading to anyone debugging locally.
 
 It was found by extracting all 28 non-install `run:` blocks from this file and
 executing them against the tree — 28 run, 0 failed, every experiment
@@ -58,30 +63,33 @@ a fresh runner, or network egress from GitHub's network.
 
 ## What it checks
 
-| Check | Rule |
+**28 non-install steps across five jobs.** The count is derived from this
+workflow by `docs/figures.json` → `ci_checks`, so adding a step and forgetting
+to update the documents fails `scripts/check_figures.py`.
+
+| Job | Enforces |
 | --- | --- |
-| `services/primitives` — 61 property tests | **DEC-023** (Tier 0 evaluation) |
-| `services/evaluation` — 14 harness tests | **DEC-009**, **DEC-010** |
-| Every experiment re-runs and diffs byte-identically | **DEC-016** |
-| Screening fails closed with no licence / no eval set | **DEC-015** |
-| The known-corrupted corpus still fails the quality gate | **DEC-015** |
-| Every research report has a corresponding summary | **DEC-001** |
-| Summaries stay within the two-page limit | **DEC-001** |
-| Every decision names its rejected alternatives | `CONTRIBUTING.md` |
+| `packages` | `services/primitives` (**97 tests**) and `services/evaluation` (**64 tests**) — DEC-023, DEC-009, DEC-010 |
+| `intrinsic` | Tier 0 intrinsic properties over the committed corpus (DEC-023a); morphology's five checks, and that a SKIP is **not** a pass (DEC-028); the readiness plan's test count |
+| `reproducibility` | All **10** experiments re-run and diff byte-identically (DEC-016) |
+| `screening` | Screening fails closed; contamination positively detected; every committed corpus carries a record; both anchors match upstream and stay aligned; planted failures still detected (DEC-015, DEC-029) |
+| `documentation` | Reports have summaries and stay in budget (DEC-001); no retired figure quoted as current (DEC-024); date stamps match their commits (A-17); no packaged artefact declares HornMorpho (DEC-028); every decision names its rejected alternatives |
 
-## Verified locally
+## Verified locally — and what that is worth
 
-All six checks were run by hand before commit, 2026-08-17:
+**2026-09-02:** all **28** non-install `run:` blocks extracted from this file and
+executed against the tree — **28 run, 0 failed**, twice in a row, all 10
+experiments reproducing byte-identically, 161 tests passing.
 
-- 61 primitives tests and 14 evaluation tests passed
-- 4 experiments reproduced byte-identically
-- screening correctly failed closed
-- the known-corrupted sample was still detected
-- 10 summaries under the word limit
-- 17 decisions carried rejected alternatives
+⚠️ **That is still not a run.** Nothing local exercises `actions/checkout`,
+`actions/setup-python`, a clean `pip install` on a fresh runner, or egress from
+GitHub's network. **CI that does not work is worse than no CI**, so the logic is
+exercised rather than assumed — but "verified locally" and "verified" are the
+distinction this whole file exists to make.
 
-**CI that does not work is worse than no CI**, so the logic was exercised rather
-than assumed. What has *not* happened is a run on a real GitHub Actions runner.
+*(The original note here recorded 6 checks, 61 + 14 tests and 4 experiments,
+verified by hand on 2026-08-17. Every one of those figures had since drifted —
+they are replaced above rather than left standing.)*
 
 ## Note on the reproducibility job
 
