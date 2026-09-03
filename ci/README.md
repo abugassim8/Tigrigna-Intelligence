@@ -5,7 +5,7 @@
 Holds `verify.yml`, the workflow that enforces the machine-checkable rules in
 `docs/decisions/DECISIONS.md` (**DEC-018**).
 
-## ⚠️ Not active yet — one step required, and no agent can take it
+## ⚠️ Not active yet — and no agent can take the step
 
 **This workflow is written and locally verified, but it is NOT RUNNING.**
 
@@ -54,8 +54,8 @@ left to be discovered later.
    instrument being non-deterministic when it is not. Harmless on a clean
    runner, actively misleading to anyone debugging locally.
 
-It was found by extracting all 28 non-install `run:` blocks from this file and
-executing them against the tree — 28 run, 0 failed, every experiment
+Both were found by extracting all 28 non-install `run:` blocks from this file
+and executing them against the tree — 28 run, 0 failed, every experiment
 reproducing byte-identically. That is the closest thing to a runner available
 without the push, and it is still **not** the same as a run: nothing here
 exercises `actions/checkout`, `actions/setup-python`, a clean `pip install` on
