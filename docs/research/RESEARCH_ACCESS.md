@@ -113,6 +113,32 @@ Note the repo-scope restriction below before using these.
 
 ---
 
+> ⚠️ **Re-measured again 2026-09-03, and it changed the plan of record.**
+> `media.githubusercontent.com` — GitHub's **Git LFS media host** — had never
+> been tested. It is **open**, and that matters because large files in a GitHub
+> repo are usually LFS pointers, not bytes.
+>
+> | Route | Result 2026-09-03 |
+> | --- | --- |
+> | `raw.githubusercontent.com/.../t.tgz` | ✅ 200 — but **134 bytes, a Git LFS pointer** |
+> | **`media.githubusercontent.com/media/.../t.tgz`** | ✅ **200 — 158,902,071 bytes**, matching the pointer's declared size |
+> | `github.com/<owner>/<repo>` (HTML) | ❌ 403 |
+> | `github.com/.../raw/...` | ❌ 403 |
+> | `codeload.github.com/.../tar.gz` | ❌ 403 |
+>
+> **The consequence: HornMorpho's Tigrinya language data is reachable.** The
+> readiness plan recorded morphology measurement as blocked on "an actual
+> install" and §12 concluded there was nothing left to do without a human. That
+> was wrong for the fourth time in the same way — HornMorpho's *own*
+> `get_language_url()` builds a `github.com/.../raw/...` URL, which **is** 403
+> here, and nobody checked whether the same bytes were available elsewhere.
+>
+> **A 200 on `raw.` is not proof you have the file.** Check the size against the
+> LFS pointer's declared `size` before believing a download succeeded — a
+> 134-byte "corpus" is the signature.
+
+---
+
 ## ❌ Blocked — do not retry
 
 These returned **403 at the proxy CONNECT level** on 2026-07-29. Per

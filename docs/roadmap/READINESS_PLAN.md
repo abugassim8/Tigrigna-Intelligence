@@ -5,6 +5,7 @@
 | **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-02**, covering phases A–E |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
 | **Basis** | **28 decisions · 10 experiments · 16 summaries · 161 tests · 5 audits** |
+| **Live handoff** | ⚠️ [`NEXT_SESSION.md`](NEXT_SESSION.md) — §12's *"nothing left to do"* was **wrong**; read that first |
 
 ---
 
@@ -372,7 +373,28 @@ included.
 
 ## 12. What I can do without you
 
-**Nothing. This list is empty for the first time.**
+⚠️ **Superseded 2026-09-03 — this said "Nothing" and it was wrong.**
+See [`NEXT_SESSION.md`](NEXT_SESSION.md), which is the live handoff.
+
+> **Nothing. This list is empty for the first time.**
+
+**What the claim missed.** Morphology measurement was recorded as blocked on
+"an actual install" of HornMorpho, and nobody tested whether the install was
+possible. It is: the Tigrinya language data is **158,902,071 bytes at
+`media.githubusercontent.com`** — GitHub's Git LFS media host, which had never
+been probed. HornMorpho's own download URL is `github.com/.../raw/...`, which
+**is** 403 here, and that is almost certainly why the block was assumed.
+
+**This is the fourth instance of the same failure** — after HornMT ("one `curl`
+away the whole time"), TICO-19, and the HF Dataset Viewer. The lesson §13 draws
+is mechanical and this is its fourth confirmation: *an access map is a
+measurement, and measurements go stale.* The register said unreachable, so
+nobody reached.
+
+⚠️ **Note what did *not* fail here.** No check was wrong. §12 was a **conclusion
+drawn from the register**, and the register was stale — exactly the shape of the
+variety-gate failure recorded in DEC-010 Amendment 1, where planting could not
+have helped either. **Only an external probe catches this class.**
 
 Every item that has ever been on it is done: the validation instrument, three
 audits, the conformance suite, the consistency check, four experiments, the

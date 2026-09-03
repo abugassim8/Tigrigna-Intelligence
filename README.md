@@ -185,10 +185,19 @@ python -m tigrinya_eval.primitives experiments/003-metric-validity/data
 ### Contribute
 
 **If you have time to unblock the project rather than research it, go straight to
-[`ACTIONS.md`](ACTIONS.md).** **Three items are blocking** — A-01, A-02, A-05 —
-and each has a ready-to-send draft. One could unlock 1.4M parallel sentences for
-the cost of a message. **A-15 is one command** and switches on 28 checks that
-currently enforce nothing.
+[`ACTIONS.md`](ACTIONS.md).** **Two items are blocking** — A-01 and A-02 — and
+each has a ready-to-send draft.
+
+⚠️ *This paragraph used to list **A-05** as blocking and describe it as unlocking
+**1.4M parallel sentences**. Experiment 009 measured the corpus: **56.9% of the
+rows have no English side.** A-05 is now Medium, and DEC-017 stands unchanged
+either way.*
+
+**The highest-leverage thing a person can do is A-13** — about 25 minutes of a
+Tigrinya speaker's time, and every correctness claim in the project waits behind
+it. **A-15 is five commands** and switches on 28 checks that currently enforce
+nothing. See [`docs/roadmap/NEXT_SESSION.md`](docs/roadmap/NEXT_SESSION.md) for
+the full list in leverage order.
 
 1. Read [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — the whole thing.
 2. Read [`docs/research/AI_RESEARCH_RULES.md`](docs/research/AI_RESEARCH_RULES.md).
@@ -198,7 +207,10 @@ currently enforce nothing.
    **DEC-001 … DEC-030**, eight amended by later measurement.
 5. Read [`docs/research/RESEARCH_ACCESS.md`](docs/research/RESEARCH_ACCESS.md)
    before searching for anything — it maps which sources are reachable.
-6. **[`docs/roadmap/READINESS_PLAN.md`](docs/roadmap/READINESS_PLAN.md) is the
+6. **[`docs/roadmap/NEXT_SESSION.md`](docs/roadmap/NEXT_SESSION.md) is the
+   live handoff** — what to do next, and the list of things only a person
+   can do. Start there.
+7. **[`docs/roadmap/READINESS_PLAN.md`](docs/roadmap/READINESS_PLAN.md) is the
    current plan of record** — what "ready" means, what is blocked on whom, and
    the order to do it in.
 
