@@ -51,7 +51,7 @@ itself a research finding.
 | **A-10** | Introduce the project to GeezLab / L3S | 🟢 Low | Collaboration (G-11) | TODO |
 | **A-11** | Licence clarification on `fidel` | 🟢 Low | Transliteration option | TODO |
 | ~~**A-12**~~ | ~~Choose the project licence~~ | ✅ **DONE** | Resolved by **DEC-020** | **DONE** |
-| **A-13** | **Find a Tigrinya speaker** — ✅ **speaker found 2026-09-03**; sheets not yet sent | 🔴 **Blocking v0.1** | **Whether any of our Tigrinya is correct** (**GAP-1**); DEC-025; whether DEC-010 is precaution or live correction | **SPEAKER FOUND — SEND THE SHEETS** |
+| **A-13** | **Tigrinya speaker review** — ✅ speaker found; ✅ **sheets sent to the owner 2026-09-04** for forwarding | 🔴 **Blocking v0.1** | **Whether any of our Tigrinya is correct** (**GAP-1**); DEC-025; whether DEC-010 is precaution or live correction | **SENT — AWAITING RETURNED SHEETS** |
 | **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO — *Tier 0 measured (exp 006); Tier 2 still blocked on A-09* |
 | ~~**A-15**~~ | ~~Activate the CI workflow~~ | ✅ **DONE 2026-09-04** | Installed at `.github/workflows/verify.yml`; **28 checks enforcing**. First run failed 3 of 6 jobs, all fixed | **DONE** |
 | **A-16** | Report epitran's position-sensitive transliteration upstream | 🟢 Low | Nothing — we work around it; but the next user will not know | TODO |
@@ -558,7 +558,33 @@ A-01, A-05, and A-06 resolve. Owned by `11_business`.
 
 ---
 
-## 🔴 A-13 — Find a Tigrinya speaker to review our output
+## 🔴 A-13 — Tigrinya speaker review — **SHEETS SENT 2026-09-04**
+
+> ✅ **Sent to the project owner** (Gmail message `1a06ea200e45622d`) for
+> forwarding to the reviewer. Six attachments: `PROTOCOL.md` and the five
+> sheets. **`key.json` and `manifest.json` were excluded**, verified by an
+> explicit six-path allow-list with a forbidden-substring assertion rather than
+> a directory glob — the mail is forwarded onward, so an attachment mistake
+> would have travelled in one click.
+>
+> ⚠️ **This action is NOT done.** Nothing is validated until filled-in sheets
+> come back, and the forward itself is not observable from here.
+>
+> **The reviewer writes the Eritrean standard.** That must travel with the
+> results: Experiment 010 found TICO-19's declared-Eritrean side carries **zero**
+> Ethiopian-only markers across 3,071 segments, while **HornMT is
+> Ethiopian-consistent at 55.5%**. An Eritrean reviewer may therefore mark forms
+> "wrong" that are correct in the other standard. **That is a variety
+> difference, not an error**, DEC-010 forbids pooling the two, and DEC-025 must
+> attribute every judgement to an Eritrean reviewer rather than to Tigrinya as a
+> whole. One reviewer of one variety **does not close GAP-1**.
+>
+> When the sheets return: `python validation/analyse.py <folder>`.
+> ⚠️ `analyse.py` warns that **accuracy comes only from sheet 4** — sheets 1–3
+> deliberately select hard cases, so a headline number from them overstates the
+> failure rate. That caveat must survive into DEC-025.
+
+### Original brief
 
 > **The instrument is built and waiting.** Send them `validation/PROTOCOL.md`
 > and the `validation/sheets/` directory — **134 items, about 25 minutes.**

@@ -22,6 +22,44 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The validation sheets are sent — A-13 moves after five weeks — 2026-09-04
+
+**A speaker was found, and the instrument has left the building.** Six files —
+`PROTOCOL.md` and the five sheets — sent to the project owner for forwarding
+(Gmail `1a06ea200e45622d`).
+
+⚠️ **A-13 is not closed.** Nothing is validated until filled-in sheets come
+back, and the forward itself is not observable from here. The action moves from
+*READY TO SEND* to *SENT — AWAITING RETURNED SHEETS*, which is a different
+thing.
+
+**`key.json` was excluded by construction, not by care.** The attachment list is
+six explicit paths with an assertion that none contains `key.json` or
+`manifest.json` — never a directory glob, because `key.json` sits one level
+above the sheets and its own first line reads *"ANSWER KEY — do not send to the
+reviewer."* Routing through the owner **raised** that risk rather than lowering
+it: the mail is forwarded, so a wrong attachment would travel onward in one
+click.
+
+#### The reviewer writes the Eritrean standard, and that constrains the result
+
+This must travel with the answers rather than sit implicit. Experiment 010 found
+TICO-19's declared-Eritrean side carries **zero** Ethiopian-only markers across
+3,071 segments, while **HornMT is Ethiopian-consistent at 55.5%**. An Eritrean
+reviewer may therefore mark forms "wrong" that are correct in the other
+standard.
+
+**That is a variety difference, not an error.** DEC-010 forbids pooling the two,
+so **DEC-025 must attribute every judgement to an Eritrean reviewer** and must
+not generalise it to Tigrinya as a whole. One reviewer of one variety **does not
+close GAP-1** — it is a large step, and an Ethiopian-standard reviewer remains
+valuable.
+
+When the sheets return, `validation/analyse.py` scores them, and its own warning
+has to survive into the decision: **accuracy comes only from sheet 4.** Sheets
+1–3 deliberately select hard cases, so a headline number drawn from them would
+overstate the failure rate.
+
 ### CI is green — GAP-2 closed on evidence — 2026-09-04
 
 **All six jobs pass, in 6 check runs rather than 12.** It took two runs, and the

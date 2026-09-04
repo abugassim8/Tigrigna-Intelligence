@@ -162,7 +162,7 @@ drafts are in [`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:
 
 | # | Action | Effort | Unlocks |
 | --- | --- | --- | --- |
-| 1 | **A-13** — get a Tigrinya speaker through `validation/` | **~25 min of a speaker** | The only route to claiming our Tigrinya is correct. GAP-1, DEC-025, v0.1. ⚠️ **Never send `validation/key.json`** |
+| 1 | **A-13** — ✅ **sheets sent 2026-09-04**, awaiting the reviewer | **~25 min of a speaker** | The only route to claiming our Tigrinya is correct. GAP-1, DEC-025, v0.1. ⚠️ Reviewer writes the **Eritrean** standard — DEC-025 must say so and must not generalise |
 | ~~2~~ | ~~Apply the CI workflow fix~~ | ✅ **DONE 2026-09-04** | All six jobs green. ⚠️ Standing constraint: **an agent cannot push `.github/workflows/`**, so every future CI change needs you — see `ci/README.md` |
 | ~~3~~ | ~~**A-02** — confirm DEC-002~~ | ✅ **DONE 2026-09-03** | DEC-002 Accepted. Unblocks the API/MCP/SDK surface |
 | 4 | **A-09** — model weights / egress | config | Every score. GAP-4, Tier 1, Tier 2, A-14 |
