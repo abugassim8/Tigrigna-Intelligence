@@ -225,11 +225,43 @@ def _unwrapped(lines: list[str], i: int) -> str:
     return " ".join(joined.replace(">", " ").split())
 
 
+def _resolve_file(spec: dict) -> pathlib.Path:
+    """The spec's file, accepting a list of candidate paths.
+
+    `file` may be a string or a list. A list means **the same artefact can
+    legitimately live in more than one place**, and the first that exists wins.
+
+    This exists for A-15. The CI workflow sits at `ci/verify.yml` because an app
+    token may not write `.github/workflows/`, so activating it is a human step
+    that *moves the file*. The `ci_checks` count derives from that file, so the
+    move broke this script unless the same commit also edited `docs/figures.json`
+    — which meant the activation instructions carried a `sed` command, and `sed`
+    does not exist on Windows. An owner hit exactly that.
+
+    Accepting both paths removes the coupling: the count derives correctly
+    before and after the move, and activation becomes pure `git`.
+
+    A missing file is still an error. If **no** candidate exists the count is
+    silently underivable, which is how a check stops being able to fail.
+    """
+    candidates = spec["file"]
+    if isinstance(candidates, str):
+        candidates = [candidates]
+    for rel in candidates:
+        path = REPO / rel
+        if path.is_file():
+            return path
+    raise FileNotFoundError(
+        f"none of these exist: {candidates}. The count cannot be derived, so "
+        f"this check would verify nothing — fix the path rather than removing it."
+    )
+
+
 def _derive(spec: dict) -> int:
     """Compute a count from the repository as it actually is."""
     kind = spec["kind"]
     if kind == "grep_count":
-        text = (REPO / spec["file"]).read_text(encoding="utf-8")
+        text = _resolve_file(spec).read_text(encoding="utf-8")
         return len(re.findall(spec["pattern"], text, flags=re.MULTILINE))
     if kind == "dir_count":
         return len(list(REPO.glob(spec["glob"])))

@@ -101,7 +101,7 @@
       "name": "CI checks",
       "derive": {
         "kind": "grep_count",
-        "file": "ci/verify.yml",
+        "file": [".github/workflows/verify.yml", "ci/verify.yml"],
         "pattern": "^      - name: (?!Install)"
       },
       "claims": [

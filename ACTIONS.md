@@ -705,33 +705,30 @@ It is a **token scope**, not a repository setting.
 
 **What to do** — from a normal clone with write access:
 
-```bash
-mkdir -p .github/workflows
+```
+git pull
+mkdir .github\workflows
 git mv ci/verify.yml .github/workflows/verify.yml
-sed -i 's|"file": "ci/verify.yml"|"file": ".github/workflows/verify.yml"|' docs/figures.json
 git commit -am "Activate CI verification workflow (DEC-018)"
 git push
 ```
 
-⚠️ **On Windows, the commands above do not work** — `mkdir -p` is not valid in
-CMD, and `sed` does not exist. Verified 2026-09-03 by an owner who hit all three
-failures in a row. **Use Git Bash** (ships with Git for Windows: right-click the
-folder → *Git Bash Here*), where the block above works verbatim.
+**These five work unchanged in Windows CMD, PowerShell, macOS and Linux.** No
+`sed`, no `mkdir -p`, no shell switching — on Windows use a backslash in the
+`mkdir` line, forward slashes everywhere else (git always takes forward slashes).
 
-Native PowerShell equivalent, if you prefer:
+⚠️ **`git pull` first is not optional** if the clone is more than a few minutes
+old — the agent pushes to this branch too, and a stale clone is rejected with
+*"Updates were rejected because the remote contains work that you do not have."*
 
-```powershell
-New-Item -ItemType Directory -Force -Path .github\workflows
-git mv ci/verify.yml .github/workflows/verify.yml
-(Get-Content docs/figures.json) -replace 'ci/verify\.yml', '.github/workflows/verify.yml' | Set-Content docs/figures.json
-git commit -am "Activate CI verification workflow (DEC-018)"
-git push
-```
+*(There used to be a `sed` step here to repoint `docs/figures.json`. It is gone:
+`docs/figures.json` now lists **both** paths and `scripts/check_figures.py` takes
+the first that exists, so the count derives correctly before and after the move.
+The `sed` was the step that broke on Windows.)*
 
-On macOS, `sed -i` needs an empty argument: `sed -i '' 's|…|…|' docs/figures.json`.
-
-The `sed` is not optional: `docs/figures.json` derives the CI-check count from
-the workflow's path, and `scripts/check_figures.py` crashes on the old one.
+✅ **No `sed` any more.** `docs/figures.json` lists both paths and
+`scripts/check_figures.py` takes the first that exists, so the derived CI-check
+count survives the move with no second edit.
 
 ✅ **One defect has already been fixed for you.** The `intrinsic` job installed
 both packages without the `[dev]` extra, so `pytest` was missing for a step that
