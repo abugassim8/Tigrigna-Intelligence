@@ -163,7 +163,7 @@ drafts are in [`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:
 | # | Action | Effort | Unlocks |
 | --- | --- | --- | --- |
 | 1 | **A-13** — get a Tigrinya speaker through `validation/` | **~25 min of a speaker** | The only route to claiming our Tigrinya is correct. GAP-1, DEC-025, v0.1. ⚠️ **Never send `validation/key.json`** |
-| 2 | **Apply `ci/pending/fix-first-run-failures.patch`** | 4 commands | CI's first run failed 3 of 6 jobs. Fixes are written and verified, but **an agent cannot push `.github/workflows/`** — that is now permanently human-only |
+| ~~2~~ | ~~Apply the CI workflow fix~~ | ✅ **DONE 2026-09-04** | All six jobs green. ⚠️ Standing constraint: **an agent cannot push `.github/workflows/`**, so every future CI change needs you — see `ci/README.md` |
 | ~~3~~ | ~~**A-02** — confirm DEC-002~~ | ✅ **DONE 2026-09-03** | DEC-002 Accepted. Unblocks the API/MCP/SDK surface |
 | 4 | **A-09** — model weights / egress | config | Every score. GAP-4, Tier 1, Tier 2, A-14 |
 | 5 | **A-08** — set `HF_TOKEN` | ⚠️ **token created, not yet reaching the agent** | Full FLORES+. Needs the value in the environment's settings AND the gate accepted on the dataset page |

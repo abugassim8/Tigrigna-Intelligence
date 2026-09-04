@@ -22,6 +22,23 @@ first service is deployed.
 
 ## [Unreleased]
 
+### CI is green — GAP-2 closed on evidence — 2026-09-04
+
+**All six jobs pass, in 6 check runs rather than 12.** It took two runs, and the
+first one is the more valuable of the two.
+
+⚠️ **A standing constraint arrived with activation, unforeseen by anyone.**
+Moving `verify.yml` into `.github/workflows/` put it in the one directory an app
+token may not write. **Before activation an agent could edit the workflow and
+not run it; after activation it can run it and not edit it.** Every future CI
+change now needs a human. The working pattern — agent prepares and verifies a
+patch outside `.github/`, human runs `git apply` and pushes — was used for this
+fix and is documented in `ci/README.md`.
+
+That is the cost of activation, and it was worth paying: the checks have now
+been observed both failing and passing, which is the only thing that
+distinguishes CI from decoration.
+
 ### CI ran for the first time and failed three ways — 2026-09-04
 
 **A-15 is done.** The owner moved `ci/verify.yml` to

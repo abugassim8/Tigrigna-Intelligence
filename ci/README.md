@@ -82,7 +82,15 @@ to update the documents fails `scripts/check_figures.py`.
 | `screening` | Screening fails closed; contamination positively detected; every committed corpus carries a record; both anchors match upstream and stay aligned; planted failures still detected (DEC-015, DEC-029) |
 | `documentation` | Reports have summaries and stay in budget (DEC-001); no retired figure quoted as current (DEC-024); date stamps match their commits (A-17); no packaged artefact declares HornMorpho (DEC-028); every decision names its rejected alternatives |
 
-## ✅ It ran — and the first run found three defects
+## ✅ CI is green — verified by a run, not by installation
+
+**2026-09-04:** all **six jobs pass**, in **6 check runs** rather than 12.
+GAP-2 is closed on evidence: 28 checks enforce, and they have been observed
+both failing and passing.
+
+Two runs were needed, and the first one is the more interesting.
+
+## The first run found three defects
 
 **Activated 2026-09-04** (commit `888633d`). The first run in the project's life:
 **three of six jobs failed**, none of them a flake.
@@ -101,8 +109,10 @@ commit touching `.github/workflows/` is rejected with the same
 
 Before activation an agent could edit the workflow and not run it. After
 activation it can run it and not edit it. **Every future CI fix needs a human to
-apply it** — see [`pending/`](pending/), which holds patches prepared and
-verified but unpushable.
+apply it.** The working pattern: an agent prepares and verifies a patch, commits
+it somewhere outside `.github/`, and a human runs `git apply` then pushes. Used
+once already, for the first run's three failures. **Delete the patch once it is
+applied** — a stale applied patch invites a second application.
 
 That is not an argument against activation. It is the cost, and it was not
 foreseen by either party.
