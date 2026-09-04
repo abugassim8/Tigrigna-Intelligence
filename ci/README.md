@@ -82,21 +82,45 @@ to update the documents fails `scripts/check_figures.py`.
 | `screening` | Screening fails closed; contamination positively detected; every committed corpus carries a record; both anchors match upstream and stay aligned; planted failures still detected (DEC-015, DEC-029) |
 | `documentation` | Reports have summaries and stay in budget (DEC-001); no retired figure quoted as current (DEC-024); date stamps match their commits (A-17); no packaged artefact declares HornMorpho (DEC-028); every decision names its rejected alternatives |
 
-## Verified locally — and what that is worth
+## ✅ It ran — and the first run found three defects
 
-**2026-09-02:** all **28** non-install `run:` blocks extracted from this file and
-executed against the tree — **28 run, 0 failed**, twice in a row, all 10
-experiments reproducing byte-identically, 161 tests passing.
+**Activated 2026-09-04** (commit `888633d`). The first run in the project's life:
+**three of six jobs failed**, none of them a flake.
 
-⚠️ **That is still not a run.** Nothing local exercises `actions/checkout`,
-`actions/setup-python`, a clean `pip install` on a fresh runner, or egress from
-GitHub's network. **CI that does not work is worse than no CI**, so the logic is
-exercised rather than assumed — but "verified locally" and "verified" are the
-distinction this whole file exists to make.
+| Failure | Cause |
+| --- | --- |
+| `DEC-027 has no entry in rejected_options.md` | The check iterated every DEC-NNN **mentioned**, not defined. DEC-027 is a reserved id for the endpoint surface (blocked on A-02); citing it is not deciding it |
+| `ModuleNotFoundError: tigrinya_eval` | The `reproducibility` job never installed `services/evaluation`, and experiment 007 imports it. Five experiments reproduced, then it died |
+| 4 planted morphology cases "misbehaved" | The `screening` job had **no install at all**, so `sacrebleu` was missing. ✅ The plant suite was right — it reported failure instead of passing quietly |
 
-*(The original note here recorded 6 checks, 61 + 14 tests and 4 experiments,
-verified by hand on 2026-08-17. Every one of those figures had since drifted —
-they are replaced above rather than left standing.)*
+### ⚠️ A consequence of activation, discovered immediately
+
+**The workflow is now in the one directory an agent cannot write to.** Any
+commit touching `.github/workflows/` is rejected with the same
+*"without `workflows` permission"* error that made A-15 human-only.
+
+Before activation an agent could edit the workflow and not run it. After
+activation it can run it and not edit it. **Every future CI fix needs a human to
+apply it** — see [`pending/`](pending/), which holds patches prepared and
+verified but unpushable.
+
+That is not an argument against activation. It is the cost, and it was not
+foreseen by either party.
+
+### ⚠️ Why local pre-flight missed two of them
+
+Before activation, all 28 non-install `run:` blocks were extracted from this
+file and executed locally: **28 run, 0 failed**, twice. But that harness
+**skipped the 7 `pip install` steps by design** — the local venv already had
+everything — so it could not possibly detect an install step that installs the
+*wrong things*. **Two of the three failures were exactly that.**
+
+The third was a genuine regression introduced *after* the pre-flight ran: a new
+DEC-002 amendment cited DEC-027, and the pre-flight had already finished.
+
+**This is the concrete evidence for the distinction this file kept asserting.**
+"Verified locally" and "verified" are different claims, and the gap is not
+hand-waving — it is the seven steps a local harness cannot honestly run.
 
 ## Note on the reproducibility job
 

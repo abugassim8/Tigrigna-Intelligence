@@ -26,13 +26,17 @@ output, and know what they are getting.
 | **Install-to-first-call** | ✅ **MET** — `pip install` and a working call in the README | — |
 | Tier 0 complete | ⚠️ **4 of 4 built, 3 of 4 usable out of the box** — morphology needs an analyser the user installs | **DEC-028** *(A-07 closed)* — HornMorpho is GPL-3.0 and never bundled |
 | Licensing clean | ⚠️ **partial** — bi-encoders Apache-2.0 but built on an **unlicensed base**; `fgaim` base models unstated | **A-01** |
-| Rules enforce themselves | ❌ CI written, **never run** | **A-15** |
+| Rules enforce themselves | ✅ **MET 2026-09-04** — CI installed, 28 checks enforcing | — |
 | **A native speaker has validated the output** | ❌ **instrument built and unsent** | **A-13** |
 
-**Two of six met outright.** Tier 0 is now *built* in full and *usable* in
-three-quarters — morphology works only for a user who installs a GPL-3.0
-analyser themselves. The two criteria still fully open are the two that need a
-person, and one of them is a single command.
+**Three of six met outright**, up from two: CI is installed, so the rules now
+enforce themselves. Tier 0 is *built* in full and *usable* in three-quarters —
+morphology works only for a user who installs a GPL-3.0 analyser themselves.
+
+⚠️ **Exactly one criterion is now fully open, and it is the one that matters
+most: no native speaker has validated the output (A-13).** Every other open row
+is a licence question or a partial. This is the sharpest the v0.1 picture has
+been, and it points at 25 minutes of one person's time.
 
 ### v0.5 — *Serving*
 
@@ -76,7 +80,8 @@ checks exist and their failure paths are tested against injected analysers, but
 the analyser itself is never bundled, so all five report SKIP.
 
 **Never done:** a native speaker has never seen our output. **No model has ever
-been scored.** CI has never run.
+been scored.** ⚠️ CI ran for the **first time on 2026-09-04** and failed three of
+six jobs — every rule it enforces was unenforced until that day.
 
 ### The five gaps that actually matter
 
@@ -94,7 +99,7 @@ defines, and refuses to run if its own definitions go missing.
 | # | Gap | State now |
 | --- | --- | --- |
 | **GAP-1** | **No native-speaker validation** | ⚠️ **Unchanged in substance, but no longer blocked on design.** The instrument exists — 134 items, ~25 minutes. Every intrinsic check still catches *broken*, not *wrong* |
-| **GAP-2** | **Checks that enforce nothing** | ⚠️ **Worse than first stated: 28 checks, not 14.** All written, all locally verified, **none running** |
+| **GAP-2** | ~~**Checks that enforce nothing**~~ | ✅ **CLOSED 2026-09-04.** CI is installed and **28 checks enforce**. The first run failed 3 of 6 jobs — a check that iterated DEC-NNN *mentions* rather than definitions, and two jobs with incomplete installs. All fixed. ⚠️ Two of the three were invisible to local pre-flight, which skips install steps by design |
 | **GAP-3** | **Evaluation anchors are hollow** | ⚠️ **Materially better, and now two-domain.** **HornMT** (2,030 pairs, news, CC-BY-4.0) plus **TICO-19** (3,071 segments × 3 references, COVID/medical, CC0-1.0, **variety-declared at source**). Together **170× the 30-sentence sample**, 0 overlap with it. ⚠️ But TICO-19 revealed the anchors are **not variety-neutral**: HornMT is Ethiopian-consistent at 55.5% (Experiment 010), so scoring on it is scoring one standard. Full FLORES+ still **gated, not blocked** — one token (**A-08**) |
 | **GAP-4** | **Nothing measured end to end** | Unchanged, and now precisely diagnosed: the runtime **installs** (PyPI is open) and the **weights cannot be fetched** (**A-09**). MADLAD's quality assumed, Tier 2 cold start assumed. Tier 1's bar is recorded (DEC-026) |
 | **GAP-5** | **The MVP is incomplete by its own definition** | ⚠️ **Built and now measurable, still not closed.** `morphology.py` is implemented against a **user-installed** HornMorpho (**DEC-028**), and `tigrinya_eval.morphology` now provides five intrinsic checks, each with its failure path tested against injected analysers. A clean `pip install` still cannot analyse morphology, so all five report **SKIP** — a third state that is deliberately not a pass. The `metrics.md` row stays ❌ until an analyser is present |
@@ -108,7 +113,7 @@ leverage, not for order.**
 
 ```mermaid
 graph TD
-    A15["A-15 · install CI<br/>ONE COMMAND"] --> ENF["28 checks enforcing"]
+    A15["A-15 · install CI<br/>✅ DONE 2026-09-04"] --> ENF["28 checks ENFORCING"]
     A13["A-13 · native speaker<br/>sheets ready to send"] --> CORRECT["Correctness validated"]
     A02["A-02 · confirm DEC-002"] --> API["HTTP API"]
     A02 --> MCP["MCP server"]

@@ -53,7 +53,7 @@ itself a research finding.
 | ~~**A-12**~~ | ~~Choose the project licence~~ | ✅ **DONE** | Resolved by **DEC-020** | **DONE** |
 | **A-13** | **Find a Tigrinya speaker** — ✅ **speaker found 2026-09-03**; sheets not yet sent | 🔴 **Blocking v0.1** | **Whether any of our Tigrinya is correct** (**GAP-1**); DEC-025; whether DEC-010 is precaution or live correction | **SPEAKER FOUND — SEND THE SHEETS** |
 | **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO — *Tier 0 measured (exp 006); Tier 2 still blocked on A-09* |
-| **A-15** | **Activate the CI workflow** (one command) | 🟠 High | DEC-018 — every checkable rule is unenforced until this is done | TODO |
+| ~~**A-15**~~ | ~~Activate the CI workflow~~ | ✅ **DONE 2026-09-04** | Installed at `.github/workflows/verify.yml`; **28 checks enforcing**. First run failed 3 of 6 jobs, all fixed | **DONE** |
 | **A-16** | Report epitran's position-sensitive transliteration upstream | 🟢 Low | Nothing — we work around it; but the next user will not know | TODO |
 | ~~**A-17**~~ | ~~Decide how the record is dated~~ | ✅ **DONE** | Resolved: **the commit date wins**; 71 stamps corrected | **DONE** |
 

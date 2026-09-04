@@ -22,6 +22,53 @@ first service is deployed.
 
 ## [Unreleased]
 
+### CI ran for the first time and failed three ways — 2026-09-04
+
+**A-15 is done.** The owner moved `ci/verify.yml` to
+`.github/workflows/verify.yml` (`888633d`) — the one step no agent could take,
+confirmed twice: `git push` carrying the file is rejected for lacking
+`workflows` permission, and the REST contents API returns 403.
+
+**GAP-2 closes.** 28 checks are enforcing rather than merely written. DEC-018
+had spent its entire life as policy without mechanism — the exact failure it
+exists to prevent.
+
+**The first run failed three of six jobs.** None was a flake.
+
+| Failure | Cause | Fix |
+| --- | --- | --- |
+| `DEC-027 has no entry in rejected_options.md` | The check iterated every DEC-NNN **mentioned**, not **defined** | Iterate `^## DEC-NNN` headings |
+| `ModuleNotFoundError: tigrinya_eval` | `reproducibility` never installed `services/evaluation`; experiment 007 imports it | Add the install |
+| 4 planted morphology cases misbehaved | `screening` had **no install at all**, so `sacrebleu` was missing | Add the install |
+
+#### The instructive part is why local pre-flight missed two of them
+
+Before activation, all 28 non-install `run:` blocks were extracted and executed
+locally — **28 run, 0 failed**, twice over. That harness **skipped the 7 `pip
+install` steps by design**, because the local venv already had everything. So it
+was structurally incapable of detecting an install step that installs the wrong
+things, and **two of the three failures were precisely that**.
+
+The third was self-inflicted and arrived after the pre-flight finished: a
+DEC-002 amendment written minutes earlier cited **DEC-027**, a reserved id for
+the endpoint surface that is blocked on A-02 and does not exist as a decision.
+The check could not tell a forward reference from a decision — the same
+citation-vs-definition confusion already fixed for `G-n`/`GAP-n`. Both
+directions are now planted: a real undocumented decision fails, a forward
+reference does not.
+
+✅ **The plant suite behaved correctly throughout.** It reported four
+`ModuleNotFoundError` failures rather than passing quietly. The environment was
+wrong, not the check — which is the outcome the suite exists to produce.
+
+**Also fixed: everything ran twice.** `push: branches: ["**"]` plus
+`pull_request` gave 12 check runs for 6 jobs. `push` is now restricted to the
+default branch; branch work is already covered by `pull_request`.
+
+**"Verified locally" and "verified" are different claims**, and this is the
+first hard evidence of the size of the gap: seven steps a local harness cannot
+honestly run, and two real defects hiding in them.
+
 ### The readiness plan's autonomous backlog reached zero — 2026-09-02
 
 **§12, "What I can do without you", is empty for the first time.** The plan is

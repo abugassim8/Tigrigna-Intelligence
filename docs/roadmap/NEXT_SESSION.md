@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Live handoff.** Written 2026-09-03, approved by the project owner |
+| **Status** | **Live handoff.** Written 2026-09-03, approved by the owner · **updated 2026-09-04** (A-02, A-08, A-15 closed; speaker found for A-13) |
 | **Supersedes** | `READINESS_PLAN.md` §12's *"Nothing. This list is empty"* — that conclusion is **false**, see below |
 | **Read first** | This file, then `READINESS_PLAN.md`, then `ACTIONS.md` |
 
@@ -19,11 +19,15 @@ one-file scaffold. Two evaluation anchors are committed and screened
 (`data/anchors/hornmt`, `data/anchors/tico19`). 28 decisions, 10 experiments,
 16 summaries.
 
-**All five GAPs are open. Two of six v0.1 exit criteria are met. Three of
-fourteen capability rows in `metrics.md` are measured.**
+**Four of five GAPs are open** — GAP-2 closed 2026-09-04 when CI was installed.
+**Three of six v0.1 exit criteria are met.** Three of fourteen capability rows
+in `metrics.md` are measured.
+
+✅ **CI enforces 28 checks** as of 2026-09-04. Its first run failed three of six
+jobs; all three were real and are fixed.
 
 Never done: **no speaker has validated a single output; no model has ever been
-scored; nothing is deployed; CI has never run.**
+scored; nothing is deployed.**
 
 ---
 
@@ -159,10 +163,10 @@ drafts are in [`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:
 | # | Action | Effort | Unlocks |
 | --- | --- | --- | --- |
 | 1 | **A-13** — get a Tigrinya speaker through `validation/` | **~25 min of a speaker** | The only route to claiming our Tigrinya is correct. GAP-1, DEC-025, v0.1. ⚠️ **Never send `validation/key.json`** |
-| 2 | **A-15** — install CI (5 commands, in `ACTIONS.md`) | minutes | 28 checks start enforcing. **Confirmed agent-impossible** — token lacks `workflows` scope |
-| 3 | **A-02** — confirm DEC-002: who the users are | ~3 min read | The entire API/MCP/SDK surface (DEC-027) |
+| 2 | **Apply `ci/pending/fix-first-run-failures.patch`** | 4 commands | CI's first run failed 3 of 6 jobs. Fixes are written and verified, but **an agent cannot push `.github/workflows/`** — that is now permanently human-only |
+| ~~3~~ | ~~**A-02** — confirm DEC-002~~ | ✅ **DONE 2026-09-03** | DEC-002 Accepted. Unblocks the API/MCP/SDK surface |
 | 4 | **A-09** — model weights / egress | config | Every score. GAP-4, Tier 1, Tier 2, A-14 |
-| 5 | **A-08** — set `HF_TOKEN` | ~2 min | Full FLORES+ (gated, not blocked) |
+| 5 | **A-08** — set `HF_TOKEN` | ⚠️ **token created, not yet reaching the agent** | Full FLORES+. Needs the value in the environment's settings AND the gate accepted on the dataset page |
 | 6 | **A-01** — licence on the `fgaim` models | one email | Licensing-clean criterion |
 | 7 | **A-03** — report the TiQuAD contamination | one post | An ecosystem obligation we are sitting on |
 | 8 | A-04, A-05, A-06, A-10, A-11, A-16 | varies | Lower leverage; drafts ready |
