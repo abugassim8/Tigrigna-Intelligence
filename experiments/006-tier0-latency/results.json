@@ -1,0 +1,43 @@
+{
+  "deterministic": false,
+  "python": "3.11.15",
+  "reps": {
+    "cold": 5,
+    "warm": 200
+  },
+  "cold_start_ms": {
+    "bare_interpreter": 14.4,
+    "import_only": 62.8,
+    "first_transliterate": 3697.3,
+    "first_normalise": 63.4,
+    "ours_only": 48.4,
+    "epitran_load": 3634.4,
+    "total_excluding_interpreter": 3682.9,
+    "epitran_share_pct": 98.7
+  },
+  "service_ms": {
+    "sentence_words": 20,
+    "normalise": 0.0128,
+    "transliterate": 0.0529,
+    "encode": 0.0559,
+    "slowest": 0.0559
+  },
+  "cache": {
+    "unique_words": 20,
+    "cached_ms": 0.0016,
+    "uncached_ms": 0.3462,
+    "speedup": 217.7
+  },
+  "breakeven": {
+    "tier0_gb": 0.1134,
+    "always_warm_gb_h_month": 82.8,
+    "per_request_s": 3.683,
+    "req_per_month": 713564,
+    "req_per_hour": 977
+  },
+  "H1_epitran_dominates_cold_start": true,
+  "H2_cold_start_under_5s": true,
+  "H3_service_under_50ms": true,
+  "H4_cache_at_least_10x": true,
+  "closes_A14": false
+}

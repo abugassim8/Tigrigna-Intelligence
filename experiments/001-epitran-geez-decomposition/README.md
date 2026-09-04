@@ -145,6 +145,36 @@ modern pronunciation.
 **Mean expansion ≈ 1.97×.** Decomposition roughly doubles sequence length — the
 cost side of the ledger, and a real input to tokenizer fertility budgeting.
 
+### ⚠️ Refinement — 2026-08-18, from `07_api_mcp`
+
+**"Coverage 384/384" is true, and it does not mean what it looks like.**
+
+This experiment counted characters producing **non-empty** output. Measured
+again by *what* the output is:
+
+| Outcome | Count |
+| --- | ---: |
+| Transliterated to phonemes | **310** |
+| Passed through as the character itself | **74** |
+| Empty | 0 |
+
+Of the 74 pass-throughs: **26 unassigned** code points and **29
+punctuation/digits** (both correct to pass through), but **16 real syllables**
+(HOA, QOA, XOA, KOA, WOA, YOA, GOA, TZOA, and the DD- series) and **3 combining
+marks** (gemination, vowel length) return as raw Ge'ez.
+
+Outside the core block the pass-through is **total** — Ethiopic Supplement,
+Extended-A, and Extended-B are entirely unmapped.
+
+**Consequence:** the DEC-007 analysis form is a **mixed string, not a phoneme
+string.** Recorded in **DEC-022** as an explicit API contract clause, because a
+consumer expecting phonemes would mishandle these silently.
+
+Nothing here contradicts the original run, which scoped to `ETHIOPIC_CORE` and
+reported non-empty output honestly. **The implication was simply never drawn.**
+
+---
+
 ## Analysis
 
 **Three of four criteria pass decisively. The fourth fails — and the failure is

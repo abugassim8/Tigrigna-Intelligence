@@ -85,8 +85,57 @@ verify anything load-bearing.**
 
 ### `curl` to non-blocked hosts
 
-`api.github.com` responds (200). `raw.githubusercontent.com` responds. Note the
-repo-scope restriction below before using these.
+`raw.githubusercontent.com` responds (200) — this is how HornMT was obtained.
+Note the repo-scope restriction below before using these.
+
+> ⚠️ **Re-measured 2026-09-01, and two entries changed.** This page was written
+> on 2026-07-29 and not re-checked for a month, while five actions in the
+> register were justified by it.
+>
+> | Route | 2026-07-29 | 2026-09-01 |
+> | --- | --- | --- |
+> | `raw.githubusercontent.com` | ✅ | ✅ **200** |
+> | `api.github.com` | ✅ 200 | ❌ **403** — use `raw.` or the GitHub MCP |
+> | PyPI | ✅ | ✅ **`torch` and `sentence-transformers` install** |
+> | `huggingface.co` direct download | *(untested)* | ❌ **connection refused** — the MCP reads metadata and text files, but **weights cannot be fetched** |
+> | `opus.nlpl.eu` | *(untested)* | ❌ blocked |
+> | `tico-19.github.io` | *(untested)* | ❌ blocked |
+>
+> **The consequence for A-09.** "Egress is blocked" was one blocker covering two
+> different things. *Reading about* models — licences, cards, provenance,
+> parameter counts — is open through the MCP and was open the whole time.
+> *Running* them is not: PyPI gives us the runtime, and nothing gives us the
+> weights. **A-09 is now only the second half.**
+>
+> Separately, `openlanguagedata/flores_plus` returns **401** rather than a proxy
+> denial — it is a **gated repo**, not an egress block, and a token fixes it
+> (**A-08**).
+
+---
+
+> ⚠️ **Re-measured again 2026-09-03, and it changed the plan of record.**
+> `media.githubusercontent.com` — GitHub's **Git LFS media host** — had never
+> been tested. It is **open**, and that matters because large files in a GitHub
+> repo are usually LFS pointers, not bytes.
+>
+> | Route | Result 2026-09-03 |
+> | --- | --- |
+> | `raw.githubusercontent.com/.../t.tgz` | ✅ 200 — but **134 bytes, a Git LFS pointer** |
+> | **`media.githubusercontent.com/media/.../t.tgz`** | ✅ **200 — 158,902,071 bytes**, matching the pointer's declared size |
+> | `github.com/<owner>/<repo>` (HTML) | ❌ 403 |
+> | `github.com/.../raw/...` | ❌ 403 |
+> | `codeload.github.com/.../tar.gz` | ❌ 403 |
+>
+> **The consequence: HornMorpho's Tigrinya language data is reachable.** The
+> readiness plan recorded morphology measurement as blocked on "an actual
+> install" and §12 concluded there was nothing left to do without a human. That
+> was wrong for the fourth time in the same way — HornMorpho's *own*
+> `get_language_url()` builds a `github.com/.../raw/...` URL, which **is** 403
+> here, and nobody checked whether the same bytes were available elsewhere.
+>
+> **A 200 on `raw.` is not proof you have the file.** Check the size against the
+> LFS pointer's declared `size` before believing a download succeeded — a
+> 134-byte "corpus" is the signature.
 
 ---
 
@@ -134,6 +183,12 @@ scope, **direct GitHub inspection of external dependencies is unavailable.**
 versioned releases through standard channels), and WebSearch supplied the version
 (5.3.5), language coverage, and the existence of a `fgaim` fork.
 
+> ⚠️ **Superseded 2026-09-01.** `raw.githubusercontent.com` responds, and
+> `LICENSE.txt` fetched directly settles it: **GPL-3.0**. The workaround above
+> was a good workaround for a restriction that had **stopped applying**. Worth
+> keeping as the method, and worth noting as the cost: a fallback route that
+> works becomes a reason never to re-test the direct one.
+
 ---
 
 ## Evidence marking convention
@@ -175,5 +230,6 @@ Sources that need re-checking from a session with unrestricted egress:
 - **CoDET** (2305.17267) — the COMET 0.82/0.80 dialect figures behind DEC-004.
 - **TiNC24** — the reported 200K-word NER corpus, never located.
 - **`tigrinyanlp.github.io`** — a Tigrinya NLP resource hub, blocked.
-- **HornMorpho on GitHub** — maintenance status, licence, and whether Tigrinya
-  support in v5.3 lags Amharic.
+- ~~**HornMorpho on GitHub**~~ ✅ **resolved 2026-09-01** — **GPL-3.0**, v5.3.6
+  (April 2026), Tigrinya and Tigre supported, not on PyPI, and `setup.py`
+  declares no licence metadata at all.

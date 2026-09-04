@@ -1,0 +1,289 @@
+{
+  "_comment": [
+    "Canonical register of load-bearing figures, and of figures that have been",
+    "RETIRED. Two jobs: a single place to look up the current value of a number,",
+    "and a machine-checkable list of numbers that must no longer be quoted.",
+    "",
+    "Why this exists: three separate figures in this repo were corrected in one",
+    "place and left standing in others -- 72 MB in five documents, 22x in four,",
+    "and DEC-023's 1,639/1,639 in three. Each was found by hand, weeks apart.",
+    "DEC-018's lesson is that a rule nothing checks is a rule that stops holding,",
+    "so scripts/check_figures.py checks this one.",
+    "",
+    "A retired figure may still APPEAR -- retracting a number requires naming it.",
+    "It must appear near a retraction marker (see the script). What is forbidden",
+    "is quoting it as though it were still true.",
+    "",
+    "Adding an entry: retire a figure here in the same change that corrects it."
+  ],
+  "_counts_comment": [
+    "Counts DERIVED from the repository, and the phrasings that assert them.",
+    "Separate from figures because nothing needs registering: the true value is",
+    "computed, so a document either agrees with the repo or it does not.",
+    "",
+    "This caught the README claiming 'four research domains complete, eight",
+    "decisions recorded' when there were 13 and 24, alongside 'no service code",
+    "written' with two packages in the tree.",
+    "",
+    "Volatile counts are deliberately absent. Test totals change on almost every",
+    "commit, so living documents say 'both suites passing' and exact numbers",
+    "appear only in dated CHANGELOG entries, which are snapshots and stay true."
+  ],
+  "counts": [
+    {
+      "id": "decisions",
+      "name": "Decisions recorded",
+      "derive": {
+        "kind": "grep_count",
+        "file": "docs/decisions/DECISIONS.md",
+        "pattern": "^## DEC-[0-9]{3} "
+      },
+      "claims": [
+        "\\*\\*(\\d+)\\*\\* decisions recorded",
+        "(\\d+) decisions recorded",
+        "\\| Decisions recorded \\| \\*\\*(\\d+)\\*\\*",
+        "\\*\\*(\\d+) decisions ·"
+      ]
+    },
+    {
+      "id": "experiments",
+      "name": "Reproducible experiments",
+      "derive": {
+        "kind": "dir_count",
+        "glob": "experiments/0*/run.py"
+      },
+      "claims": [
+        "\\*\\*(\\d+)\\*\\* reproducible experiments",
+        "(\\d+) reproducible experiments",
+        "· (\\d+) experiments ·"
+      ]
+    },
+    {
+      "id": "summaries",
+      "name": "Research summaries",
+      "derive": {
+        "kind": "dir_count",
+        "glob": "docs/research/summaries/[0-9]*.md"
+      },
+      "claims": [
+        "\\*\\*(\\d+) summaries",
+        "· (\\d+) summaries ·"
+      ]
+    },
+    {
+      "id": "domains",
+      "name": "Research domains complete",
+      "derive": {
+        "kind": "dir_count",
+        "glob": "docs/research/reports/*/"
+      },
+      "claims": [
+        "(\\d+) research domains complete",
+        "\\| Research domains complete \\| \\*\\*(\\d+)\\*\\*"
+      ]
+    },
+    {
+      "id": "amendments",
+      "name": "Decisions carrying amendments",
+      "derive": {
+        "kind": "section_owners",
+        "file": "docs/decisions/DECISIONS.md",
+        "outer": "^## (DEC-\\d{3})",
+        "inner": "^### Amendment"
+      },
+      "claims": [
+        "(\\d+) decisions now carry amendments",
+        "(\\d+) decisions carry amendments"
+      ]
+    },
+    {
+      "id": "ci_checks",
+      "name": "CI checks",
+      "derive": {
+        "kind": "grep_count",
+        "file": [".github/workflows/verify.yml", "ci/verify.yml"],
+        "pattern": "^      - name: (?!Install)"
+      },
+      "claims": [
+        "(\\d+) CI checks",
+        "\\*\\*(\\d+) checks\\*\\*",
+        "(\\d+) checks start enforcing",
+        "\\\"(\\d+) checks enforcing\\\"",
+        "switches on (\\d+) checks",
+        "(\\d+) checks, not \\d+"
+      ]
+    },
+    {
+      "id": "validation_items",
+      "name": "Native-speaker validation items",
+      "derive": {
+        "kind": "csv_rows",
+        "glob": "validation/sheets/*.csv"
+      },
+      "claims": [
+        "(\\d+) items, (?:roughly|about|~)",
+        "(\\d+)-item instrument",
+        "(\\d+) items, 5 strata",
+        "\\*\\*(\\d+) items\\*\\*"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "tier0-footprint",
+      "name": "Tier 0 resident footprint",
+      "current": "113.4 MB",
+      "basis": "measured after the package was built, 2026-08-19",
+      "note": "epitran -> panphon is 107.4 MB of it",
+      "retired": [
+        {
+          "value": "72 MB",
+          "patterns": [
+            "72 MB",
+            "0.072 GB"
+          ],
+          "reason": "DEC-013's pre-build estimate; low by 57%",
+          "superseded": "2026-08-19"
+        }
+      ]
+    },
+    {
+      "id": "tiering-cost-saving",
+      "name": "Standing-cost saving from tiering",
+      "current": "~14x",
+      "basis": "82.8 vs 1,193.1 GB-h/month, using the measured Tier 0 footprint",
+      "note": "conclusion unchanged; only the magnitude moved",
+      "retired": [
+        {
+          "value": "22x",
+          "patterns": [
+            "22×",
+            "22x saving",
+            "22x standing"
+          ],
+          "reason": "computed from the 72 MB estimate",
+          "superseded": "2026-08-19"
+        }
+      ]
+    },
+    {
+      "id": "word-transliteration-preserved",
+      "name": "Word transliteration preserved in a sentence",
+      "current": "95.47%",
+      "basis": "exact equality, experiment 005, 2,255/2,362 word tokens",
+      "note": "containment reports 99.62%; the gap is an appended word-final vowel",
+      "retired": [
+        {
+          "value": "1,639/1,639 (100%)",
+          "patterns": [
+            "1,639/1,639",
+            "1,639 / 1,639"
+          ],
+          "reason": "came from a containment test that cannot fail on an appended character; never emitted by a committed script (DEC-016 violation)",
+          "superseded": "2026-08-19"
+        }
+      ]
+    },
+    {
+      "id": "transliteration-coverage",
+      "name": "Transliteration coverage",
+      "current": "100.00%",
+      "basis": "Ethiopic letters and combining marks, 6,070/6,070 on the committed corpus",
+      "note": "punctuation, digits and Latin are meant to pass through; counting them measures the corpus, not the transliterator",
+      "retired": [
+        {
+          "value": "99.72%",
+          "patterns": [
+            "99.72"
+          ],
+          "reason": "denominator included digits, which correctly pass through",
+          "superseded": "2026-08-19"
+        },
+        {
+          "value": "96.86%",
+          "patterns": [
+            "96.86"
+          ],
+          "reason": "denominator included Ethiopic punctuation; same error one category deeper",
+          "superseded": "2026-08-19"
+        }
+      ]
+    },
+    {
+      "id": "epitran-phoneme-coverage",
+      "name": "epitran tir-Ethi phoneme coverage of the core block",
+      "current": "310 of 384 characters",
+      "basis": "DEC-022; 74 pass through — 26 unassigned, 29 punctuation/digits (both correct), 16 real syllables and 3 combining marks unmapped",
+      "note": "this is why DEC-022 declares the analysis form non-phonemic",
+      "retired": [
+        {
+          "value": "384/384 coverage",
+          "patterns": [
+            "384/384"
+          ],
+          "reason": "experiment 001 counted non-empty output, not phonemes; quoted as full coverage it hid 19 genuinely unmapped characters",
+          "superseded": "2026-08-23"
+        }
+      ]
+    },
+    {
+      "id": "character-alignment-rate",
+      "name": "Character-level alignment rate",
+      "current": "23.89%",
+      "basis": "experiment 004, 247/1,034 unique words",
+      "note": "still current: this is why alignment is word-level (DEC-023)",
+      "retired": []
+    },
+    {
+      "id": "bleu-tigrinya-penalty",
+      "name": "BLEU harshness on Tigrinya vs English",
+      "current": "1.08x",
+      "basis": "experiment 003, identical error rate on FLORES+ parallel text",
+      "note": "an upper estimate; the perturbation was itself ~1.44x harsher by construction",
+      "retired": []
+    },
+    {
+      "id": "tokenizer-fertility-delta",
+      "name": "Fertility cost of epitran decomposition",
+      "current": "+0.190 tokens/word (~8% worse)",
+      "basis": "experiment 002, raw Ge'ez won 10/10 configs and 5/5 folds",
+      "note": "refuted DEC-007's token-efficiency rationale",
+      "retired": []
+    },
+    {
+      "id": "tier0-cold-start",
+      "name": "Tier 0 cold start",
+      "current": "3.03 s",
+      "basis": "experiment 006, median of 5 fresh interpreters, one host",
+      "note": "98.7% is epitran loading; host-specific and not portable. Tier 2 is unmeasured (A-14)",
+      "retired": []
+    },
+    {
+      "id": "tier0-service-time",
+      "name": "Tier 0 warm service time",
+      "current": "0.045 ms",
+      "basis": "experiment 006, 20-word sentence, median of 200",
+      "note": "the ~2 s in the break-even model is a TIER 2 assumption and is not retired by this",
+      "retired": []
+    },
+    {
+      "id": "clean-parallel-sentences",
+      "name": "Cleanly-licensed en-ti parallel sentences",
+      "current": "2,030 (HornMT, CC-BY-4.0)",
+      "basis": "downloaded, screened and committed 2026-09-01; data/anchors/hornmt/",
+      "note": "The 0 was measured behind an egress block that made GitHub unreadable. HornMT was public and CC-BY-4.0 the whole time.",
+      "retired": [
+        {
+          "value": "0 cleanly-licensed parallel sentences",
+          "patterns": [
+            "0 cleanly-licensed parallel",
+            "zero cleanly-licensed parallel",
+            "**0** cleanly-licensed parallel"
+          ],
+          "reason": "false — HornMT is 2,030 human-translated pairs under CC-BY-4.0",
+          "superseded": "2026-09-01"
+        }
+      ]
+    }
+  ]
+}

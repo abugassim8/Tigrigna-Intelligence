@@ -1,0 +1,54 @@
+{
+  "epitran_version": "1.35.2",
+  "language_specificity": {
+    "identical_to_amharic": 325,
+    "different_from_amharic": 59,
+    "pct_different": 15.36
+  },
+  "coverage": {
+    "mapped": 384,
+    "total": 384
+  },
+  "cv_separation": {
+    "word": "ካተበ",
+    "ipa": "katəbə",
+    "consonants": [
+      "k",
+      "t",
+      "b"
+    ],
+    "vowels": [
+      "a",
+      "ə",
+      "ə"
+    ]
+  },
+  "reversibility": {
+    "chars_mapped": 384,
+    "distinct_outputs": 362,
+    "colliding_outputs": 22,
+    "chars_lost": 22,
+    "lossless": false
+  },
+  "expansion": {
+    "samples": [
+      "ትግርኛ",
+      "ካተበ",
+      "ሰላም",
+      "ኤርትራ",
+      "መንእሰይ",
+      "ዓቕሚ",
+      "ተራእዩ"
+    ],
+    "ratios": [
+      2.0,
+      2.0,
+      1.6667,
+      2.0,
+      1.8,
+      2.3333,
+      2.0
+    ],
+    "mean": 1.9714
+  }
+}

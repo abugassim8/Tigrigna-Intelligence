@@ -148,7 +148,8 @@ docs/research/      The research operating system: rules, templates, reports, su
 docs/architecture/  How the system is designed (populated after research)
 docs/decisions/     What we chose, what we rejected, what we assume
 docs/benchmarks/    How we measure whether any of it works
-docs/roadmap/       Time-boxed planning horizons
+docs/roadmap/       READINESS_PLAN.md is the plan of record; the rest are
+                    pre-research horizons, kept as direction not sequence
 datasets/           Data, by lifecycle stage
 models/             Experiments, checkpoints, evaluations
 services/           Runtime components, one directory per capability
@@ -169,22 +170,32 @@ scripts/            Operational tooling
 | About to recommend anything | `docs/decisions/DECISIONS.md` |
 | Looking for prior work | `docs/research/summaries/` **before** `docs/research/reports/` |
 | Contributing code or docs | `CONTRIBUTING.md` |
+| **A human with time to unblock things** | **`ACTIONS.md`** — emails to send, licences to get, decisions to confirm |
+| **Where the project actually stands** | **`docs/research/summaries/013-state-of-play.md`** — the synthesis of all 11 domains |
 
 ---
 
 ## Current status
 
-**Phase 1 complete; Phase 2 critical path complete.**
-
-Three research domains are done:
+**13 research domains complete** — every planned domain. **24** decisions
+recorded, **6** reproducible experiments, **15** summaries.
 
 - `00_project_definition` → scope, users, dialect (DEC-002, DEC-004, DEC-006)
 - `01_ecosystem` → the Tigrinya NLP landscape mapped (DEC-003, DEC-005)
 - `02_linguistics` → morphology, Ge'ez script, tokenization (DEC-007), plus a
   Ge'ez tooling survey and the project's first experiment
+- `03_data_strategy` → the corpus measured; contamination risk found (DEC-008)
+- `04`–`12` → model strategy, architecture, ML pipeline, API/MCP, evaluation,
+  training, infrastructure, business, and the master blueprint
+  (DEC-009 … DEC-024)
+
+**Tier 0 is built.** `services/primitives` (normalisation, tokenization,
+transliteration) and `services/evaluation` (chrF/BLEU plus intrinsic primitive
+evaluation), both test suites passing. Morphology is a deliberate stub —
+**A-07**.
 
 **Read [`docs/research/summaries/`](docs/research/summaries/) before doing
-anything else.** Four summaries, ~2 pages each, and they change the plan.
+anything else.** ~2 pages each, and they change the plan.
 Then read [`docs/research/RESEARCH_ACCESS.md`](docs/research/RESEARCH_ACCESS.md)
 before searching for anything — it maps which sources are reachable.
 
@@ -212,17 +223,29 @@ collisions) — but those collisions are the Ge'ez homophone pairs, so the loss
 Epitran for analysis, surface Ge'ez preserved for output. **We build only the
 alignment between them.**
 
-**4. The data ceiling is 40M tokens.** `[verified]` TiRoBERTa — the strongest
+**4. Licensing, not volume, is the binding data constraint.** Of 1,519,253
+dataset rows measured, **~99% carry no stated licence** — cleanly licensed:
+**15,053 documents.** And one dataset advertised for *pretraining* appears to
+contain our *evaluation* anchor's data, so **DEC-008 makes contamination
+screening mandatory.** Externally reported Tigrinya QA scores are now suspect
+until screened.
+
+**5. The data ceiling is 40M tokens.** `[verified]` TiRoBERTa — the strongest
 available Tigrinya encoder — was pretrained on 40 million tokens. That is small
 enough to favour linguistically-informed methods over data-hungry ones, and it
 is the number `03_data_strategy` must plan against.
 
 ### Blocking items
 
+**All of these need a person, not a research session — see
+[`ACTIONS.md`](ACTIONS.md), which includes ready-to-send drafts.**
+
 1. **Licence resolution on the `fgaim` models** — several carry no stated
    licence, including the family's base. Blocks DEC-003 under **P-9**.
-2. **HornMorpho maintenance status** — the only established Tigrinya
-   morphological analyser, now on the critical path via DEC-006.
+2. ~~**HornMorpho maintenance status**~~ — **answered 2026-09-01.** It is
+   **GPL-3.0**, v5.3.6 (April 2026), supports Tigrinya and Tigre, and is **not
+   on PyPI**. The open item is no longer a licence question but an
+   architectural one: GPLv3 collides with DEC-020's Apache-2.0 choice. → **A-07**
 3. **DEC-002 needs owner confirmation** — the user determination is inferential.
 4. **TiQuAD's copyright position needs legal review** — its authors do not own
    the source-article copyright; it is fair-use "academic research purposes

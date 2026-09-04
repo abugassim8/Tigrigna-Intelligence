@@ -8,17 +8,28 @@ the language technology that speakers of high-resource languages take for
 granted. This project exists to build that missing layer — not as an
 application, but as infrastructure that others can build on.
 
-> **Status: Phase 1 complete; Phase 2 critical path complete.** Three research
-> domains done (`00_project_definition`, `01_ecosystem`, `02_linguistics`), seven
-> decisions recorded. No architecture designed and no code written. See
-> [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
+> **Status: 13 research domains complete** — every planned domain, from
+> `00_project_definition` through `12_master_blueprint`. **28** decisions
+> recorded and **10** reproducible experiments. **Tier 0 is built**: two Python
+> packages (`services/primitives`, `services/evaluation`), both test suites
+> passing.
+> See [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
 >
-> **Phase 1 changed the plan.** Most of the Tigrinya model layer already exists
-> and is largely openly licensed. Our differentiator is the **primitives layer**
-> (Ge'ez normalisation, tokenization, morphology), the **evaluation harness**,
-> and the **API/MCP/SDK surface** — none of which anyone has built. Read
-> [`docs/research/summaries/`](docs/research/summaries/) — three summaries, two
-> pages each.
+> **What is not built:** embeddings (**A-09**), the API surface (**A-02**), and
+> **no model has been run through the evaluation harness yet** (**A-09**).
+> Morphology *is* built (**DEC-028**) but its analyser is GPL-3.0 and never
+> bundled, so it is absent unless you install it. Its intrinsic checks now
+> exist and are tested — and with no analyser they report **SKIP**, which is
+> deliberately not a pass. CI is written but **not installed** (**A-15**).
+> **Every remaining task needs a person, not more research** — the autonomous
+> backlog is empty. See [`ACTIONS.md`](ACTIONS.md).
+>
+> **The research changed the plan.** Most of the Tigrinya model layer already
+> exists and is largely openly licensed. Our differentiator is the **primitives
+> layer** (Ge'ez normalisation, tokenization, morphology), the **evaluation
+> harness**, and the **API/MCP/SDK surface** — none of which anyone has built.
+> Read [`docs/research/summaries/`](docs/research/summaries/) — **16 summaries**,
+> two pages each.
 
 ---
 
@@ -52,6 +63,7 @@ Full statement in [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
 .
 ├── README.md                  You are here
 ├── PROJECT_CONTEXT.md         Read this first — mission, philosophy, constraints
+├── ACTIONS.md                 Things only a human can do — with email drafts
 ├── CONTRIBUTING.md            How to contribute research, decisions, and code
 ├── CHANGELOG.md               Notable changes to the project and its direction
 │
@@ -151,22 +163,70 @@ aspirational.
 
 ## Getting started
 
+### Use the primitives
+
+```bash
+pip install -e services/primitives
+python -c "
+from tigrinya_primitives import normalise, transliterate
+print(normalise('ፀሓይ'))                    # -> ጸሓይ
+a = transliterate('ሰላም ዓለም')
+print(a.analysis, [s.surface for s in a.spans])
+"
+```
+
+Evaluation, including the Tier 0 intrinsic checks:
+
+```bash
+pip install -e services/evaluation
+python -m tigrinya_eval.primitives experiments/003-metric-validity/data
+```
+
+### Contribute
+
+**If you have time to unblock the project rather than research it, go straight to
+[`ACTIONS.md`](ACTIONS.md).** **Two items are blocking** — A-01 and A-02 — and
+each has a ready-to-send draft.
+
+⚠️ *This paragraph used to list **A-05** as blocking and describe it as unlocking
+**1.4M parallel sentences**. Experiment 009 measured the corpus: **56.9% of the
+rows have no English side.** A-05 is now Medium, and DEC-017 stands unchanged
+either way.*
+
+**The highest-leverage thing a person can do is A-13** — about 25 minutes of a
+Tigrinya speaker's time, and every correctness claim in the project waits behind
+it. **A-15 is five commands** and switches on 28 checks that currently enforce
+nothing. See [`docs/roadmap/NEXT_SESSION.md`](docs/roadmap/NEXT_SESSION.md) for
+the full list in leverage order.
+
 1. Read [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — the whole thing.
 2. Read [`docs/research/AI_RESEARCH_RULES.md`](docs/research/AI_RESEARCH_RULES.md).
 3. Check [`docs/research/summaries/`](docs/research/summaries/) for what is
    already known.
-4. Check [`docs/decisions/DECISIONS.md`](docs/decisions/DECISIONS.md) for what is
-   already decided (DEC-001 … DEC-007).
-5. Pick up a blocking item from
-   [`docs/roadmap/30_days.md`](docs/roadmap/30_days.md) — currently: resolve the
-   `fgaim` model licences, verify HornMorpho's maintenance status, and confirm
-   DEC-002. Then proceed to
-   [`03_data_strategy`](docs/research/reports/03_data_strategy/), which now gates
-   the orthographic-variation survey DEC-007 depends on.
+4. Check [`docs/decisions/DECISIONS.md`](docs/decisions/DECISIONS.md) —
+   **DEC-001 … DEC-030**, eight amended by later measurement.
+5. Read [`docs/research/RESEARCH_ACCESS.md`](docs/research/RESEARCH_ACCESS.md)
+   before searching for anything — it maps which sources are reachable.
+6. **[`docs/roadmap/NEXT_SESSION.md`](docs/roadmap/NEXT_SESSION.md) is the
+   live handoff** — what to do next, and the list of things only a person
+   can do. Start there.
+7. **[`docs/roadmap/READINESS_PLAN.md`](docs/roadmap/READINESS_PLAN.md) is the
+   current plan of record** — what "ready" means, what is blocked on whom, and
+   the order to do it in.
 
 ## Licence
 
-Not yet selected. Licence choice is itself a decision that must be recorded in
-`docs/decisions/DECISIONS.md`, and it interacts with the licensing of every
-model and dataset the platform adopts — so it is deliberately deferred until
-after the data and model strategy research is complete.
+**Chosen by licence class (DEC-020), not one licence for everything:**
+
+| Artefact | Licence |
+| --- | --- |
+| **Code** | **Apache-2.0** — see [`LICENSE`](LICENSE) |
+| **Documentation** | **CC-BY-4.0** — see [`LICENSE-docs`](LICENSE-docs) |
+| **Data** | **Inherits** whatever the source imposes |
+
+**No code dependency imposes copyleft** — the upstream licence map was checked in
+full. Share-alike enters only through data (FLORES+ is CC-BY-SA-4.0), so the
+obligation is contained to derived corpora rather than the platform.
+
+*(This section read "Not yet selected" until 2026-08-23, six days after
+DEC-020 closed the question and the LICENSE files were committed.)*

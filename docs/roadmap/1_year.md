@@ -1,5 +1,11 @@
 # Roadmap — 1 Year
 
+> ⚠️ **Superseded as a plan, kept as a record.** This was written **before any
+> research** — as a direction-holding exercise, explicitly not a commitment. All 13 research domains are now complete, two packages are
+> built, and **[`READINESS_PLAN.md`](READINESS_PLAN.md) is the plan of record.**
+>
+> Still useful as direction. Read `READINESS_PLAN.md` for what is actually next, and treat anything dated here as intent.
+
 ## Purpose of this document
 
 The one-year horizon: what the platform could plausibly be after a year of work.

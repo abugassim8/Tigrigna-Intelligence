@@ -1,0 +1,83 @@
+{
+  "corpus_files": 4,
+  "words": 1635,
+  "unique_words": 1034,
+  "H1": {
+    "non_idempotent_texts": 0,
+    "forms_altered": 14,
+    "forms_collapsed": 4,
+    "confirmed": true
+  },
+  "H2": {
+    "nondeterministic_words": 0,
+    "confirmed": true
+  },
+  "H3": {
+    "alignable": 247,
+    "total": 1034,
+    "rate_pct": 23.888,
+    "examples": [
+      {
+        "word": "ሃሊፋክስ",
+        "whole": "halifakɨs",
+        "piecewise": "halifaks"
+      },
+      {
+        "word": "ሃዋህው",
+        "whole": "hawahɨw",
+        "piecewise": "hawahw"
+      },
+      {
+        "word": "ሃገራትን",
+        "whole": "haɡəratɨn",
+        "piecewise": "haɡəratn"
+      },
+      {
+        "word": "ሃገርነት",
+        "whole": "haɡərɨnət",
+        "piecewise": "haɡərnət"
+      },
+      {
+        "word": "ሃገርነትን",
+        "whole": "haɡərɨnətɨn",
+        "piecewise": "haɡərnətn"
+      },
+      {
+        "word": "ሃገርና",
+        "whole": "haɡərɨna",
+        "piecewise": "haɡərna"
+      },
+      {
+        "word": "ሃገሮምን",
+        "whole": "haɡəromɨn",
+        "piecewise": "haɡəromn"
+      },
+      {
+        "word": "ህላውአን",
+        "whole": "hɨlawɨʔən",
+        "piecewise": "hlawʔən"
+      }
+    ],
+    "confirmed": false
+  },
+  "H4": {
+    "roundtrip_ok": 1034,
+    "total": 1034,
+    "rate_pct": 100.0,
+    "unk_tokens": 0,
+    "confirmed": true
+  },
+  "coverage": {
+    "distinct_chars": 194,
+    "char_tokens_transliterated": 4273,
+    "char_tokens_total": 4285,
+    "pct": 99.72,
+    "passthrough_chars": [
+      "1",
+      "9",
+      "6",
+      "0",
+      "7"
+    ]
+  }
+}

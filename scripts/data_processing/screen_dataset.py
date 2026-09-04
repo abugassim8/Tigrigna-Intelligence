@@ -1,0 +1,544 @@
+#!/usr/bin/env python3
+"""
+Screen a Tigrinya dataset against the DEC-008 gates before it enters use.
+
+DEC-008 requires contamination screening and licence quarantine; Experiment 002
+added quality and DEC-010 added variety. This script makes those four gates
+executable instead of prose, and emits a machine-readable screening record.
+
+    python3 screen_dataset.py CORPUS... --licence mit [--eval-set FILE]...
+
+Exit status is 0 when every gate passes and 1 when any gate fails, so this can
+gate a pipeline step.
+
+What this script does NOT do: decide anything a human must decide. Licence is
+asserted, never detected. Variety and scramble findings are reported as signals
+for review, not verdicts — see `report()`.
+"""
+
+import argparse
+import json
+import pathlib
+import sys
+import unicodedata
+from collections import Counter
+
+# --------------------------------------------------------------------- script
+
+ETHIOPIC_RANGES = [
+    (0x1200, 0x137F),   # Ethiopic
+    (0x1380, 0x139F),   # Ethiopic Supplement
+    (0x2D80, 0x2DDF),   # Ethiopic Extended
+    (0xAB00, 0xAB2F),   # Ethiopic Extended-A
+    # Extended-B was MISSING here until 2026-08-22, while the two other
+    # definitions in the repo included it. Consequence, measured: a corpus of
+    # real Tigrinya carrying 21 Extended-B characters failed the quality gate
+    # at 1.444% "foreign" — legitimate Ge'ez rejected as mojibake. It is also
+    # the one block above the BMP, which DEC-022 singles out as the offset trap.
+    (0x1E7E0, 0x1E7FF),  # Ethiopic Extended-B
+]
+PUNCT = set("።፡፣፤፥፦፧፨፠-–—''\"\"()[]{}/\\.,;:!?'\"«»%“”‘’፥")
+
+# Orthographic variety markers. Eritrean standard prefers the ጸ-series and the
+# Ge'ez alef ኣ; Ethiopian/Tigray usage commonly prefers the ፀ-series and አ.
+TSADE_ER, TSADE_ET = "ጸጹጺጻጼጽጾ", "ፀፁፂፃፄፅፆ"
+ALEF_GE, ALEF_AM = "ኣ", "አ"
+# Diagnostic lexemes, Eritrean form -> Ethiopian form.
+LEXEMES = {"ክሳብ": "እስካብ", "ሃገራዊ": "ብሄራዊ"}
+
+# Licences we consider usable for shipped artefacts (A-009, P-9). Non-commercial
+# and unstated licences fail the gate; see DEC-011 for the model-side rule.
+USABLE_LICENCES = {
+    "mit", "apache-2.0", "bsd-3-clause", "bsd-2-clause",
+    "cc0-1.0", "cc-by-4.0", "cc-by-sa-4.0",
+}
+
+
+def is_ethiopic(ch):
+    cp = ord(ch)
+    return any(lo <= cp <= hi for lo, hi in ETHIOPIC_RANGES)
+
+
+def load(paths):
+    texts = {}
+    for p in paths:
+        path = pathlib.Path(p)
+        if path.is_dir():
+            for f in sorted(path.glob("*.txt")):
+                texts[str(f)] = f.read_text(encoding="utf-8")
+        else:
+            texts[str(path)] = path.read_text(encoding="utf-8")
+    return texts
+
+
+def words(text):
+    out = []
+    for raw in text.split():
+        w = "".join(c for c in raw if c not in PUNCT)
+        if w:
+            out.append(w)
+    return out
+
+
+# ---------------------------------------------------------------------- gates
+
+def gate_licence(licence):
+    """Gate 1 — asserted, never detected. An unstated licence fails (A-009)."""
+    lic = (licence or "").strip().lower()
+    ok = lic in USABLE_LICENCES
+    return {
+        "gate": "licence",
+        "pass": ok,
+        "declared": licence or None,
+        "detail": ("usable for shipped artefacts" if ok else
+                   "NOT usable — unstated, non-commercial, or unrecognised. "
+                   "Quarantine to research-only use (DEC-008)"),
+    }
+
+
+def is_mojibake(ch):
+    """True for characters that indicate a decoding failure, not Tigrinya.
+
+    Basic ASCII Latin is deliberately NOT here. Real Tigrinya carries Latin
+    proper nouns and acronyms, and treating them as corruption made our own
+    FLORES+ evaluation anchor fail this gate at 0.629% — the "foreign"
+    characters were C, Q, V, P in proper nouns.
+
+    What is left is what genuinely signals misdecoding: the replacement
+    character, C1 controls, and Latin-1 Supplement / Latin Extended letters,
+    which is what UTF-8 read as Latin-1 produces. The known-corrupted sample is
+    caught by exactly this — a stray `ñ`.
+
+    **This is the Ge'ez-side test only.** On a Latin-script side, accented Latin
+    is ordinary text rather than corruption — see `is_mojibake_latin`.
+
+    **Letters only, and the word is load-bearing.** The range 0x00C0–0x024F is
+    not all letters: it also holds × (U+00D7 MULTIPLICATION SIGN) and ÷
+    (U+00F7), maths symbols of category `Sm`. Testing the raw range made
+    TICO-19's test split a "DECODING FAILURE" over `4×109` and `1×109` in a
+    virology passage. This docstring said "letters" from the start; the code did
+    not, and nothing measured the difference until a corpus with arithmetic in
+    it arrived.
+
+    This character test is necessary but not sufficient — see `mojibake_hits_in`,
+    which decides whether a hit is corruption or a borrowed proper noun.
+    """
+    cp = ord(ch)
+    return (ch == "\ufffd"
+            or 0x80 <= cp <= 0x9F                    # C1 controls
+            or (0x00C0 <= cp <= 0x024F               # Latin-1 Supp., Latin Ext-A/B
+                and unicodedata.category(ch).startswith("L")))
+
+
+def is_mojibake_latin(ch):
+    """The same test for a Latin-script file, where accented letters are real.
+
+    Applying the Ge'ez test to HornMT's English side blocked it on **47
+    characters in 302,570** — é í ü á ó ō ı ô ñ ğ Č Ç, every one inside a proper
+    noun (Peña, Erdoğan, São). That is the identical mistake this gate's own
+    docstring records for Latin letters inside Tigrinya, one script over: the
+    alphabet a language legitimately borrows from is not corruption.
+
+    What still signals a decoding failure in any script: the replacement
+    character and C1 controls.
+    """
+    return ch == "\ufffd" or 0x80 <= ord(ch) <= 0x9F
+
+
+def is_ethiopic_letter(ch):
+    """An Ethiopic syllable, not Ethiopic punctuation.
+
+    `\u1361 \u1362 \u1363 \u1365` are category `Po` and sit in the same block as the syllables.
+    The distinction decides `mojibake_hits_in` below, so it cannot be folded into
+    `is_ethiopic`.
+    """
+    return is_ethiopic(ch) and unicodedata.category(ch) == "Lo"
+
+
+def mojibake_hits_in(text, geez=True):
+    """Corruption in `text`, as a list of (index, char) \u2014 context, not class.
+
+    The character test alone cannot answer this, and pretending otherwise costs
+    a corpus in one direction or a corruption detector in the other:
+
+      - `\u12d8\u00f1\u12d8\u122e\u1295` \u2014 the known-corrupted sample. A Latin `\u00f1` **between two Ethiopic
+        syllables**. No Tigrinya word is spelled that way; a Ge'ez codepoint was
+        mangled into it.
+      - `V\u00f2\u1365` \u2014 TICO-19 test line 1368, the Italian town of V\u00f2, confirmed
+        against the English side. `\u00f2` inside a Latin token, then an Ethiopic
+        colon.
+
+    Both are "an accented Latin letter next to Ge'ez" by any per-character rule,
+    and they are opposite verdicts. What separates them is the **neighbour's
+    kind**: corruption sits against an Ethiopic *syllable*, a borrowed proper
+    noun sits inside a Latin token and may abut Ethiopic *punctuation*.
+
+    So on the Ge'ez side an accented Latin letter is corruption only when it
+    directly adjoins an Ethiopic syllable. The replacement character and C1
+    controls stay unconditional in both scripts \u2014 those are never legitimate,
+    wherever they sit.
+
+    Measured on what is committed: this clears TICO-19's \u00c5 (\u00c5ngstr\u00f6m), T\u00dcV,
+    Ate\u015f, ovi\u010d, rit\u00e9 and V\u00f2 \u2014 12 hits across three files \u2014 and still catches the
+    corrupted sample's single \u00f1. That asymmetry is the whole point; a rule that
+    cleared both would be a rule that had stopped working.
+    """
+    test = is_mojibake if geez else is_mojibake_latin
+    hits = []
+    for i, ch in enumerate(text):
+        if not test(ch):
+            continue
+        if geez and ch != "\ufffd" and not (0x80 <= ord(ch) <= 0x9F):
+            neighbours = text[i - 1:i] + text[i + 1:i + 2]
+            if not any(is_ethiopic_letter(c) for c in neighbours):
+                continue                    # borrowed proper noun, not corruption
+        hits.append((i, ch))
+    return hits
+
+
+def gate_script(texts, declared):
+    """Gate 0 — the declared script is what the file actually holds.
+
+    A parallel corpus has two sides and only one of them is Ge'ez. Screening was
+    built for monolingual Tigrinya, so pointing it at HornMT's English side
+    blocked a correct file: the quality gate reads "foreign" as "not Ethiopic"
+    and the variety gate counts ጸ-series letters that cannot occur. Without a
+    script declaration the English half of every parallel anchor is either
+    unscreened or wrongly blocked.
+
+    `--script latin` switches off two Ge'ez-specific tests, so it is the one
+    input here that could be used to wave a corpus through. It is therefore
+    **detected, not asserted** — the opposite of `--licence`, which cannot be
+    read off the bytes. A Tigrinya file declared `latin` fails this gate before
+    it can skip anything.
+    """
+    per_file, wrong = {}, []
+    for name, text in texts.items():
+        chars = [c for c in text if not c.isspace()]
+        if not chars:
+            continue
+        ethiopic = 100 * sum(1 for c in chars if is_ethiopic(c)) / len(chars)
+        per_file[name] = round(ethiopic, 2)
+        if declared == "geez" and ethiopic < 50:
+            wrong.append(f"{name}: declared geez but only {ethiopic:.1f}% Ethiopic")
+        if declared == "latin" and ethiopic > 5:
+            wrong.append(f"{name}: declared latin but {ethiopic:.1f}% Ethiopic — "
+                         f"a Ge'ez corpus must not skip the Ge'ez gates")
+    return {
+        "gate": "script",
+        "pass": not wrong,
+        "declared": declared,
+        "ethiopic_pct": per_file,
+        "mismatches": wrong,
+        "detail": (f"file contents match the declared {declared} script"
+                   if not wrong else "declared script contradicts the contents"),
+    }
+
+
+def gate_quality(texts, script="geez"):
+    """Gate 2 — encoding corruption and extraction damage.
+
+    Two separate tests, because one number could not separate them:
+
+      - **Mojibake signatures** are a hard verdict. Any replacement character,
+        C1 control, or Latin-1/Extended letter is a decoding failure.
+      - **Foreign-character rate** excludes basic ASCII Latin, which is
+        legitimate in Tigrinya (proper nouns, acronyms). Counting it made
+        `flores_ti.txt` — one of DEC-005's two evaluation anchors — fail its
+        own quality gate.
+
+    The scramble signal stays a flag for human review, because distinguishing
+    scrambled columns from unusual prose is not reliably automatable and a false
+    verdict would be worse than none.
+
+    On a **Latin** side the two tests point the other way, and stay just as
+    strict: corruption is the replacement character and C1 controls only, and
+    "foreign" means **Ethiopic** — Ge'ez in the English half of a parallel file
+    is the signature of a crossed or mis-split pair, which is the failure that
+    actually threatens an aligned corpus.
+    """
+    geez = script == "geez"
+    per_file, worst = {}, 0.0
+    scramble_flags = []
+    mojibake_hits = {}
+    for name, text in texts.items():
+        chars = [c for c in text if not c.isspace()]
+        if not chars:
+            continue
+        if geez:
+            foreign = [c for c in chars
+                       if not is_ethiopic(c) and not c.isdigit() and c not in PUNCT
+                       and not (c.isascii() and c.isalpha())]
+        else:
+            foreign = [c for c in chars if is_ethiopic(c)]
+        rate = 100 * len(foreign) / len(chars)
+        worst = max(worst, rate)
+        moji = sorted({c for _, c in mojibake_hits_in(text, geez)})
+        if moji:
+            mojibake_hits[name] = [f"{c} (U+{ord(c):04X} {unicodedata.name(c, '?')[:24]})"
+                                   for c in moji[:8]]
+
+        # Digit-bearing tokens wedged mid-prose are characteristic of PDF
+        # multi-column extraction pulling mastheads into body text.
+        ws = words(text)
+        digity = sum(1 for w in ws if any(c.isdigit() for c in w)
+                     and any(is_ethiopic(c) for c in w))
+        digit_rate = 100 * digity / max(len(ws), 1)
+        if geez and digit_rate > 1.0:
+            scramble_flags.append(f"{name}: {digit_rate:.1f}% mixed digit/Ge'ez tokens")
+
+        per_file[name] = {
+            "chars": len(chars),
+            "ethiopic_pct": round(100 * sum(1 for c in chars if is_ethiopic(c)) / len(chars), 2),
+            "foreign_pct": round(rate, 2),
+            "foreign_sample": [f"{c}({unicodedata.name(c, '?')[:20]})"
+                               for c, _ in Counter(foreign).most_common(5)],
+        }
+
+    ok = worst < 0.1 and not mojibake_hits
+    if mojibake_hits:
+        detail = ("DECODING FAILURE — replacement or Latin-1/Extended characters "
+                  "inside Ge'ez text" if geez else
+                  "DECODING FAILURE — replacement character or C1 controls")
+    elif not ok:
+        detail = ("unexpected non-Latin foreign characters inside Ge'ez text"
+                  if geez else "Ge'ez characters inside the Latin side — "
+                               "crossed or mis-split parallel files")
+    else:
+        detail = "no encoding corruption detected"
+    return {
+        "gate": "quality",
+        "pass": ok,
+        "script": script,
+        "worst_foreign_pct": round(worst, 3),
+        "threshold_pct": 0.1,
+        "mojibake": mojibake_hits,
+        "per_file": per_file,
+        "review_flags": scramble_flags,
+        "detail": detail,
+    }
+
+
+def gate_variety(texts, script="geez"):
+    """Gate 3 — orthographic variety signal (DEC-010).
+
+    Never returns a verdict on variety. It reports the evidence and labels
+    the set `unknown` unless the signal is unambiguous, because attributing a
+    variety needs a native speaker (ACTIONS.md A-13).
+
+    Off the Ge'ez side there is nothing to count — the ጸ/ፀ and ኣ/አ contrasts do
+    not exist in Latin script — so it reports N/A rather than "no signal",
+    which would read as evidence of uniformity where no test was run.
+
+    **The marker counts are not a proportion, and Experiment 010 measured how
+    badly.** TICO-19 ships the same 3,071 segments translated as `ti-ER` and
+    `ti-ET`; the declared-**Ethiopian** file scores **91–95% "Eritrean"** on
+    `eritrean_markers / (eritrean_markers + ethiopian_markers)`. The pooled
+    ratio moves 3.3 points between two corpora that differ only in variety.
+
+    The cause is that ኣ appears ~4,500 times in *both* files — it is one of the
+    commonest letters in Tigrinya and both standards use it — so pooling it with
+    the 261 genuinely discriminative ፀ-series counts buries the signal under a
+    constant. አ is worse: it is twice as frequent in the *Eritrean* file.
+
+    What does discriminate is **presence of an Ethiopian-only form** — a
+    ፀ-series character, `እስካብ`, or `ብሄራዊ`. Those fired on 0 of 3,071
+    declared-Eritrean segments (precision 1.000) and 9–12% of Ethiopian ones. So
+    `et_marker_segment_pct` is reported alongside, and it is the number to read:
+    it is low-recall, so it labels a corpus and never a sentence.
+
+    Both numbers stay `SIGNAL ONLY`. DEC-010 is unchanged — a speaker rules
+    (A-13) — but the evidence put in front of that speaker is now calibrated.
+    """
+    if script != "geez":
+        return {"gate": "variety", "pass": True, "label": "n/a",
+                "signal": f"NOT APPLICABLE — {script} script carries no "
+                          f"Ge'ez orthographic variety markers",
+                "et_marker_segment_pct": None, "segments_with_et_marker": None,
+                "detail": "variety is a Ge'ez-side property (DEC-010)"}
+    text = "\n".join(texts.values())
+    er = sum(text.count(c) for c in TSADE_ER) + text.count(ALEF_GE)
+    et = sum(text.count(c) for c in TSADE_ET) + text.count(ALEF_AM)
+    lex = {}
+    for er_form, et_form in LEXEMES.items():
+        a, b = text.count(er_form), text.count(et_form)
+        if a or b:
+            lex[f"{er_form}(ER) vs {et_form}(ET)"] = [a, b]
+
+    # The calibrated measure: how many *segments* carry an Ethiopian-only form.
+    segs = [ln for ln in text.split("\n") if ln.strip()]
+    et_segs = sum(1 for s in segs
+                  if any(c in s for c in TSADE_ET)
+                  or any(f in s for f in LEXEMES.values()))
+    et_pct = round(100 * et_segs / len(segs), 1) if segs else 0.0
+
+    if not segs:
+        signal = "no signal"
+    elif et_segs == 0:
+        signal = ("eritrean-consistent — no Ethiopian-only form in any segment"
+                  if len(segs) >= 100 else
+                  f"no Ethiopian-only form, but only {len(segs)} segments — "
+                  f"too few to read")
+    elif et_pct >= 5.0:
+        signal = (f"ethiopian-consistent — {et_pct}% of segments carry an "
+                  f"Ethiopian-only form")
+    else:
+        signal = (f"trace — {et_pct}% of segments carry an Ethiopian-only form; "
+                  f"inconclusive")
+
+    return {
+        "gate": "variety",
+        "pass": True,  # never blocks; DEC-010 requires a label, not a rejection
+        "label": "unknown",
+        "signal": signal,
+        # The calibrated number. Precision 1.000, recall 0.099 (Experiment 010):
+        # reads a corpus, never a sentence.
+        "et_marker_segment_pct": et_pct,
+        "segments_with_et_marker": et_segs,
+        "segments": len(segs),
+        # Retained for continuity, NOT a variety proportion — see the docstring
+        # and Experiment 010. Named to stop it being read as one.
+        "raw_marker_counts_not_a_proportion": {"eritrean": er, "ethiopian": et},
+        "lexeme_counts": lex,
+        "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). "
+                  "Label stays `unknown` until confirmed (DEC-010). Read "
+                  "`et_marker_segment_pct`, not the raw counts (Experiment 010).",
+    }
+
+
+def gate_contamination(texts, eval_paths, n=8):
+    """Gate 4 — overlap against evaluation sets (DEC-008).
+
+    **Two tests, because one was not enough.** Word 8-grams are long enough that
+    incidental collision is implausible, so a hit is evidence of shared
+    provenance rather than shared topic. But an evaluation segment shorter than
+    8 words produces **no n-grams at all** and is therefore invisible to that
+    test: a corpus that was a byte-identical copy of a 2-line evaluation set
+    (4 and 3 words) was reported `[PASS] ... CLEARED for use`.
+
+    That is not hypothetical — **TiQuAD is extractive QA, and questions are
+    routinely under 8 words.** So exact whole-segment matching runs alongside,
+    and short segments are counted and reported rather than silently skipped.
+    """
+    if not eval_paths:
+        return {
+            "gate": "contamination",
+            "pass": False,
+            "detail": "NOT CHECKED — no evaluation set supplied. DEC-008 requires "
+                      "this check before training use; supply --eval-set.",
+            "overlaps": 0,
+        }
+
+    def ngrams(t):
+        ws = words(t)
+        return {tuple(ws[i:i + n]) for i in range(len(ws) - n + 1)}
+
+    def segments(t):
+        """Normalised non-empty lines, for exact whole-segment matching."""
+        return {" ".join(words(line)) for line in t.splitlines() if line.strip()}
+
+    corpus_ng, corpus_seg = set(), set()
+    for t in texts.values():
+        corpus_ng |= ngrams(t)
+        corpus_seg |= segments(t)
+
+    hits, exact, short_unseen, per_eval = 0, 0, 0, {}
+    for name, t in load(eval_paths).items():
+        shared = corpus_ng & ngrams(t)
+        seg = segments(t)
+        shared_seg = corpus_seg & seg
+        # Segments too short to produce any n-gram are invisible to the n-gram
+        # test; exact matching is the only thing that can see them.
+        too_short = {s for s in seg if len(s.split()) < n}
+        hits += len(shared)
+        exact += len(shared_seg)
+        short_unseen += len(too_short - corpus_seg)
+        per_eval[name] = {"shared_ngrams": len(shared),
+                          "exact_segments": len(shared_seg),
+                          "segments_below_ngram_size": len(too_short)}
+
+    contaminated = hits > 0 or exact > 0
+    detail = "no shared n-grams or exact segments with the supplied evaluation sets"
+    if contaminated:
+        detail = (f"{hits} shared {n}-grams and {exact} EXACT segment matches — "
+                  f"CONTAMINATED, do not train on this")
+    elif short_unseen:
+        detail = (f"no overlap found, but {short_unseen} evaluation segment(s) are "
+                  f"shorter than {n} words and are only covered by exact matching")
+
+    return {
+        "gate": "contamination",
+        "pass": not contaminated,
+        "ngram_size": n,
+        "overlaps": hits,
+        "exact_segment_matches": exact,
+        "eval_segments_below_ngram_size": short_unseen,
+        "per_eval_set": per_eval,
+        "detail": detail,
+    }
+
+
+# --------------------------------------------------------------------- report
+
+def report(record):
+    print("=" * 70)
+    print(f"DEC-008 SCREENING — {record['corpus_files']} file(s), "
+          f"{record['total_chars']:,} chars")
+    print("=" * 70)
+    for g in record["gates"]:
+        mark = "PASS" if g["pass"] else "FAIL"
+        print(f"\n  [{mark}] {g['gate'].upper()}")
+        print(f"        {g['detail']}")
+        for k in ("declared", "worst_foreign_pct", "signal",
+                  "et_marker_segment_pct", "overlaps"):
+            if k in g:
+                print(f"        {k}: {g[k]}")
+        for flag in g.get("review_flags", []):
+            print(f"        ⚠ review: {flag}")
+    print("\n" + "=" * 70)
+    print(f"VERDICT: {record['verdict']}")
+    print("=" * 70)
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Screen a dataset against the DEC-008 gates.")
+    ap.add_argument("corpus", nargs="+", help="text file(s) or directory of .txt")
+    ap.add_argument("--licence", default=None, help="declared licence, e.g. mit")
+    ap.add_argument("--eval-set", action="append", default=[],
+                    help="evaluation file to check contamination against (repeatable)")
+    ap.add_argument("--script", choices=("geez", "latin"), default="geez",
+                    help="script of these files (default geez). Verified against "
+                         "the contents, not taken on trust — a Ge'ez corpus "
+                         "declared latin fails the script gate")
+    ap.add_argument("--json", help="write the screening record here")
+    args = ap.parse_args()
+
+    texts = load(args.corpus)
+    if not texts:
+        sys.exit("No corpus files found.")
+
+    gates = [
+        gate_script(texts, args.script),
+        gate_licence(args.licence),
+        gate_quality(texts, args.script),
+        gate_variety(texts, args.script),
+        gate_contamination(texts, args.eval_set),
+    ]
+    blocking = [g for g in gates if not g["pass"]]
+    record = {
+        "corpus": sorted(texts),
+        "corpus_files": len(texts),
+        "total_chars": sum(len(t) for t in texts.values()),
+        "gates": gates,
+        "verdict": ("CLEARED for use" if not blocking else
+                    "BLOCKED — " + ", ".join(g["gate"] for g in blocking)),
+    }
+    report(record)
+    if args.json:
+        pathlib.Path(args.json).write_text(json.dumps(record, ensure_ascii=False, indent=2))
+        print(f"\nWrote {args.json}")
+    return 1 if blocking else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

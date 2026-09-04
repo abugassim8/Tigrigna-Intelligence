@@ -65,6 +65,7 @@ Examples: `001-tigrinya-corpus-survey.md`, `007-tokenizer-options.md`
 | [002](002-scope-users-and-dialect.md) | Scope, Users, and Dialect Definition | Scout → Analyst | `00_project_definition` | 2026-07-29 | Current |
 | [003](003-morphology-script-and-tokenization.md) | Morphology, Ge'ez Script, and the Tokenization Constraint | Scout → Analyst | `02_linguistics` | 2026-07-29 | Current |
 | [004](004-geez-tooling-survey.md) | Ge'ez Tooling Survey and the HornMorpho Question | Scout → Analyst | `02_linguistics` | 2026-07-29 | Current |
+| [005](005-corpus-inventory-and-contamination.md) | Corpus Inventory and Confirmed Contamination | Scout → Analyst | `03_data_strategy` | 2026-07-29 | Current |
 
 Keep this table current. It is the first thing anyone reads.
 
@@ -83,6 +84,94 @@ running code** are `[verified]`.
 reachable and how, so you do not repeat the discovery. A session with
 unrestricted egress should work the verification backlog listed there.
 
+### 006 — Metric validity and the evaluation harness
+
+BLEU is **~8% harsher** on Tigrinya than English — real, and about half the size
+the standard warning implies. **chrF adopted as primary** because its advantage
+widens as quality falls. Our two evaluation anchors appear to be in **different
+varieties**, so no aggregate Tigrinya score may be reported.
+→ `006-metric-validity-and-harness.md` · DEC-009, DEC-010
+
+### 007 — Translation model selection
+
+**Every NLLB variant is CC-BY-NC-4.0** — the model behind essentially every
+published Tigrinya MT number cannot be shipped. **MADLAD-400-3B is Apache-2.0,
+covers Tigrinya, and is the shippable choice** at 4.8× the parameters (1.4 GB at
+Q4, so A-008 survives).
+→ `007-translation-model-selection.md` · DEC-011
+
+### 008 — Architecture: tiers and runtime
+
+Capabilities differ by **~150× in memory**, so the system decomposes **by
+resource profile, not by domain**. DEC-006's MVP is Tier 0+1 = **191 MB**;
+adding translation is an 8.3× jump. One MIT runtime (CTranslate2) serves every
+model we have.
+→ `008-architecture-tiers-and-runtime.md` · DEC-012, DEC-013, DEC-014
+
+### 009 — The pipeline without training
+
+Our pipeline is **acquire → screen → convert → evaluate → release**; training is
+a contingency. Testing two self-claims found reproducibility held where designed
+in (2/3 experiments, now 3/3) while **DEC-008's screening gates had no
+implementation at all** — now executable.
+→ `009-pipeline-without-training.md` · DEC-015, DEC-016
+
+### 010 — Training strategy
+
+~~**Zero cleanly-licensed parallel training data.**~~ **2,030 pairs** — corrected
+2026-09-01, HornMT is CC-BY-4.0, and far too few to train on. So if MADLAD (adopted without
+quality measurement) underperforms, **we cannot fine-tune our way out** — which
+makes **A-05 the insurance policy on DEC-011**. If triggered, LoRA is ~23×
+cheaper than a full fine-tune. From-scratch is foreclosed by A-002.
+→ `010-training-triggers.md` · DEC-017
+
+### 011 — Infrastructure: cost model and enforcement
+
+Tiering cuts standing resource cost **~14×** (22× was the pre-build estimate). But **Tier 2's deployment mode is
+not decidable yet** — break-even is as low as **~1 req/min** if cold start is
+slow, and it is unmeasured (**A-14**). CI now enforces the five decision-log
+rules that nothing was checking.
+→ `011-cost-model-and-enforcement.md` · DEC-018, DEC-019
+
+### 012 — Licensing and sustainability
+
+**Nothing forces copyleft on our code** → Apache-2.0 code, CC-BY-4.0 docs,
+inherit for data (**DEC-020**, closing A-12). And running cost is so small
+(**52.6 GB-h/month**) that **money is not the binding constraint — maintainer
+attention is.** `ACTIONS.md` is the real risk register.
+→ `012-licence-and-sustainability.md` · DEC-020
+
+### 013 — State of play (master blueprint)
+
+**P-4 clears exactly one capability — translation — and DEC-006 excludes it.**
+Validated metrics: 1; inside the MVP: 0. Root cause is **DEC-005's anchors not
+covering DEC-006's platform**. The next research is primitive evaluation, and it
+is blocked by nothing.
+→ `013-state-of-play.md` · DEC-021
+
+### 014 — API response contract
+
+**A-02 blocks the surface, not the contract.** Deciding the contract found an
+offset trap above the BMP (JS and Python disagree on Extended-B), a favourable
+normalisation property (Ge'ez is NFC/NFD-stable), and that **DEC-007's analysis
+form is not guaranteed phonemic** — 19 real characters pass through unmapped.
+→ `014-api-response-contract.md` · DEC-022
+
+### 015 — Primitive evaluation
+
+**Most of the primitives layer is evaluable with no annotated data** — 3 of 4
+intrinsic properties hold, so **P-4 is satisfiable for Tier 0 today**. The
+fourth found a real error: surface↔analysis alignment must be **word-level**,
+not character-level (23.89% alignable). Corrects DEC-007 and DEC-022.
+→ `015-primitive-evaluation.md` · DEC-023
+
+## Turning findings into action
+
+Blockers surfaced by this research live in [`../../ACTIONS.md`](../../ACTIONS.md)
+— emails to send, licences to obtain, decisions to confirm, with drafts. **When
+a summary produces something a human must do, add it there** rather than leaving
+it buried in a findings list.
+
 ## What future researchers should add
 
 One summary per research effort — Scout summaries and Analyst report summaries
@@ -92,13 +181,20 @@ tells the next person that the question is harder than it looks.
 
 ## Status
 
-**4 summaries, 1 experiment.** Phase 1 (`00_project_definition`, `01_ecosystem`)
-and Phase 2's critical path (`02_linguistics`) are complete.
+**15 summaries, 6 reproducible experiments.** 13 research domains complete —
+every planned domain, `00_project_definition` through `12_master_blueprint`.
+**24** decisions recorded.
 
 **Summary 004 supersedes part of 003's build plan:** the decomposition layer
 003 said to build already exists (Epitran). Read 003 for *why* the problem
 exists, 004 for *what to do about it*.
 
-Next: `03_data_strategy` — a corpus survey is now the blocking dependency for
-the orthographic-variation and normalisation work (DEC-007), and the verified
-40M-token data ceiling is the number to plan against.
+**Summary 005 is the one to read if you touch data.** The corpus is measured
+(~67K monolingual rows, 1.4M parallel pairs) but **~99% is unlicensed**, and a
+dataset advertised for pretraining **verifiably contains** our evaluation anchor's
+data. → **DEC-008**: screen everything, quarantine unlicensed data.
+
+**Next: nothing here is blocked on research.** Every remaining step needs a
+person — `A-01` (model licences), `A-02` (confirm the user model, which gates
+the API surface), `A-07` (morphology), `A-09` (egress, to run any model),
+`A-15` (install CI). See [`ACTIONS.md`](../../../ACTIONS.md).

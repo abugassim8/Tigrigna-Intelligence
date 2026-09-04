@@ -1,0 +1,548 @@
+name: verify
+
+# Enforces the decision-log rules that are machine-checkable.
+#
+#   DEC-016 — every experiment emits results.json and reproduces byte-identically
+#   DEC-015 — datasets carry a screening record
+#   DEC-001 — every research report has a summary
+#   DEC-001 — summaries stay within the two-page limit
+#   DEC-023 — Tier 0's intrinsic property tests pass (services/primitives)
+#   DEC-009/010 — the evaluation harness enforces its own rules
+#
+# DEC-008 spent 15 days as policy with no mechanism and was silently
+# ignored the whole time. This workflow exists so the newer rules do not
+# repeat that.
+
+# `push` is restricted to the default branch on purpose. With
+# `branches: ["**"]` every push to a branch with an open PR fired both this and
+# the pull_request trigger, giving 12 check runs for 6 jobs. Branch work is
+# already covered by pull_request.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  packages:
+    name: Tier 0 and evaluation packages
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [primitives, evaluation]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # tigrinya-primitives is not published, so the evaluation package's
+      # `primitives` extra cannot resolve from PyPI. Install it from the tree
+      # first and the extra is already satisfied.
+      - name: Install tigrinya-primitives from the tree
+        run: pip install --quiet -e services/primitives
+
+      - name: Install ${{ matrix.package }}
+        run: pip install --quiet -e "services/${{ matrix.package }}[dev]"
+
+      - name: Test ${{ matrix.package }}
+        run: pytest -q services/${{ matrix.package }}/tests
+
+  intrinsic:
+    name: DEC-023a — Tier 0 intrinsic properties hold on real text
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # The `[dev]` extra is what carries pytest, and the test-count step below
+      # needs it to collect. Without it that step dies with "pytest: not found"
+      # on the first real run — found by executing every `run:` block locally
+      # against this file, not by reading it.
+      #
+      # `tigrinya-primitives` is also in that extra and is not on PyPI, so
+      # primitives must be installed from the tree first; the requirement is
+      # then already satisfied and pip does not go looking.
+      - name: Install the packages
+        run: |
+          pip install --quiet -e services/primitives
+          pip install --quiet -e "services/evaluation[dev]"
+
+      # The property tests above run on fixtures. This runs the same checks
+      # over the committed corpus, which is where real text breaks properties
+      # that curated input satisfies easily.
+      - name: Evaluate the primitives over the committed corpus
+        run: python -m tigrinya_eval.primitives
+          experiments/002-tokenizer-fertility/corpus
+          experiments/003-metric-validity/data
+
+      # The readiness plan's `Basis` line carries a test count, and unlike the
+      # decisions/experiments/summaries counts beside it, nothing verified it —
+      # so it drifted from 145 to 161 unnoticed. `check_figures.py` cannot own
+      # this one: deriving it needs pytest to collect (parametrised cases make a
+      # static `def test_` count wrong — 123 against 161), and that script must
+      # keep running with no install. So it is enforced here, where pytest
+      # already exists.
+      - name: The plan's test count matches the suite
+        run: |
+          set -euo pipefail
+          actual=$(pytest services --collect-only -q 2>/dev/null \
+                   | tail -2 | grep -oE '^[0-9]+' | head -1)
+          claimed=$(grep -oE '· [0-9]+ tests ·' docs/roadmap/READINESS_PLAN.md \
+                    | grep -oE '[0-9]+')
+          if [ -z "$claimed" ]; then
+            echo "::error::no test count found in the plan's Basis line — the"
+            echo "::error::claim was reworded and this check now verifies nothing."
+            exit 1
+          fi
+          if [ "$actual" != "$claimed" ]; then
+            echo "::error file=docs/roadmap/READINESS_PLAN.md::Basis line says"
+            echo "::error::$claimed tests, the suite collects $actual"
+            exit 1
+          fi
+          echo "plan Basis line agrees with the suite: $actual tests"
+
+      # Morphology runs separately because its analyser is GPL-3.0 and never
+      # installed here (DEC-028), so all five checks SKIP. Running it anyway is
+      # deliberate: it proves the checks execute, and it prints the NOT MEASURED
+      # block in the build log, so "morphology is fine" can never quietly come
+      # to mean "morphology was never looked at".
+      - name: Evaluate morphology (skips without HornMorpho — by design)
+        run: |
+          set -euo pipefail
+          python -m tigrinya_eval.morphology \
+            experiments/003-metric-validity/data | tee /tmp/morph.txt
+          grep -q "NOT MEASURED" /tmp/morph.txt || {
+            echo "::error::morphology reported no NOT MEASURED block. Either "
+            echo "::error::HornMorpho is now installed (then drop this guard and "
+            echo "::error::add --require), or a skip has started reading as a pass."
+            exit 1
+          }
+
+      # The skip must be a third state, not a pass. --require converts it to a
+      # failure; if that ever exits 0 with the analyser absent, the distinction
+      # has collapsed and every morphology property is silently "verified".
+      - name: A skipped morphology check is not a pass
+        run: |
+          set -euo pipefail
+          if python -m tigrinya_eval.morphology --require \
+               experiments/003-metric-validity/data > /dev/null 2>&1; then
+            echo "::error::--require PASSED with no analyser installed — SKIP has "
+            echo "::error::collapsed into PASS and the checks now verify nothing."
+            exit 1
+          fi
+          echo "skip is a distinct state from pass"
+
+  reproducibility:
+    name: DEC-016 — experiments reproduce byte-identically
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Experiment 009 imports tigrinya_primitives — it uses our own Ge'ez
+      # transliterator to test cross-script anchors, which also gives Tier 0 a
+      # second consumer outside its own tests.
+      - name: Install pinned experiment dependencies
+        run: |
+          python -m pip install --quiet --upgrade pip
+          pip install --quiet \
+            epitran==1.35.2 \
+            tokenizers==0.23.1 \
+            sacrebleu==2.6.0
+          pip install --quiet -e services/primitives
+          # experiments/007-harness-fidelity imports tigrinya_eval. Without
+          # this the job reproduced five experiments and then died on import.
+          pip install --quiet -e services/evaluation
+
+      - name: Re-run every experiment and diff its artefact
+        run: |
+          set -euo pipefail
+          fail=0
+          for dir in experiments/*/; do
+            [ -f "$dir/run.py" ] || continue
+            name=$(basename "$dir")
+
+            if [ ! -f "$dir/results.json" ]; then
+              echo "::error::$name has no results.json (DEC-016)"
+              fail=1
+              continue
+            fi
+
+            cp "$dir/results.json" "/tmp/$name.expected.json"
+            ( cd "$dir" && python run.py > /dev/null )
+
+            # DEC-016 Amendment 1: an experiment measuring a genuinely variable
+            # quantity declares itself non-deterministic. It still has to run
+            # and emit an artefact; it is not byte-compared, and it gets no
+            # drift detection in exchange.
+            if python -c "import json,sys; sys.exit(0 if json.load(open('$dir/results.json')).get('deterministic', True) else 1)"; then
+              :
+            else
+              echo "$name: declared non-deterministic — ran and emitted an artefact, not byte-compared"
+              continue
+            fi
+
+            if diff -q "/tmp/$name.expected.json" "$dir/results.json" > /dev/null; then
+              echo "$name: reproduced byte-identically"
+            else
+              echo "::error::$name did NOT reproduce — investigate before overwriting"
+              diff "/tmp/$name.expected.json" "$dir/results.json" || true
+              fail=1
+            fi
+          done
+          exit $fail
+
+  screening:
+    name: DEC-015 — datasets carry a screening record
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # This job had no install at all, and runs the plant suite, whose
+      # morphology cases import tigrinya_eval -> metrics -> sacrebleu. Four
+      # plants "misbehaved" with ModuleNotFoundError on the first real run.
+      # The suite was right; the environment was wrong.
+      - name: Install the packages
+        run: |
+          pip install --quiet -e services/primitives
+          pip install --quiet -e services/evaluation
+
+      - name: Screening tool runs and fails closed
+        run: |
+          set -euo pipefail
+          # A corpus with no declared licence and no eval set must FAIL.
+          # If this ever passes, the gate has stopped gating.
+          if python scripts/data_processing/screen_dataset.py \
+               experiments/002-tokenizer-fertility/corpus/tlt_000_clean.txt \
+               > /dev/null 2>&1; then
+            echo "::error::screening passed with no licence and no eval set — gate is broken"
+            exit 1
+          fi
+          echo "screening correctly fails closed"
+
+      # The job is named for DEC-015 but tested only that the tool fails closed.
+      # Nothing asserted the contamination gate DETECTS anything, so it could
+      # regress to always-pass with CI green.
+      - name: Contamination is actually detected (positive control)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/screentest
+          head -3 experiments/003-metric-validity/data/flores_ti.txt > /tmp/screentest/leak.txt
+          if python scripts/data_processing/screen_dataset.py /tmp/screentest/leak.txt \
+               --licence mit \
+               --eval-set experiments/003-metric-validity/data/flores_ti.txt \
+               > /dev/null 2>&1; then
+            echo "::error::a verbatim copy of eval data PASSED screening"
+            exit 1
+          fi
+          echo "contamination gate detects verbatim eval data"
+
+      # An evaluation segment shorter than the n-gram size produces no n-grams.
+      # A byte-identical copy of a short eval set was reported CLEARED.
+      - name: Short evaluation segments are not invisible
+        run: |
+          set -euo pipefail
+          printf 'ሰላም ዓለም ከመይ ኣለኻ\nጽቡቕ እየ የቐንየለይ\n' > /tmp/screentest/short_eval.txt
+          cp /tmp/screentest/short_eval.txt /tmp/screentest/short_leak.txt
+          if python scripts/data_processing/screen_dataset.py /tmp/screentest/short_leak.txt \
+               --licence mit --eval-set /tmp/screentest/short_eval.txt > /dev/null 2>&1; then
+            echo "::error::verbatim copy of a SHORT eval set passed screening"
+            exit 1
+          fi
+          echo "short evaluation segments are covered by exact matching"
+
+      # Legitimate Tigrinya carries Latin proper nouns; flores_ti.txt failed
+      # its own quality gate at 0.629% before mojibake detection was split out.
+      - name: Committed corpora pass their own quality gate
+        run: |
+          set -euo pipefail
+          for f in experiments/003-metric-validity/data/flores_ti.txt \
+                   experiments/002-tokenizer-fertility/corpus/tlt_000_clean.txt; do
+            if ! python scripts/data_processing/screen_dataset.py "$f" \
+                 --licence cc-by-sa-4.0 \
+                 --eval-set experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt \
+                 2>&1 | grep -q "\[PASS\] QUALITY"; then
+              echo "::error file=$f::committed corpus fails our own quality gate"
+              exit 1
+            fi
+          done
+          echo "committed corpora pass the quality gate"
+
+      # `data/anchors/` was added for HornMT and the glob did not cover it, so
+      # the most important corpus in the repo would have been the one exempt
+      # from DEC-015. Verified by deleting a record and watching this fail.
+      - name: Every committed corpus carries a screening record (DEC-015)
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in experiments/*/corpus/*.txt experiments/*/data/*.txt \
+                   data/anchors/*/*.txt; do
+            [ -e "$f" ] || continue
+            rec="$(dirname "$f")/screening/$(basename "$f" .txt).json"
+            if [ ! -f "$rec" ]; then
+              echo "::error file=$f::no screening record at $rec (DEC-015)"
+              fail=1
+            fi
+          done
+          exit $fail
+
+      # An anchor everything is scored against must be provably the upstream
+      # corpus, and provably still aligned line-for-line. fetch.py compares
+      # SHA-256 and re-checks that both sides split to 2,030 on "\n" with no
+      # exotic separator, which is how a parallel corpus silently desyncs.
+      - name: HornMT anchor matches upstream and stays aligned
+        run: python data/anchors/hornmt/fetch.py
+
+      - name: Parallel anchors are screened on both sides
+        run: |
+          set -euo pipefail
+          python scripts/data_processing/screen_dataset.py \
+            data/anchors/hornmt/tir.txt --licence cc-by-4.0 --script geez \
+            --eval-set experiments/003-metric-validity/data/flores_ti.txt \
+            > /dev/null
+          python scripts/data_processing/screen_dataset.py \
+            data/anchors/hornmt/eng.txt --licence cc-by-4.0 --script latin \
+            --eval-set experiments/003-metric-validity/data/flores_en.txt \
+            > /dev/null
+          echo "HornMT clears both sides"
+
+      # Upstream is a ZIP of TSVs and the committed files are line-per-segment
+      # text, so the *derivation* is part of the artefact. fetch.py verifies the
+      # archive digest, all six member digests, re-derives, and compares
+      # byte-for-byte — then asserts the three Tigrinya references really do
+      # share one English source, which is what makes it 3,071 segments and not
+      # 9,213 pairs.
+      - name: TICO-19 anchor matches upstream and stays aligned
+        run: python data/anchors/tico19/fetch.py
+
+      # Two TICO-19 sides are BLOCKED and the blocks are real, so this cannot
+      # just assert exit 0. It pins the known state: six sides clear, and the
+      # two failures stay exactly the size they were explained at. A block that
+      # grows is a corpus that changed under the anchor.
+      - name: TICO-19 screening matches its recorded state
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, pathlib, sys
+          EXPECTED = {
+              "dev.eng": "CLEARED for use", "dev.tir_er": "CLEARED for use",
+              "dev.tir_et": "CLEARED for use", "dev.tir_ti": "CLEARED for use",
+              "test.tir_et": "CLEARED for use", "test.tir_ti": "CLEARED for use",
+              "test.tir_er": "BLOCKED — quality",
+              "test.eng": "BLOCKED — contamination",
+          }
+          bad = []
+          for name, want in EXPECTED.items():
+              rec = json.loads(pathlib.Path(
+                  f"data/anchors/tico19/screening/{name}.json").read_text("utf-8"))
+              if rec["verdict"] != want:
+                  bad.append(f"{name}: {rec['verdict']!r}, recorded as {want!r}")
+              gates = {g["gate"]: g for g in rec["gates"]}
+              if name == "test.eng" and gates["contamination"]["overlaps"] != 3:
+                  bad.append(f"test.eng overlaps = "
+                             f"{gates['contamination']['overlaps']}, explained as 3")
+              if name == "test.tir_er" and gates["quality"]["worst_foreign_pct"] > 0.16:
+                  bad.append(f"test.tir_er foreign rate rose to "
+                             f"{gates['quality']['worst_foreign_pct']}")
+          for b in bad:
+              print(f"::error::{b}")
+          sys.exit(1 if bad else 0)
+          PY
+          echo "TICO-19 screening matches the state its README explains"
+
+      # The variety gate reported a ratio for a month that scored TICO-19's
+      # declared-ETHIOPIAN corpus at 91-95% "Eritrean". Experiment 010 caught it
+      # against source-declared labels; this keeps the calibration honest.
+      - name: Variety markers still separate the declared varieties
+        run: python experiments/010-variety-marker-calibration/run.py --check
+
+      # Nine checks in this repo have been found that could not fail, five of
+      # them in the audit tooling. None was caught by reading the code. Planting
+      # is therefore the test, not a one-off diagnostic.
+      - name: Planted failures are still detected
+        run: python scripts/tests/test_plants.py
+
+      # --script switches off two Ge'ez-specific gates, so it is the one input
+      # here that could wave a corpus through. It is detected, not asserted:
+      # Tigrinya declared latin must fail before it can skip anything.
+      - name: The script declaration cannot be used as an escape hatch
+        run: |
+          set -euo pipefail
+          if python scripts/data_processing/screen_dataset.py \
+               data/anchors/hornmt/tir.txt --licence cc-by-4.0 --script latin \
+               --eval-set data/anchors/hornmt/eng.txt > /dev/null 2>&1; then
+            echo "::error::a Ge'ez corpus declared latin PASSED — gate is broken"
+            exit 1
+          fi
+          echo "script declaration is verified against the contents"
+
+      - name: Known-corrupted sample is still detected
+        run: |
+          set -euo pipefail
+          if python scripts/data_processing/screen_dataset.py \
+               experiments/002-tokenizer-fertility/corpus/tlt_001_CORRUPTED_sample.txt \
+               --licence mit \
+               --eval-set experiments/003-metric-validity/data/flores_ti.txt \
+               > /dev/null 2>&1; then
+            echo "::error::known-corrupted corpus passed the quality gate"
+            exit 1
+          fi
+          echo "quality gate still detects the known-corrupted sample"
+
+  documentation:
+    name: DEC-001 — reports have summaries; summaries stay short
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 because the date-drift check blames each stamped line
+      # against the commit that introduced it, and a shallow clone has no
+      # blame to read. Every other job in this file is fine at depth 1.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # A report is covered only if a summary names THAT report's file.
+      # The previous version also accepted any summary mentioning the report's
+      # DOMAIN, which meant one summary satisfied every report in its directory
+      # — an orphan report with no summary anywhere passed. Verified before the
+      # fix by planting one.
+      - name: Every research report has a summary
+        run: |
+          set -euo pipefail
+          fail=0
+          for report in docs/research/reports/*/[0-9]*.md; do
+            [ -e "$report" ] || continue
+            if ! grep -rqF "$(basename "$report")" docs/research/summaries/; then
+              echo "::error file=$report::no summary names this report (DEC-001)"
+              fail=1
+            fi
+          done
+          exit $fail
+
+      # Counted in Python, not `wc -w`. With LANG/LC_ALL unset, wc runs in the
+      # C locale and cannot split UTF-8: a 661-word Tigrinya file counted as 30,
+      # and summaries undercounted by 3-4% because of em-dashes, ⚠️, × and Ge'ez
+      # samples. That made DEC-001's limit systematically lenient, and MOST
+      # lenient for the most Tigrinya-heavy summaries — exactly backwards.
+      - name: Summaries stay within the two-page limit
+        run: |
+          python - <<'EOF'
+          import pathlib, sys
+          fail = False
+          for f in sorted(pathlib.Path("docs/research/summaries").glob("[0-9]*.md")):
+              n = len(f.read_text(encoding="utf-8").split())
+              if n > 1200:
+                  print(f"::error file={f}::{f.name} is {n} words — over the 2-page limit")
+                  fail = True
+              else:
+                  print(f"{f.name}: {n} words")
+          sys.exit(1 if fail else 0)
+          EOF
+
+      - name: No retired figure is quoted as current (DEC-024)
+        run: python scripts/check_figures.py
+
+      # `is_ethiopic` exists five times and two copies were wrong: both
+      # screen_dataset.py and experiments/002 omitted Ethiopic Extended-B, and
+      # real Tigrinya carrying it failed the quality gate as "likely mojibake".
+      # The duplicates are deliberate — screen_dataset is stdlib-only, and
+      # experiments are frozen records — so this checks they agree instead.
+      - name: Duplicate definitions agree
+        run: |
+          pip install --quiet -e services/primitives -e services/evaluation
+          python scripts/check_definitions.py
+
+      # Four architecture documents sat as empty scaffolds while their domains
+      # had completed research and accepted decisions. Their own closing line
+      # says a drifted architecture document is worse than none.
+      # The instrument two reviewers may be given must be provably identical.
+      # An earlier version was not: `words` is a set, so equal-count entries in
+      # the pronunciation key ordered by hash and the manifest drifted between
+      # runs. Both hash seeds are exercised because that is how it was found.
+      - name: Validation instrument regenerates identically (A-13)
+        run: |
+          set -euo pipefail
+          pip install --quiet -e services/primitives
+          # rm first: `cp -r src dst` creates dst on a clean runner but nests
+          # src *inside* it when dst already exists. Re-running this step on one
+          # machine then fails with "Only in /tmp/v-sheets: sheets" and reads as
+          # the instrument being non-deterministic, which it is not. Costs
+          # nothing in CI, where /tmp is always clean.
+          rm -rf /tmp/v-sheets
+          cp -r validation/sheets /tmp/v-sheets
+          cp validation/manifest.json /tmp/v-manifest.json
+          cp validation/key.json /tmp/v-key.json
+          for seed in 1 99; do
+            PYTHONHASHSEED=$seed python validation/generate.py > /dev/null
+            diff -r /tmp/v-sheets validation/sheets
+            diff /tmp/v-manifest.json validation/manifest.json
+            diff /tmp/v-key.json validation/key.json
+          done
+          echo "validation instrument is deterministic"
+
+      - name: Architecture documents record their decisions
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in docs/architecture/*.md; do
+            if grep -q "No decisions recorded" "$f"; then
+              echo "::error file=$f::$(basename "$f") has an empty decision log — 24 decisions exist"
+              fail=1
+            fi
+          done
+          exit $fail
+
+      # A-17: the commit date wins. The 71-stamp backlog was corrected on
+      # 2026-08-24, so the ceiling is 0 and any new drift fails. Needs the
+      # full history above, and .git-blame-ignore-revs so the commit that made
+      # the correction is not mistaken for the one that caused it.
+      - name: Date stamps match the commits that wrote them (A-17)
+        run: python scripts/check_dates.py --list
+
+      # DEC-028(c): HornMorpho is GPL-3.0 and we ship Apache-2.0. Running it is
+      # fine; DISTRIBUTING it is not, and a container image counts. This fails
+      # if it ever appears in anything we package or deploy. It deliberately
+      # does NOT scan docs — the decision has to be able to name the thing it
+      # is about.
+      - name: No packaged or deployed artefact declares HornMorpho (DEC-028)
+        run: |
+          set -euo pipefail
+          hits=$(grep -rniE "hornmorpho" \
+                   --include="pyproject.toml" --include="setup.py" \
+                   --include="setup.cfg" --include="requirements*.txt" \
+                   --include="Dockerfile*" --include="*.dockerfile" \
+                   --include="docker-compose*.y*ml" \
+                   services/ sdk/ infrastructure/ 2>/dev/null || true)
+          if [ -n "$hits" ]; then
+            echo "::error::HornMorpho is GPL-3.0 (DEC-028) and must never be"
+            echo "::error::packaged or shipped in an image. Found:"
+            echo "$hits"
+            exit 1
+          fi
+          echo "no packaged artefact declares HornMorpho"
+
+      - name: Every decision names its rejected alternatives
+        run: |
+          set -euo pipefail
+          fail=0
+          # Definitions, not mentions. The first version iterated every
+          # DEC-NNN *mentioned* in the file, so a forward reference to a
+          # reserved-but-unwritten id failed the job: DEC-027 is the endpoint
+          # surface, blocked on A-02, and citing it is not deciding it. Same
+          # citation-vs-definition confusion already fixed for G-n/GAP-n.
+          for id in $(grep -oE '^## DEC-[0-9]{3}' docs/decisions/DECISIONS.md \
+                      | grep -oE 'DEC-[0-9]{3}' | sort -u); do
+            if ! grep -qF "$id" docs/decisions/rejected_options.md; then
+              echo "::error::$id has no entry in rejected_options.md (CONTRIBUTING rule 3)"
+              fail=1
+            fi
+          done
+          exit $fail

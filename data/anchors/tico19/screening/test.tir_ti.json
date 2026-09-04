@@ -1,0 +1,105 @@
+{
+  "corpus": [
+    "data/anchors/tico19/test.tir_ti.txt"
+  ],
+  "corpus_files": 1,
+  "total_chars": 219245,
+  "gates": [
+    {
+      "gate": "script",
+      "pass": true,
+      "declared": "geez",
+      "ethiopic_pct": {
+        "data/anchors/tico19/test.tir_ti.txt": 87.87
+      },
+      "mismatches": [],
+      "detail": "file contents match the declared geez script"
+    },
+    {
+      "gate": "licence",
+      "pass": true,
+      "declared": "cc0-1.0",
+      "detail": "usable for shipped artefacts"
+    },
+    {
+      "gate": "quality",
+      "pass": true,
+      "script": "geez",
+      "worst_foreign_pct": 0.049,
+      "threshold_pct": 0.1,
+      "mojibake": {},
+      "per_file": {
+        "data/anchors/tico19/test.tir_ti.txt": {
+          "chars": 175168,
+          "ethiopic_pct": 87.87,
+          "foreign_pct": 0.05,
+          "foreign_sample": [
+            "`(GRAVE ACCENT)",
+            "+(PLUS SIGN)",
+            "#(NUMBER SIGN)",
+            "$(DOLLAR SIGN)",
+            "​(ZERO WIDTH SPACE)"
+          ]
+        }
+      },
+      "review_flags": [],
+      "detail": "no encoding corruption detected"
+    },
+    {
+      "gate": "variety",
+      "pass": true,
+      "label": "unknown",
+      "signal": "ethiopian-consistent — 10.2% of segments carry an Ethiopian-only form",
+      "et_marker_segment_pct": 10.2,
+      "segments_with_et_marker": 214,
+      "segments": 2100,
+      "raw_marker_counts_not_a_proportion": {
+        "eritrean": 6450,
+        "ethiopian": 357
+      },
+      "lexeme_counts": {
+        "ክሳብ(ER) vs እስካብ(ET)": [
+          90,
+          39
+        ],
+        "ሃገራዊ(ER) vs ብሄራዊ(ET)": [
+          6,
+          18
+        ]
+      },
+      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010). Read `et_marker_segment_pct`, not the raw counts (Experiment 010)."
+    },
+    {
+      "gate": "contamination",
+      "pass": true,
+      "ngram_size": 8,
+      "overlaps": 0,
+      "exact_segment_matches": 0,
+      "eval_segments_below_ngram_size": 10,
+      "per_eval_set": {
+        "experiments/003-metric-validity/data/flores_ti.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
+        },
+        "data/anchors/hornmt/tir.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 10
+        },
+        "experiments/002-tokenizer-fertility/corpus/tlt_000_clean.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
+        },
+        "experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
+        }
+      },
+      "detail": "no overlap found, but 10 evaluation segment(s) are shorter than 8 words and are only covered by exact matching"
+    }
+  ],
+  "verdict": "CLEARED for use"
+}

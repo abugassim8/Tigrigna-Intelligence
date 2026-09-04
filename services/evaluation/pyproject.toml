@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tigrinya-eval"
+version = "0.1.0"
+description = "Variety-scoped Tigrinya translation evaluation: chrF primary, BLEU alongside"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+
+# Pinned. DEC-009 requires the metric implementation version to travel with
+# any reported number, because implementations differ substantially.
+dependencies = ["sacrebleu==2.6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "tigrinya-primitives"]
+# Intrinsic evaluation of Tier 0 (DEC-023a) needs the primitives themselves.
+# Kept optional so translation scoring stays installable without epitran's
+# 107 MB of panphon data (DEC-013).
+primitives = ["tigrinya-primitives"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

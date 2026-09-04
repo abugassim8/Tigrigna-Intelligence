@@ -20,6 +20,9 @@ that is unclear, not a people problem.
 
 ## Before you contribute anything
 
+**If your contribution is unblocking rather than building**, see
+[`ACTIONS.md`](ACTIONS.md) — the register of items needing a human.
+
 Three files, in this order, every time:
 
 1. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — what we are building and why.
@@ -107,8 +110,13 @@ build, the decision record is the contribution that is needed first.
    result recorded in `models/evaluations/`.
 5. **Reproducibility is required.** Pin versions. Seed randomness. Record
    hardware. A result that cannot be reproduced from this repository does not
-   exist.
-6. **No secrets, ever.** Not in code, not in notebooks, not in config, not in
+   exist. **Every experiment must emit a machine-checkable `results.json`**
+   (**DEC-016**) — re-running it must reproduce that file byte-identically, and a
+   mismatch is a finding to investigate, not a file to overwrite.
+6. **Datasets require a screening record.** No dataset enters use without a
+   committed record from `scripts/data_processing/screen_dataset.py`
+   (**DEC-015**) — licence, quality, variety, and contamination.
+7. **No secrets, ever.** Not in code, not in notebooks, not in config, not in
    commit history. Use `.env` files (git-ignored) and document required variables
    in the relevant `README.md`.
 
@@ -129,6 +137,23 @@ Data carries obligations that code does not:
 
 ---
 
+## Licensing — know which artefact class you are touching
+
+This repository is licensed **by artefact class** (**DEC-020**). Contributions
+are accepted under the licence matching what you are changing:
+
+| You are changing | Licence | File |
+| --- | --- | --- |
+| Source code | **Apache-2.0** | `LICENSE` |
+| Documentation | **CC-BY-4.0** | `LICENSE-docs` |
+| A data derivative | **inherits upstream** | see `LICENSE-docs` |
+
+**The data row is the one that catches people.** Three of our six datasets are
+**CC-BY-SA-4.0**, and share-alike is not ours to waive: anything derived from
+`haddas`, FLORES+, or TiQuAD must carry CC-BY-SA-4.0 and record its provenance.
+Mixing a share-alike corpus into a derived artefact changes that artefact's
+licence.
+
 ## Commit and branch conventions
 
 - Branch from the current default branch; use descriptive branch names.
@@ -147,6 +172,8 @@ Data carries obligations that code does not:
 - [ ] I searched `docs/research/summaries/` for prior work on this topic.
 - [ ] Research contributions use the templates and answer `CHECKLIST.md`.
 - [ ] Every full report has a corresponding ≤2-page summary.
+- [ ] Experiments emit `results.json` and reproduce byte-identically (DEC-016).
+- [ ] Datasets carry a committed screening record (DEC-015).
 - [ ] New decisions are recorded with rejected alternatives.
 - [ ] Sources are cited and added to `docs/research/references/`.
 - [ ] Uncertainty is stated explicitly rather than smoothed over.
