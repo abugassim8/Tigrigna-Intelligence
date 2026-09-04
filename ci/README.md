@@ -36,6 +36,23 @@ path that no longer exists:
 sed -i 's|"file": "ci/verify.yml"|"file": ".github/workflows/verify.yml"|' docs/figures.json
 ```
 
+⚠️ **On Windows, the commands above do not work** — `mkdir -p` is not valid in
+CMD, and `sed` does not exist. Verified 2026-09-03 by an owner who hit all three
+failures in a row. **Use Git Bash** (ships with Git for Windows: right-click the
+folder → *Git Bash Here*), where the block above works verbatim.
+
+Native PowerShell equivalent, if you prefer:
+
+```powershell
+New-Item -ItemType Directory -Force -Path .github\workflows
+git mv ci/verify.yml .github/workflows/verify.yml
+(Get-Content docs/figures.json) -replace 'ci/verify\.yml', '.github/workflows/verify.yml' | Set-Content docs/figures.json
+git commit -am "Activate CI verification workflow (DEC-018)"
+git push
+```
+
+On macOS, `sed -i` needs an empty argument: `sed -i '' 's|…|…|' docs/figures.json`.
+
 Tracked as **A-15** in [`../ACTIONS.md`](../ACTIONS.md).
 
 **Until that happens, DEC-018 is policy without mechanism** — which is precisely

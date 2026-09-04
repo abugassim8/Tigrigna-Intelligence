@@ -14,7 +14,7 @@ a single email — and unblock disproportionately large amounts of work. One of
 them potentially unlocks **1.4 million parallel sentences** for the cost of a
 message.
 
-**How to use it:** **A-01 and A-02 are blocking**; A-15 is one command
+**How to use it:** **A-01 is the last blocking item**; A-02 closed 2026-09-03. A-15 is a few commands
 and switches on 28 checks that currently enforce nothing. Each item states what
 to do, why, and what it unblocks; where a message is needed, a
 **ready-to-send draft** is included — copy, adjust the bracketed fields, send.
@@ -40,18 +40,18 @@ itself a research finding.
 | ID | Action | Priority | Unblocks | Status |
 | --- | --- | --- | --- | --- |
 | **A-01** | Get licence clarification on the `fgaim` models | 🔴 **Blocking** | DEC-003's wider reuse plan — ⚠️ **not Tier 1**; the bi-encoders are already Apache-2.0 | TODO |
-| **A-02** | Confirm DEC-002 (who our primary users are) | 🔴 **Blocking** | API, MCP, SDK design | TODO |
+| ~~**A-02**~~ | ~~Confirm DEC-002 (who our primary users are)~~ | ✅ **DONE** | Owner-confirmed 2026-09-03; DEC-002 is **Accepted**. Unblocks DEC-027, MCP, SDKs | **DONE** |
 | **A-03** | Report the TiQuAD contamination to `farefaine` | 🟠 High | Ecosystem (G-11); protects others | TODO |
 | **A-04** | Request the TiQuAD test set | 🟠 High | DEC-005 — canonical evaluation | TODO |
 | **A-05** | Establish terms for the ~603K usable en–ti pairs — **OPUS NLLB mined bitext** | 🟡 Medium *(was Blocking, then High)* | ⚠️ **Weakened twice.** Experiment 009: **56.9% of the "1.4M" rows have no English side at all**, and a published fine-tune on this pool scored chrF **4.99** | TODO |
 | **A-06** | Legal review of TiQuAD's copyright position | 🟠 High | Whether we can ship anything using it | TODO |
 | ~~**A-07**~~ | ~~Decide how morphology handles GPL-3.0~~ | ✅ **DONE** | Resolved by **DEC-028** — user-installed, never distributed; a hosted service may use it | **DONE** |
-| **A-08** | Set an `HF_TOKEN` for this environment | 🟠 **High** *(was Medium)* | **FLORES+ is a gated repo** — the token is what unlocks the full 997/1,012 devtest, the fix for **GAP-3** | TODO |
+| ~~**A-08**~~ | ~~Set an `HF_TOKEN`~~ | ✅ **DONE** *(owner, 2026-09-03)* | Unlocks the full 997/1,012 FLORES+ devtest — **GAP-3**. ⚠️ Not yet visible to the agent session; see the section below | **DONE — needs propagation** |
 | **A-09** | **Fetch model weights** — the runtime installs, the weights do not | 🟠 **High** | Scoring any model at all (**GAP-4**), Tier 1 embeddings. *Re-scoped: reading about models is no longer blocked* | TODO |
 | **A-10** | Introduce the project to GeezLab / L3S | 🟢 Low | Collaboration (G-11) | TODO |
 | **A-11** | Licence clarification on `fidel` | 🟢 Low | Transliteration option | TODO |
 | ~~**A-12**~~ | ~~Choose the project licence~~ | ✅ **DONE** | Resolved by **DEC-020** | **DONE** |
-| **A-13** | **Find a Tigrinya speaker to review our output** — sheets are built and ready to send | 🔴 **Blocking v0.1** | **Whether any of our Tigrinya is correct** (**GAP-1**); DEC-025; whether DEC-010 is precaution or live correction | **READY TO SEND** |
+| **A-13** | **Find a Tigrinya speaker** — ✅ **speaker found 2026-09-03**; sheets not yet sent | 🔴 **Blocking v0.1** | **Whether any of our Tigrinya is correct** (**GAP-1**); DEC-025; whether DEC-010 is precaution or live correction | **SPEAKER FOUND — SEND THE SHEETS** |
 | **A-14** | Measure Tier 2 cold start | 🟡 Medium | DEC-019 — the deployment mode, and the hosting choice | TODO — *Tier 0 measured (exp 006); Tier 2 still blocked on A-09* |
 | **A-15** | **Activate the CI workflow** (one command) | 🟠 High | DEC-018 — every checkable rule is unenforced until this is done | TODO |
 | **A-16** | Report epitran's position-sensitive transliteration upstream | 🟢 Low | Nothing — we work around it; but the next user will not know | TODO |
@@ -135,7 +135,18 @@ readiness plan's dependency graph.
 
 ---
 
-## 🔴 A-02 — Confirm DEC-002: who our primary users are
+## ✅ A-02 — Confirm DEC-002: who our primary users are — **DONE 2026-09-03**
+
+**Confirmed by the project owner.** DEC-002 moves from *Proposed* to
+**Accepted**, unchanged: primary users are **application developers**,
+researchers secondary. It stood as Proposed for 36 days on inferential
+evidence, and confirmation does not make that evidence direct — see DEC-002.
+
+This unblocks **DEC-027** (the endpoint surface), the MCP server, and the SDKs.
+
+---
+
+### Original brief
 
 **This is yours to decide, not mine to research.**
 
@@ -422,7 +433,18 @@ morphological accuracy against it locally. Only distribution is constrained.
 
 ---
 
-## 🟠 A-08 — Set an `HF_TOKEN` for this environment
+## ✅ A-08 — Set an `HF_TOKEN` — **owner set it 2026-09-03**
+
+⚠️ **Not yet effective for the agent.** The token was set, but `HF_TOKEN` and
+`HUGGING_FACE_HUB_TOKEN` are both **absent from the agent session's
+environment** (checked 2026-09-03). Either it was set somewhere that does not
+propagate here, or the session must be restarted to pick it up. **FLORES+ stays
+gated until a session actually sees the variable** — do not mark GAP-3 improved
+until an agent has fetched a row.
+
+---
+
+### Original brief
 
 The Hugging Face tools run **anonymously**, with rate limits — which is partly
 why the connector dropped repeatedly mid-session and slowed the corpus work.
@@ -690,6 +712,23 @@ sed -i 's|"file": "ci/verify.yml"|"file": ".github/workflows/verify.yml"|' docs/
 git commit -am "Activate CI verification workflow (DEC-018)"
 git push
 ```
+
+⚠️ **On Windows, the commands above do not work** — `mkdir -p` is not valid in
+CMD, and `sed` does not exist. Verified 2026-09-03 by an owner who hit all three
+failures in a row. **Use Git Bash** (ships with Git for Windows: right-click the
+folder → *Git Bash Here*), where the block above works verbatim.
+
+Native PowerShell equivalent, if you prefer:
+
+```powershell
+New-Item -ItemType Directory -Force -Path .github\workflows
+git mv ci/verify.yml .github/workflows/verify.yml
+(Get-Content docs/figures.json) -replace 'ci/verify\.yml', '.github/workflows/verify.yml' | Set-Content docs/figures.json
+git commit -am "Activate CI verification workflow (DEC-018)"
+git push
+```
+
+On macOS, `sed -i` needs an empty argument: `sed -i '' 's|…|…|' docs/figures.json`.
 
 The `sed` is not optional: `docs/figures.json` derives the CI-check count from
 the workflow's path, and `scripts/check_figures.py` crashes on the old one.

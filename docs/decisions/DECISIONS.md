@@ -64,7 +64,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | ID | Date | Decision | Status |
 | --- | --- | --- | --- |
 | DEC-001 | 2026-07-29 | Adopt a research-first repository and decision-log workflow | Accepted |
-| DEC-002 | 2026-07-29 | Primary users are application developers; researchers secondary | **Proposed — needs owner confirmation** |
+| DEC-002 | 2026-07-29 | Primary users are application developers; researchers secondary | **Accepted** — owner-confirmed 2026-09-03 |
 | DEC-003 | 2026-07-29 | Adopt the existing Tigrinya model layer; build primitives, evaluation, and integration | Accepted |
 | DEC-004 | 2026-07-29 | Support both Tigrinya varieties; evaluate and report them separately | Accepted |
 | DEC-005 | 2026-07-29 | FLORES-200 and TiQuAD as initial evaluation anchors | Accepted |
@@ -171,7 +171,20 @@ be challenged on evidence later.
 ## DEC-002 — Primary users are application developers
 
 **Decision ID:** DEC-002 · **Date:** 2026-07-29
-**Status:** **Proposed — requires project-owner confirmation**
+**Status:** **Accepted** — confirmed by the project owner **2026-09-03**
+
+> ✅ **A-02 closed.** This decision stood as *Proposed* for 36 days on
+> **inferential** evidence only — no direct user research was possible, and the
+> record said so rather than dressing the inference up as a finding. The owner
+> read `docs/research/summaries/002-scope-users-and-dialect.md` and confirmed
+> Option A unchanged.
+>
+> ⚠️ **What confirmation does and does not do.** It settles *whose* problem this
+> platform solves, which unblocks the API surface (**DEC-027**), the MCP server
+> and the SDKs. It does **not** retroactively make the evidence direct: the
+> basis is still the duplicated word-suggestion work across GeezIME, GeezKTB,
+> Mesmer and GeezWord. If real developers ever contradict it, that is a finding,
+> not a betrayal of this decision.
 
 **Decision:**
 The platform's primary users are **application developers** building Tigrinya
