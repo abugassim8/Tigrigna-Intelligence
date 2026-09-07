@@ -395,10 +395,13 @@ def evaluate_morphology(texts: Sequence[str], *,
         )
     else:
         notes.append(
-            "⚠️ First real run: check `morphology._render` against live "
-            "HornMorpho output. It is written against the *documented* shape, "
-            "which upstream's own docstrings contradict, and is the one part of "
-            "the adapter no test can settle without an install."
+            "Measured with an analyser present. `morphology._render` was "
+            "checked against live HornMorpho 5.3.6 output on 2026-09-07 and "
+            "corrected: a segmentation and a bare part-of-speech tag were "
+            "rendering into the same `|`-separated slot. Segmentations are "
+            "bare, tags are braced. If you are running against a different "
+            "analyser, or a newer HornMorpho, re-check it — no test can "
+            "settle the shape of an analysis without an install."
         )
     notes.append(
         "Accuracy is not measured here and cannot be. Experiment 004 found "

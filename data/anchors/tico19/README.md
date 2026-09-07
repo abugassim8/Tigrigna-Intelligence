@@ -147,6 +147,39 @@ line alignment. Five planted failures confirmed each check fires.
 `tico-19.github.io` is egress-blocked here; `raw.githubusercontent.com` serves
 the same bytes — see `docs/research/RESEARCH_ACCESS.md`.
 
+### ⚠️ One reference segment is not a translation — `dev.tir_et.txt:201`
+
+Found 2026-09-07, by the script filter added to the morphology CLI:
+
+| File | Line 201 |
+| --- | --- |
+| `dev.eng.txt` | `Summary of processes are detailed in Multimedia Appendix 3.` |
+| `dev.tir_er.txt` | ጽማቚ ናይ መስርሓት ኣብ Multimedia Appendix (ማልቲመድያ ኣፐንዲክስ) 3 ተገሊጹ ኣሎ ። |
+| **`dev.tir_et.txt`** | **`{to remove}`** |
+| `dev.tir_ti.txt` | ናይዞም ከይድታት መጠቓለሊ ኣብ Multimedia Appendix 3. ብዝርዝር ይርከብ። |
+
+An editor's note that survived into the published reference. The English is a
+real sentence and the other two references translate it, so this is upstream
+data, not a fetch error — `fetch.py` verifies every member SHA, and it matches.
+
+**Consequence:** any score computed against `tir_et` **dev** includes one
+segment on which every system scores zero regardless of its output. One of 971
+(**0.10%**), so the effect is small — but it is a floor under the reference, not
+noise, and a per-segment analysis should exclude it rather than explain it.
+
+**It is the only one.** All 9,213 Tigrinya reference segments across both
+splits and all three references were checked; this is the single segment
+containing no Ethiopic character at all.
+
+⚠️ **Screening did not catch it, and could not.** Every gate in
+`screen_dataset.py` is **file-level**: the script gate reads 91.57% Ethiopic
+across the file, the quality gate 0.03% foreign characters, both far inside
+threshold. Eleven Latin characters in 76,752 are invisible at that resolution.
+For a corpus that is the honest resolution; for an **evaluation anchor**, where
+every score is computed per segment, it is one level too coarse. Recorded
+rather than fixed: adding a segment-level gate changes the screening record of
+every committed corpus, which is a larger change than it looks.
+
 ### A trap worth knowing about
 
 `dev.en-ti.tsv` and `test.en-ti.tsv` spell the translator column

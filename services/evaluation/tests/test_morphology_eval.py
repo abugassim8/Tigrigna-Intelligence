@@ -226,7 +226,10 @@ def test_injected_analyser_runs_every_check():
     assert not report.skipped()
     assert report.holds
     assert not report.complete, "two checks are measurements, so not complete"
-    assert "First real run" in "\n".join(report.notes)
+    # The note must keep pointing at `_render`: it is the one part of the
+    # adapter whose correctness depends on the analyser actually installed,
+    # and a live run has already caught it being wrong once (2026-09-07).
+    assert "_render" in "\n".join(report.notes)
 
 
 def test_empty_corpus_is_an_error_not_a_pass():
