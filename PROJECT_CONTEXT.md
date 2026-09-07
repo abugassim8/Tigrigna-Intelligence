@@ -137,6 +137,11 @@ These hold until a recorded decision changes them:
   states otherwise.
 - Every non-trivial technical choice produces a decision record.
 - Every research effort produces a compressed summary, not just a long report.
+- 📧 **No agent sends email. Ever.** Drafts are prepared and shown; **the project
+  owner sends every message personally** (owner instruction, 2026-09-04). This
+  covers every outbound channel, not just Gmail — an AI assistant may compose and
+  may not transmit. `ACTIONS.md` holds ready-to-send drafts for A-01, A-03, A-04,
+  A-10, A-11 and A-16; **"ready to send" means ready for a person to send.**
 
 ---
 

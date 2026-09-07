@@ -157,6 +157,10 @@ quantitatively that they are one translation lineage, not independent references
 
 ## Part 5 — What only a person can do
 
+📧 **Including sending every one of these.** No agent transmits email (owner
+instruction, 2026-09-04). Drafts in `ACTIONS.md` are written *for the owner to
+send*; an assistant may compose and refine, never send.
+
 **Fourteen open actions; thirteen need a human.** Full detail and ready-to-send
 drafts are in [`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:
 

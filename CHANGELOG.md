@@ -28,6 +28,12 @@ first service is deployed.
 `PROTOCOL.md` and the five sheets — sent to the project owner for forwarding
 (Gmail `1a06ea200e45622d`).
 
+⚠️ **The last email an agent will send on this project.** That one was
+authorised step by step; immediately afterwards the owner set a standing rule
+that **no agent sends email, ever**. Drafts are prepared, the owner transmits.
+Recorded in `PROJECT_CONTEXT.md` → Standing constraints, and at the head of
+`ACTIONS.md` where every draft lives.
+
 ⚠️ **A-13 is not closed.** Nothing is validated until filled-in sheets come
 back, and the forward itself is not observable from here. The action moves from
 *READY TO SEND* to *SENT — AWAITING RETURNED SHEETS*, which is a different

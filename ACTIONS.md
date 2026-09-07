@@ -27,6 +27,11 @@ else.
 ✅ **A-13 is widened and ready to send.** `validation/PROTOCOL.md` plus
 `validation/sheets/` — 134 items, about 25 minutes. ⚠️ Never send `key.json`.
 
+📧 **Every draft in this file is for a human to send.** No agent transmits
+anything — the project owner sends all outbound messages personally (owner
+instruction, 2026-09-04). An assistant may write and refine a draft, and may not
+send it.
+
 **What to add over time:** New actions as research surfaces them. Move completed
 items to the Done section with the outcome and date — the outcome is often
 itself a research finding.
@@ -561,7 +566,12 @@ A-01, A-05, and A-06 resolve. Owned by `11_business`.
 ## 🔴 A-13 — Tigrinya speaker review — **SHEETS SENT 2026-09-04**
 
 > ✅ **Sent to the project owner** (Gmail message `1a06ea200e45622d`) for
-> forwarding to the reviewer. Six attachments: `PROTOCOL.md` and the five
+> forwarding to the reviewer.
+>
+> ⚠️ **This is not a precedent.** That send was authorised step by step at the
+> time. Immediately afterwards the owner set a standing rule: **no agent sends
+> email, ever** — see `PROJECT_CONTEXT.md` → Standing constraints. Everything
+> below and every draft in this file is prepared *for the owner to send*. Six attachments: `PROTOCOL.md` and the five
 > sheets. **`key.json` and `manifest.json` were excluded**, verified by an
 > explicit six-path allow-list with a forbidden-substring assertion rather than
 > a directory glob — the mail is forwarded onward, so an attachment mistake
