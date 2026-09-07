@@ -181,19 +181,27 @@ def test_fertility_is_reported(tokenizer):
 
 # ---------------------------------------------------------------- morphology
 
-def test_morphology_is_honestly_unavailable():
-    """Absent, not silently degraded.
+def test_morphology_never_silently_degrades():
+    """Absent or present — never silently degraded.
 
     A-07 is closed: **DEC-028** adopts HornMorpho as a dependency the *user*
-    installs, because it is GPL-3.0 and this package is Apache-2.0. So the
-    honest state here is "not installed", and the error has to say how to
-    install it rather than pointing at a blocker that no longer exists.
+    installs, because it is GPL-3.0 and this package is Apache-2.0. When it is
+    absent the error has to say how to install it rather than pointing at a
+    blocker that no longer exists; when it is present it has to actually
+    analyse. Before 2026-09-07 this asserted absence unconditionally, which
+    made it an assertion about the environment — it failed on the first machine
+    that had HornMorpho installed.
 
     Full coverage of the adapter — spans, offsets, degradation, the
     None-on-missing-language trap — is in `test_morphology.py`, which injects a
     fake analyser so none of it needs a GPL-3.0 dependency present.
     """
-    assert morphology.is_available() is False
+    if morphology.is_available():
+        # Installed. The honest state is then "present and analysing", and the
+        # property to hold is that it does not silently degrade either.
+        result = morphology.analyse("ሰላም")
+        assert result.spans and result.spans[0].analysis
+        return
     with pytest.raises(NotImplementedError, match="GPL-3.0"):
         morphology.analyse("ሰላም")
 

@@ -21,6 +21,7 @@ from tigrinya_eval.morphology import (
     check_surface,
     evaluate_morphology,
 )
+from tigrinya_eval.morphology import _main as morph_main
 from tigrinya_eval.primitives import PropertyResult
 from tigrinya_primitives import morphology
 
@@ -231,3 +232,41 @@ def test_injected_analyser_runs_every_check():
 def test_empty_corpus_is_an_error_not_a_pass():
     with pytest.raises(ValueError):
         evaluate_morphology(["", "   "])
+
+
+# ------------------------------------------------- the CLI's script filter
+
+def test_cli_refuses_a_corpus_with_no_ethiopic_text(tmp_path, capsys):
+    """A directory of English is not a Tigrinya corpus, and must not measure 0%.
+
+    Found 2026-09-07 on the first run against a real anchor: pointing the CLI
+    at `data/anchors/tico19` sweeps in 6,142 lines of English beside 9,213 of
+    Tigrinya, because a parallel corpus directory holds its source language
+    too. Every English token gets no analysis, so an unfiltered run reports a
+    "Tigrinya morphological coverage" figure ~40% of which measures English.
+    """
+    (tmp_path / "dev.eng.txt").write_text(
+        "Wash your hands often.\nAvoid close contact.\n", encoding="utf-8")
+    assert morph_main([str(tmp_path)]) == 2
+    assert "no Ethiopic text found" in capsys.readouterr().out
+
+
+def test_cli_reports_how_many_lines_it_filtered(tmp_path, capsys):
+    """Dropped, but never silently — the count is printed.
+
+    A filter that starts eating the corpus has to be visible, not inferred
+    from a suspiciously round coverage number.
+    """
+    (tmp_path / "mixed.txt").write_text(
+        "Wash your hands often.\nሰላም\n12345\n", encoding="utf-8")
+    morph_main([str(tmp_path)])
+    out = capsys.readouterr().out
+    assert "2 of 3 lines contain no Ethiopic script" in out
+    assert "1 lines measured" in out
+
+
+def test_a_line_mixing_scripts_is_kept(tmp_path, capsys):
+    """Tigrinya text carries Latin digits and acronyms; it must survive."""
+    (tmp_path / "mixed.txt").write_text("COVID-19 ሰላም\n", encoding="utf-8")
+    morph_main([str(tmp_path)])
+    assert "contain no Ethiopic script" not in capsys.readouterr().out

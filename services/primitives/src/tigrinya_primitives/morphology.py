@@ -36,13 +36,14 @@ Both were found by reading HornMorpho 5.3.6's source, not by hitting them:
    no ``else``. A missing Tigrinya pack therefore yields `None` rather than an
    exception — which, mapped naively, becomes "this word has no analysis" for
    every word in the corpus. We treat `None` as **unavailable** and raise.
-2. **The documented return type is ambiguous.** `hm.analyze`'s docstring says
-   *"returning a list of dicts"*; the `Language.analyze` it delegates to says
-   *"returning a Word object"*. They cannot both be right, so `_render` accepts
-   either and warns rather than assuming.
+2. **The documented return type looked ambiguous.** `hm.analyze`'s docstring
+   says *"returning a list of dicts"*; the `Language.analyze` it delegates to
+   says *"returning a Word object"*. ✅ **Settled 2026-09-07 by a live run:
+   both are right.** `Word` subclasses `list`, so the object *is* a list of
+   dicts. `_render` still accepts either and warns rather than assuming.
 
-⚠️ What is verified here, and what is not
------------------------------------------
+✅ What is verified here
+------------------------
 Verified 2026-09-02 by reading the upstream source at the pinned version:
 
   - licence **GPL-3.0** (`LICENSE.txt`), version **5.3.6**, not on PyPI;
@@ -50,15 +51,30 @@ Verified 2026-09-02 by reading the upstream source at the pinned version:
   - Tigrinya's code is ``'ti'``, normalised to ``'t'`` by ``CODES``;
   - the `None`-on-load-failure path above.
 
-**Not verified: the shape of an individual analysis.** Nothing in this
-environment can install HornMorpho, so `_render` is written against the
-*documented* shape and is deliberately tolerant of being wrong — it degrades to
-the surface form and attaches a warning naming the keys it actually saw, rather
-than emitting a confident string built from a guess. **The first real install
-should check `_render` against live output**; that is the one thing here a
-running copy would settle. Everything else — span construction, offsets,
-degradation, error paths — is exercised by the test suite through an injected
-analyser and does not depend on HornMorpho at all.
+**The shape of an individual analysis was the one open question**, and a live
+install settled it on **2026-09-07**. An analysis is a dict with the keys::
+
+    feats freq head lemma misc nsegs pos pre root seg stem suf token udfeats um
+
+`_render` was checked against that output and **was wrong in a way no test
+could have caught**: `pos` sat in the same fallback chain as `seg`, so a word
+whose readings mixed segmented and unsegmented analyses rendered as
+``ADP|-<ኣብ>--`` — slot 0 a part-of-speech tag, slot 1 a segmentation, nothing
+distinguishing them. Every test fixture supplied `seg`, so the fallback branch
+never ran until real data reached it. The two axes now use different
+separators; see `_render`.
+
+Still deliberately tolerant: an unrecognised shape degrades to the surface form
+and attaches a warning naming the keys it actually saw, rather than emitting a
+confident string built from a guess. Everything else — span construction,
+offsets, degradation, error paths — is exercised by the test suite through an
+injected analyser and does not depend on HornMorpho at all.
+
+⚠️ **`import hm` requires `tkinter`** (`hm.morpho.corpus` does an unconditional
+`from .gui import *`), so HornMorpho cannot be imported in a headless
+environment without the platform Tk package installed. That is a property of
+the dependency, not of any one machine — see
+`docs/research/RESEARCH_ACCESS.md`.
 
 Evaluation
 ----------
@@ -90,6 +106,15 @@ BLOCKER = "A-07"
 #: analyses for it. Injecting one is how this module is tested without a
 #: GPL-3.0 dependency present.
 Analyser = Callable[[str], Any]
+
+#: Fields that hold a **segmentation** — the morpheme analysis of the word.
+#: Rendered bare.
+_SEGMENTATION_KEYS = ("seg", "segmentation")
+
+#: Fields that describe an analysis **without** segmenting it: a
+#: part-of-speech tag, or a lexeme. Rendered braced, so a reader and a
+#: determinism check can both tell them from a segmentation.
+_TAG_KEYS = ("pos", "lemma", "root")
 
 _NOT_INSTALLED = (
     "HornMorpho is not installed. It is GPL-3.0 and this package is "
@@ -177,15 +202,30 @@ def _analyser() -> Analyser:
 def _render(entry: Any) -> tuple[str, str | None]:
     """Render one word's analyses to a string. Returns (text, warning).
 
-    ⚠️ **This is the one unverified part of the module** — see the module
-    docstring. HornMorpho's own docstrings disagree about whether an analysis
-    is a dict or a `Word` object, and nothing here can install it to settle the
-    question. So this looks for the documented keys, and when it finds none it
-    **says so and returns nothing** rather than inventing a string from
-    `str(obj)` that would look like an analysis and not be one.
+    ✅ **Verified against HornMorpho 5.3.6 on 2026-09-07** — see the module
+    docstring. `hm.analyze()` returns a `Word`, and `Word` subclasses `list`,
+    so it *is* a list of dicts: upstream's two docstrings were each describing
+    half of one object rather than contradicting each other.
 
-    A warning naming the observed keys is far more useful to the first person
-    who runs this for real than a plausible-looking wrong answer.
+    Two axes, two separators, because conflating them is the defect the first
+    live run exposed:
+
+    ``|`` separates **competing analyses** of the same word. Ambiguity is
+    normal in Ge'ez morphology and must not be silently cut.
+
+    ``{}`` marks an analysis that carries **no segmentation**. HornMorpho
+    routinely returns a function-word reading with ``seg=None`` alongside a
+    segmented one — ``ኣብ`` yields an ADP reading with no ``seg`` and a noun
+    reading segmented ``-<ኣብ>--``. Rendering both bare produced ``ADP|-<ኣብ>--``,
+    in which slot 0 is a part-of-speech tag and slot 1 a segmentation, with
+    nothing to tell them apart. A lexeme (`lemma`, `root`) is not a
+    segmentation either, and is braced for the same reason. Braces cannot
+    collide with a segmentation: upstream's `seg` grammar uses ``-``, ``<``
+    and ``>`` only.
+
+    When nothing is recognisable this **says so and returns nothing** rather
+    than inventing a string from `str(obj)` that would look like an analysis
+    and not be one.
     """
     if entry is None:
         return "", None
@@ -200,24 +240,27 @@ def _render(entry: Any) -> tuple[str, str | None]:
             rendered.append(item)
             continue
         if isinstance(item, dict):
-            # Documented fields, in decreasing specificity. `seg` is the
-            # morpheme segmentation, which is what a caller most often wants.
-            for key in ("seg", "segmentation", "lemma", "root", "pos"):
-                value = item.get(key)
-                if value:
-                    rendered.append(str(value))
-                    break
-            else:
-                unknown.update(str(k) for k in item.keys())
-            continue
-        # A Word object, or something else entirely.
-        for attr in ("seg", "segmentation", "lemma", "root"):
-            value = getattr(item, attr, None)
+            get = item.get
+        else:
+            # A `Word` element, or something else entirely.
+            get = lambda key, _item=item: getattr(_item, key, None)
+
+        for key in _SEGMENTATION_KEYS:
+            value = get(key)
             if value:
                 rendered.append(str(value))
                 break
         else:
-            unknown.add(type(item).__name__)
+            for key in _TAG_KEYS:
+                value = get(key)
+                if value:
+                    rendered.append("{" + str(value) + "}")
+                    break
+            else:
+                if isinstance(item, dict):
+                    unknown.update(str(k) for k in item)
+                else:
+                    unknown.add(type(item).__name__)
 
     if rendered:
         return "|".join(rendered), None

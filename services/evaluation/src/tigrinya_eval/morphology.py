@@ -39,9 +39,25 @@ five broken analysers — misaligned spans, non-deterministic output, a mangled
 surface — and asserts each is caught.
 
 That is the whole point. These checks are **not** unverified code waiting for an
-install: their failure modes are tested today. What waits for an install is the
-*measurement* — the coverage number, and whether `_render` maps live HornMorpho
-output at all (the one thing `morphology.py` records as unverified).
+install: their failure modes are tested today. What waited for an install was
+the *measurement* — the coverage number, and whether `_render` mapped live
+HornMorpho output at all.
+
+✅ **Both settled 2026-09-07**, on the first run with HornMorpho present. Two
+things the injected-analyser suite could not have caught, and did not:
+
+  - **`_render` was wrong.** `pos` sat in the same fallback chain as `seg`, so
+    a word with both a segmented and an unsegmented reading rendered as
+    ``ADP|-<ኣብ>--`` — a POS tag and a segmentation in the same slot. Every
+    fixture supplied `seg`, so the branch never ran until real data reached it.
+  - **The CLI measured English.** `load_corpus` on a parallel anchor directory
+    sweeps in the source language: `data/anchors/tico19` is 6,142 lines of
+    English beside 9,213 of Tigrinya. `_main` now filters by script and prints
+    what it dropped.
+
+Neither was a wrong *threshold*. Both were the instrument measuring something
+other than what it named — which is the failure this repository keeps finding,
+and the reason a measurement is not real until it has been run once.
 
 What is checked, and what each is worth
 ---------------------------------------
@@ -67,7 +83,8 @@ from typing import Any, Callable, Sequence
 
 from tigrinya_primitives import morphology, normalise
 
-from .primitives import IntrinsicReport, PropertyResult, load_corpus
+from .primitives import (IntrinsicReport, PropertyResult, is_ethiopic,
+                         load_corpus)
 
 Analyser = Callable[[str], Any]
 
@@ -415,7 +432,29 @@ def _main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     lines = [ln for t in texts for ln in t.splitlines() if ln.strip()]
-    report = evaluate_morphology(lines, require=args.require)
+
+    # A parallel anchor directory holds its *source* language too:
+    # `data/anchors/tico19` is 6,142 lines of English beside 9,213 of
+    # Tigrinya. Analysing English with a Tigrinya FST yields no analysis for
+    # every token, so an unfiltered run reports a coverage figure roughly 40%
+    # of which is a measurement of English. Found 2026-09-07, on the first run
+    # against a real anchor.
+    #
+    # Dropped rather than refused, because a mixed-script directory is the
+    # normal shape of a parallel corpus — but never silently: the count is
+    # printed, so a filter that starts eating the corpus is visible instead of
+    # inferred from a suspiciously round number.
+    tigrinya = [ln for ln in lines if any(is_ethiopic(c) for c in ln)]
+    skipped = len(lines) - len(tigrinya)
+    if skipped:
+        print(f"  {skipped} of {len(lines)} lines contain no Ethiopic script "
+              f"and were not analysed (a parallel corpus carries its source "
+              f"language too); {len(tigrinya)} lines measured.\n")
+    if not tigrinya:
+        print("no Ethiopic text found under: " + ", ".join(args.paths))
+        return 2
+
+    report = evaluate_morphology(tigrinya, require=args.require)
     print(report.report())
     if args.json:
         report.save(args.json)

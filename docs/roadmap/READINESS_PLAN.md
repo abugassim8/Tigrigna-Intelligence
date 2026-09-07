@@ -4,7 +4,7 @@
 | --- | --- |
 | **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-02**, covering phases A–E |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
-| **Basis** | **28 decisions · 10 experiments · 16 summaries · 161 tests · 5 audits** |
+| **Basis** | **28 decisions · 10 experiments · 16 summaries · 171 tests · 5 audits** |
 | **Live handoff** | ⚠️ [`NEXT_SESSION.md`](NEXT_SESSION.md) — §12's *"nothing left to do"* was **wrong**; read that first |
 
 ---

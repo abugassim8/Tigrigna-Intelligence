@@ -139,6 +139,52 @@ Note the repo-scope restriction below before using these.
 
 ---
 
+> ✅ **Settled 2026-09-07 by doing it.** The route above was theory until
+> HornMorpho was actually installed and run. All of it held, and three further
+> things are now known that no probe could have told us.
+>
+> | Route | Result 2026-09-07 |
+> | --- | --- |
+> | `pip install git+https://github.com/hltdi/HornMorpho` | ✅ **works** — HornMorpho **5.3.6** installed |
+> | `media.githubusercontent.com/media/.../t.tgz` | ✅ 200 — **158,902,071 bytes**, byte-identical to the 2026-09-03 probe |
+> | `archive.ubuntu.com` (apt) | ✅ **open** — Ubuntu's own archive is reachable |
+> | `ppa.launchpadcontent.net` (deadsnakes PPA) | ❌ **403 at the proxy** — see the blocked table |
+>
+> **`git+https://` to a third-party GitHub repo works**, even though
+> `github.com` HTML, `github.com/.../raw/...` and `codeload.github.com` are all
+> 403. The plan flagged this as *"the one untested link and the most likely
+> failure point"*. It was neither. **The pattern holds: the assumed block was
+> assumed, not measured.** That is now the fifth instance.
+>
+> ⚠️ **`import hm` requires `tkinter`, and that is a fact about HornMorpho, not
+> about this sandbox.** `hm/__init__.py` → `hm.morpho` → `from .corpus import *`
+> → `corpus.py:32 from .gui import *` → `gui.py:26 from tkinter import *`. The
+> chain is unconditional. `gui.py` exists to draw a manual-disambiguation
+> window, and the *entire* package-wide dependency on it is **one call site**,
+> `corpus.py:483`, inside `Corpus.disambiguate()` — a method nothing in the
+> analysis path touches.
+>
+> So **HornMorpho 5.3.6 cannot be imported in a headless environment** — a slim
+> container, a CI runner, a server — without the platform Tk package installed.
+> Worth reporting upstream: a deferred import inside `disambiguate()` would
+> remove it entirely. Tracked as **A-18**.
+>
+> ⚠️ **Getting `tkinter` was itself a two-step problem**, and the first step
+> failed in the way this document exists to catch. The interpreter in use was
+> Python **3.11.15 from the deadsnakes PPA**, so the matching package is
+> `python3.11-tk` — and `ppa.launchpadcontent.net` is **403 at the proxy**,
+> which is an organisation egress denial: not retried, not routed around.
+>
+> **The way through was not a workaround — it was a different, permitted
+> source.** Ubuntu noble ships Python **3.12** and `python3-tk` for it comes
+> from `archive.ubuntu.com`, which is open. A 3.12 venv gets HornMorpho,
+> `tkinter`, and both project packages, and the measurement runs there while
+> the 3.11 venv stays the analyser-absent environment the test suite is
+> designed around. **Both are useful**: the suite is now run in both states and
+> gates on `morphology.is_available()` rather than assuming either.
+
+---
+
 ## ❌ Blocked — do not retry
 
 These returned **403 at the proxy CONNECT level** on 2026-07-29. Per
@@ -155,6 +201,7 @@ These returned **403 at the proxy CONNECT level** on 2026-07-29. Per
 | `en.wikipedia.org` | No general reference |
 | `www.ethnologue.com` | No authoritative language demographics |
 | `*.github.io` (tested: `tigrinyanlp.github.io`) | Community documentation sites unreachable |
+| `ppa.launchpadcontent.net` (deadsnakes) | ⚠️ **Added 2026-09-07.** No `python3.11-*` system packages. `archive.ubuntu.com` **is** open, so prefer a stock Ubuntu interpreter over a PPA one whenever a system package is needed |
 
 **Practical effect on this project:** every claim sourced from a paper is
 `[reported]`, not `[verified]`, unless it also appears on a Hugging Face card or

@@ -141,6 +141,14 @@ sys.path.insert(0, "services/evaluation/src")
 sys.path.insert(0, "services/primitives/src")
 from tigrinya_eval.morphology import (
     check_surface, check_alignment, check_determinism, evaluate_morphology)
+from tigrinya_primitives import morphology as _m
+
+# Exit 77 means "this plant could not be run here", the autotools convention.
+# Two of these cases assert the *skip* path, which only exists when the
+# analyser is absent — on a machine that has HornMorpho they are not failures,
+# they are inapplicable. Reporting them as failures would make the one tool
+# whose job is to be trusted about real alarms cry wolf.
+SKIP = 77
 
 TEXTS = ["ሰላም ዓለም", "ፀሓይ ትወጽእ ኣላ"]
 n = [0]
@@ -168,9 +176,13 @@ elif CASE == "surface_broken":
 elif CASE == "alignment_good":
     ok = check_alignment(TEXTS, analyser=good).holds
 elif CASE == "skip_is_not_complete":
+    if _m.is_available():
+        sys.exit(SKIP)
     r = evaluate_morphology(TEXTS)
     ok = not r.complete and bool(r.skipped())
 elif CASE == "require_fails_when_absent":
+    if _m.is_available():
+        sys.exit(SKIP)
     ok = not evaluate_morphology(TEXTS, require=True).holds
 else:
     raise SystemExit("unknown case")
@@ -188,6 +200,14 @@ MORPH_PLANTS = [
 ]
 
 
+#: Mirrors `SKIP` inside MORPH_PLANT. See the note there.
+PLANT_SKIP = 77
+
+#: Filled by `run_morphology_plants`, read by `main` so the summary line can
+#: never say "all N behaved as specified" when some of them did not run.
+skipped: list[str] = []
+
+
 def run_morphology_plants() -> list[str]:
     problems = []
     with tempfile.TemporaryDirectory() as tmp:
@@ -196,6 +216,11 @@ def run_morphology_plants() -> list[str]:
         for label, case, expect in MORPH_PLANTS:
             r = subprocess.run([sys.executable, str(script), case],
                                cwd=REPO, capture_output=True, text=True)
+            if r.returncode == PLANT_SKIP:
+                skipped.append(label)
+                print(f"  [SKIP] morphology: {label} — needs HornMorpho ABSENT; "
+                      f"it is installed here, so this plant verified nothing")
+                continue
             status = "PASS" if r.returncode == expect else "FAIL"
             print(f"  [{status}] morphology: {label} "
                   f"(exit {r.returncode}, expected {expect})")
@@ -216,6 +241,10 @@ def main() -> int:
               f"a check has stopped being able to fail")
         return 1
     total = len(SCREEN_PLANTS) + len(FIGURE_PLANTS) + len(MORPH_PLANTS)
+    if skipped:
+        print(f"{total - len(skipped)} of {total} planted cases behaved as "
+              f"specified; {len(skipped)} NOT RUN — {', '.join(skipped)}")
+        return 0
     print(f"all {total} planted cases behaved as specified")
     return 0
 

@@ -5,7 +5,7 @@ Implements **DEC-009** (chrF primary, BLEU alongside) and **DEC-010**
 
 ```bash
 pip install -e ".[dev]"
-pytest          # 14 tests
+pytest
 ```
 
 ```python

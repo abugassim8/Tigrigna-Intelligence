@@ -61,6 +61,7 @@ itself a research finding.
 | ~~**A-15**~~ | ~~Activate the CI workflow~~ | ✅ **DONE 2026-09-04** | Installed at `.github/workflows/verify.yml`; **28 checks enforcing**. First run failed 3 of 6 jobs, all fixed | **DONE** |
 | **A-16** | Report epitran's position-sensitive transliteration upstream | 🟢 Low | Nothing — we work around it; but the next user will not know | TODO |
 | ~~**A-17**~~ | ~~Decide how the record is dated~~ | ✅ **DONE** | Resolved: **the commit date wins**; 71 stamps corrected | **DONE** |
+| **A-18** | Report HornMorpho's unconditional GUI import upstream | 🟢 Low | Nothing for us — we install Tk. But it makes HornMorpho **un-importable headless**, which will bite the next person deploying it | TODO |
 
 ---
 
@@ -814,6 +815,56 @@ Version tested: `epitran==1.35.2`.
 **Worth mentioning:** we have **not** determined which output is
 phonologically correct — that needs a Tigrinya speaker, so the report should
 describe the inconsistency, not assert a bug in the phonology.
+
+---
+
+## 🟢 A-18 — Report HornMorpho's unconditional GUI import upstream
+
+**Who:** Michael Gasser (`gasser@iu.edu`), via a GitHub issue on
+`hltdi/HornMorpho`.
+
+📧 **The owner sends this.** Like every other draft in this file — see the
+standing constraint in the header.
+
+**Blocks:** nothing for us. We install the platform Tk package and measure
+morphology normally. This is courtesy, and the same kind of obligation as A-03
+and A-16: we hit it, we can describe it precisely, and the next person will not
+know why their container fails.
+
+**What to report:** `import hm` fails on any machine without `tkinter`:
+
+```
+hm/__init__.py         -> from . import morpho
+hm/morpho/__init__.py  -> from .corpus import *
+hm/morpho/corpus.py:32 -> from .gui import *
+hm/morpho/gui.py:26    -> from tkinter import *
+ModuleNotFoundError: No module named 'tkinter'
+```
+
+The chain is unconditional, so the failure is at **import**, not at use. That
+matters because `tkinter` is not part of a standard Python install on most
+Linux distributions — it is a separate system package — so HornMorpho cannot be
+imported in a slim container, a CI runner, or a headless server, even when the
+caller only wants `hm.analyze()`.
+
+**Why it looks incidental:** the entire package-wide dependency on `gui` is
+**one call site** — `corpus.py:483`, `self.root = SegRoot(...)` inside
+`Corpus.disambiguate()`, the manual disambiguation window. Nothing in the
+analysis path reaches it. `sentence.py:34` already has its `from .gui import
+SegRoot` **commented out**, which suggests the deferral was started and not
+finished.
+
+**Suggested fix, in their terms:** move the import inside `disambiguate()`.
+That keeps the GUI working for anyone who wants it and makes the dependency
+optional for everyone else — a two-line change, no API break.
+
+**Reproduce:** `pip install git+https://github.com/hltdi/HornMorpho` on a
+machine with no Tk package, then `python -c "import hm"`.
+Version tested: **5.3.6**, on Python 3.11.15 and 3.12.3.
+
+**Worth mentioning:** HornMorpho analysed Tigrinya correctly once Tk was
+installed — the report should be clearly a packaging note, not a complaint
+about the analyser.
 
 ---
 

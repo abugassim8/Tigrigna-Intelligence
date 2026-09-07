@@ -76,7 +76,7 @@ to update the documents fails `scripts/check_figures.py`.
 
 | Job | Enforces |
 | --- | --- |
-| `packages` | `services/primitives` (**97 tests**) and `services/evaluation` (**64 tests**) — DEC-023, DEC-009, DEC-010 |
+| `packages` | `services/primitives` (**104 tests**) and `services/evaluation` (**67 tests**) — DEC-023, DEC-009, DEC-010 |
 | `intrinsic` | Tier 0 intrinsic properties over the committed corpus (DEC-023a); morphology's five checks, and that a SKIP is **not** a pass (DEC-028); the readiness plan's test count |
 | `reproducibility` | All **10** experiments re-run and diff byte-identically (DEC-016) |
 | `screening` | Screening fails closed; contamination positively detected; every committed corpus carries a record; both anchors match upstream and stay aligned; planted failures still detected (DEC-015, DEC-029) |
