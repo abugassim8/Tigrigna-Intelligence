@@ -2,119 +2,128 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Live handoff.** Written 2026-09-03, approved by the owner · **updated 2026-09-04** (A-02, A-08, A-15 closed; speaker found for A-13) |
+| **Status** | **Live handoff.** Written 2026-09-03, approved by the owner · **updated 2026-09-07** (Part 2 done — HornMorpho installed, three instrument defects fixed) |
 | **Supersedes** | `READINESS_PLAN.md` §12's *"Nothing. This list is empty"* — that conclusion is **false**, see below |
 | **Read first** | This file, then `READINESS_PLAN.md`, then `ACTIONS.md` |
 
 This file exists so a session that starts cold can pick up without re-deriving
-anything. It is deliberately short. **If you do one thing, do Part 2.**
+anything. It is deliberately short.
+
+**Part 2 is done.** The next agent-doable task is **Part 3** (experiment 011).
+The highest-leverage thing in the whole project is still **A-13**, and it needs
+a person — see Part 5.
 
 ---
 
 ## Part 1 — Where the project actually is
 
 Two Python packages are built and tested (`services/primitives`,
-`services/evaluation`) — **161 tests**. Everything else under `services/` is a
+`services/evaluation`) — **171 tests**. Everything else under `services/` is a
 one-file scaffold. Two evaluation anchors are committed and screened
 (`data/anchors/hornmt`, `data/anchors/tico19`). 28 decisions, 10 experiments,
 16 summaries.
 
 **Four of five GAPs are open** — GAP-2 closed 2026-09-04 when CI was installed.
-**Three of six v0.1 exit criteria are met.** Three of fourteen capability rows
-in `metrics.md` are measured.
+**Three of six v0.1 exit criteria are met.**
 
 ✅ **CI enforces 28 checks** as of 2026-09-04. Its first run failed three of six
 jobs; all three were real and are fixed.
 
+✅ **HornMorpho runs here** as of 2026-09-07, which had been assumed impossible
+since the project began. See Part 2 — it is done, and what it returned was
+mostly not the measurement.
+
 Never done: **no speaker has validated a single output; no model has ever been
 scored; nothing is deployed.**
 
----
-
-## Part 2 — The next task: install HornMorpho and measure morphology
-
-**`READINESS_PLAN.md` §12 says there is nothing left an agent can do. That is
-wrong, and the reason is the mistake this project keeps catching itself on: a
-stale assumption about access.**
-
-Morphology measurement (**GAP-5**, `metrics.md`'s ❌ row, plan step 2.3) is
-recorded everywhere as blocked on *"an actual install"*. Nobody tested whether
-the install was possible. It was tested 2026-09-03, read-only:
-
-| Probe | Result |
-| --- | --- |
-| `raw.githubusercontent.com/hltdi/HornMorpho/master/setup.py` | ✅ 200 |
-| `github.com/hltdi/HornMorpho` (HTML), `codeload…/tar.gz` | ❌ 403 |
-| `raw…/src/hm/languages/t.tgz` | ✅ 200 — **134 bytes, a Git LFS pointer** |
-| **`media.githubusercontent.com/media/hltdi/HornMorpho/master/src/hm/languages/t.tgz`** | ✅ **200 — 158,902,071 bytes** |
-
-**The Tigrinya data is reachable.** `t` is the correct abbreviation — `ti` and
-`ት` both 404. HornMorpho's own `get_language_url()` builds a
-`github.com/.../raw/...` URL which **is** 403 here; that is almost certainly why
-this was assumed impossible. See `docs/research/RESEARCH_ACCESS.md`.
-
-**It is explicitly permitted.** DEC-028(e): *"Evaluating it is unaffected.
-Measuring morphological accuracy locally is use, not distribution."* GPL-3.0
-constrains **distribution**. Nothing here distributes it, and CI already checks
-that no packaged artefact declares HornMorpho.
-
-**It makes existing work real.** `tigrinya_eval.morphology`'s five intrinsic
-checks all currently report `SKIP`. They have never measured anything.
-
-### Steps
-
-1. **Get the package.** Try `pip install git+https://github.com/hltdi/HornMorpho`.
-   ⚠️ **This is the one untested link and the most likely failure point** —
-   git-over-https works for this repo's own remote, but third-party repos are
-   unproven. If it 403s, assemble `src/hm/` from `raw.githubusercontent.com`.
-2. **Get the language data** from the `media.githubusercontent.com` URL above
-   and place it where `hm.morpho.languages.is_downloaded('t')` looks
-   (`Language.get_lang_dir`). **Fetch out-of-band and drop the file in place —
-   do not patch HornMorpho's own download URL.**
-3. **Verify `morphology.is_available()` is True** — it checks import *and*
-   language data, which is the exact failure it was written for.
-4. ⚠️ **Check `_render` against live output before trusting any number.**
-   `services/primitives/src/tigrinya_primitives/morphology.py` flags this as
-   *"the one unverified part of the module"*: upstream's own docstrings disagree
-   on whether an analysis is a dict or a `Word` object. **This is the likely
-   real code change.**
-5. **Run** `python -m tigrinya_eval.morphology --require data/anchors/tico19`
-   over a real anchor, not the FLORES sample.
-6. **Record the two `MEAS` numbers** (coverage, normalisation) that have never
-   had a value. The first measurement **sets** a floor; it is not judged by one.
-
-### Files likely touched
-
-`services/primitives/.../morphology.py` (`_render`) · `docs/benchmarks/metrics.md`
-(the morphology row) · `READINESS_PLAN.md` §2 GAP-5 and §12 · `ACTIONS.md` ·
-`CHANGELOG.md` · `docs/research/RESEARCH_ACCESS.md` (already updated).
-
-### If it fails
-
-**Stop and record it.** A negative result is worth as much here (**P-13**). Do
-not patch upstream, do not vendor it, **do not commit any HornMorpho bytes**.
-
-### Verification
-
-```bash
-python -c "from tigrinya_primitives import morphology; print(morphology.is_available())"
-python -c "
-from tigrinya_primitives.morphology import analyse
-a = analyse('ኣብ ቤት ትምህርቲ')
-print(a.analysis); print([(s.surface, s.analysis) for s in a.spans]); print(a.warnings)"
-python -m tigrinya_eval.morphology --require data/anchors/tico19   # must exit 0
-/tmp/venv/bin/python3 -m pytest services -q                        # 161 tests
-python scripts/tests/test_plants.py                                # 22 planted cases
-python scripts/check_figures.py && python scripts/check_dates.py
-```
-
-⚠️ Two tests are gated `@needs_absent` and **will now skip** — expect the count
-to drop by exactly two, and confirm it is those two. Before committing, check
-`git status` shows **no HornMorpho bytes**.
+⚠️ **Run the suite in both states.** `/tmp/venv` (Python 3.11) has no importable
+HornMorpho and is the environment the tests were designed around; `/tmp/venv312`
+has it. Counts differ **by design** — 169 pass / 2 skip absent, 167 pass / 4
+skip present, 171 collected either way. If neither number matches, something
+broke; if you only ever run one, you are testing half the code.
 
 ---
 
-## Part 3 — Fallback: Experiment 011, inter-translator agreement
+## Part 2 — ✅ DONE 2026-09-07: HornMorpho installed, instrument fixed
+
+**It worked, and the install was the least interesting part.**
+
+`pip install git+https://github.com/hltdi/HornMorpho` succeeded — **5.3.6**.
+This file called that line *"the one untested link and the most likely failure
+point"*. It was neither. The Tigrinya data came from the
+`media.githubusercontent.com` LFS host exactly as probed, **158,902,071 bytes**,
+and `morphology.is_available()` returned `True` for the first time in the
+project's life.
+
+### ⚠️ One thing genuinely blocked, and it is upstream's
+
+**`import hm` requires `tkinter`.** `hm/__init__` → `hm.morpho` → `corpus.py:32
+from .gui import *` → `gui.py:26 from tkinter import *`, unconditionally. The
+whole package-wide dependency is **one call site** — `corpus.py:483`, inside
+`Corpus.disambiguate()`, which nothing in the analysis path touches.
+
+So HornMorpho 5.3.6 **cannot be imported headlessly at all** — not here, not in
+a slim container, not on a CI runner. That is a fact about the dependency, and
+it is now **A-18** (report upstream; a deferred import fixes it).
+
+Getting `tkinter` was its own lesson. The interpreter was Python 3.11 from the
+**deadsnakes PPA**, and `ppa.launchpadcontent.net` is **403 at the proxy** — an
+org egress denial, not retried and not routed around. The way through was a
+*different permitted source*: Ubuntu noble's own `python3-tk` is for **3.12**
+and comes from `archive.ubuntu.com`, which is open. Hence `/tmp/venv312`.
+
+### What the first real run found — three defects, and none was a threshold
+
+Every one lived exactly where the injected fake stopped and the real analyser
+began, which is why the 171-test suite could not have caught any of them:
+
+1. **`_render` mixed two axes.** HornMorpho returns *several* readings per word,
+   some with a segmentation and some with only a POS tag. Both rendered bare
+   into the same `|`-separated slot, so ኣብ came out `ADP|-<ኣብ>--` — slot 0 a
+   tag, slot 1 a segmentation, nothing distinguishing them. **Every test
+   fixture supplied `seg`**, so the fallback branch had never once run. Tags
+   are now braced: `{ADP}|-<ኣብ>--`.
+   *(Upstream's contradictory docstrings turned out to be the same thing said
+   twice: `Word` subclasses `list`, so it **is** a list of dicts.)*
+
+2. **The morphology CLI measured English.** `load_corpus` on a parallel anchor
+   directory sweeps in the source language — `data/anchors/tico19` is 6,142
+   lines of English beside 9,213 of Tigrinya. Worse, `experiments/003-metric-
+   validity/data`, which **CI** has been running morphology over, is **50%
+   English**. `_main` now filters by script and prints what it dropped.
+
+3. **Five tests and two planted cases asserted the environment, not the code.**
+   They hard-coded *"HornMorpho is absent"* and failed on the first machine that
+   had it. The plant harness announced *"a check has stopped being able to
+   fail"* when nothing had — **a false alarm inside the one tool whose entire
+   job is to be trusted about real alarms.** All are gated on
+   `is_available()` now, with present-path mirrors, and the harness reports
+   NOT RUN loudly rather than passing quietly.
+
+**The transferable lesson**, and it belongs beside §13's: *an unrun instrument
+is not a working instrument.* "Verified against a fake" is a weaker claim than
+it reads as, and it is the same failure as the stale access register — a
+conclusion standing in where a measurement should be.
+
+### The measurement itself
+
+`docs/benchmarks/measurements/` — a new category, for numbers CI **cannot**
+re-derive. Morphology is the project's first: the analyser is GPL-3.0 and never
+installed in CI (DEC-028), it needs **~4.1 GB** resident, and it runs at
+**~0.85 s per word token**, so the full anchor is ~40 hours. The sample is the
+first 300 segments of each of the three TICO-19 dev references — **17,135 word
+tokens**, SHA-256 of each recorded, ~4 hours to run.
+
+⚠️ **These numbers carry a weaker guarantee than any `experiments/` entry**, and
+that cost is recorded rather than hidden. See that directory's README, which
+carries the full reproduction recipe.
+
+⚠️ **Intrinsic checks catch *broken*, not *wrong*.** Nothing here says
+HornMorpho's Tigrinya is **correct** — that needs a speaker (**A-13**), exactly
+as experiment 004 found. Do not let a coverage number drift into sounding like
+an accuracy number.
+
+## Part 3 — The next agent task: Experiment 011, inter-translator agreement
 
 ⚠️ **The headline numbers were already observed during planning**, so under
 DEC-016 they cannot be presented as pre-committed hypotheses. Record them as
@@ -150,8 +159,17 @@ quantitatively that they are one translation lineage, not independent references
   Research reports may be intentionally immutable; the living documents are not.
 - `docs/vision/success_metrics.md:54` says Tier 1 is blocked on **A-01**. It is
   **A-09** — the exact dependency error the plan records as already corrected.
-- `services/README.md` quotes `61` and `14` tests; both stale, and DEC-024
-  excludes volatile counts from living documents.
+- ~~`services/README.md` quotes `61` and `14` tests~~ ✅ **fixed 2026-09-07** —
+  dropped rather than updated, per DEC-024.
+- **Nothing derives the open-action count.** It drifted to "fourteen … thirteen"
+  against a register holding twelve, and `check_figures.py` could not catch it
+  because `docs/figures.json` has no entry for it. A `grep_count` on
+  `^\| \*\*A-\d+\*\* \|` gives **15**, not 12 — three rows in the *Done*
+  table match the same shape — so this needs a **section-scoped** derive kind,
+  which `check_figures.py` does not have.
+  ⚠️ **Do this deliberately, not quickly.** Five of the nine checks-that-could-
+  not-fail lived in exactly this tooling; a new derive kind needs a planted
+  failure in `scripts/tests/test_plants.py` before it is worth anything.
 
 ---
 
@@ -161,8 +179,14 @@ quantitatively that they are one translation lineage, not independent references
 instruction, 2026-09-04). Drafts in `ACTIONS.md` are written *for the owner to
 send*; an assistant may compose and refine, never send.
 
-**Fourteen open actions; thirteen need a human.** Full detail and ready-to-send
-drafts are in [`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:
+**Twelve open actions; eleven need a human.** ⚠️ *This line said "fourteen …
+thirteen" until 2026-09-07 and had drifted — counting the register's at-a-glance
+table gives twelve open (A-01, A-03, A-04, A-05, A-06, A-09, A-10, A-11, A-13,
+A-14, A-16, A-18), of which **A-14** is the only one an agent could do, and only
+once A-09 lands. `check_figures.py` does not track this count, which is why it
+drifted quietly — the same class as the test count that went 145 → 161
+unnoticed.* Full detail and ready-to-send drafts are in
+[`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:
 
 | # | Action | Effort | Unlocks |
 | --- | --- | --- | --- |
@@ -173,7 +197,7 @@ drafts are in [`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:
 | 5 | **A-08** — set `HF_TOKEN` | ⚠️ **token created, not yet reaching the agent** | Full FLORES+. Needs the value in the environment's settings AND the gate accepted on the dataset page |
 | 6 | **A-01** — licence on the `fgaim` models | one email | Licensing-clean criterion |
 | 7 | **A-03** — report the TiQuAD contamination | one post | An ecosystem obligation we are sitting on |
-| 8 | A-04, A-05, A-06, A-10, A-11, A-16 | varies | Lower leverage; drafts ready |
+| 8 | A-04, A-05, A-06, A-10, A-11, A-16, **A-18** | varies | Lower leverage; drafts ready. **A-18 is new** — HornMorpho cannot be imported without `tkinter`; a two-line upstream fix |
 
 **If you do exactly one thing, do A-13.** It has the longest lead time of
 anything in the project and every correctness claim waits behind it.
