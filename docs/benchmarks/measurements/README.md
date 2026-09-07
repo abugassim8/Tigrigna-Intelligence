@@ -15,7 +15,7 @@ re-checks.
 | Constraint | Value, measured 2026-09-07 |
 | --- | --- |
 | Dependency | **HornMorpho 5.3.6, GPL-3.0** — never installed in CI (**DEC-028**) |
-| Throughput | **~0.85 s per word token**, all five checks included |
+| Throughput | **~0.85 s per word token**, all five checks included — 17,135 tokens is ~4 h |
 | Resident memory | **~4.1 GB** once the Tigrinya FST is loaded |
 | Cold start | **~20 s** to load the language |
 
@@ -49,11 +49,16 @@ has both an Eritrean and an Ethiopian rendering to compare.
 | `dev.tir_et.txt` | `ccba5bbf147518dd1681fbe7f4260a5f6a80649f6f5b674e6fb3d16539647d33` |
 | `dev.tir_ti.txt` | `3976a1470f80068903f59dd19e4f4b813827072939b7924ec2249f11f4901222` |
 
-⚠️ **A sample, not the anchor.** 900 of the anchor's 9,213 Tigrinya segments.
-At 0.85 s/word the full anchor is roughly **42 hours**; that is the only reason
-it is a sample, and the sample is the *head* of the file, not a random draw, so
-it is trivially reproducible and equally trivially non-representative of
-anything the head does not contain.
+⚠️ **A sample, not the anchor.** 900 of the anchor's 9,213 Tigrinya segments —
+**17,135 word tokens, 4,437 of them distinct**. At 0.85 s/word the full anchor
+is roughly **40 hours**; that is the only reason it is a sample. The sample is
+the *head* of each file, not a random draw, so it is trivially reproducible and
+equally trivially non-representative of anything the head does not contain.
+
+⚠️ **One segment in the sample is not Tigrinya.** `dev.tir_et.txt:201` is the
+literal string `{to remove}`, an editor's note that survived into the published
+reference — see the anchor's README. The CLI's script filter drops it, which is
+how it was found, so the run measures **899** segments.
 
 ⚠️ **Only `tir_er` is an independent translation.** `tir_ti` and `tir_et` are
 one translation lineage (chrF **83.65** between them — see
@@ -92,9 +97,15 @@ done
   --json docs/benchmarks/measurements/morphology-2026-09-07.json
 ```
 
-**Expect it to take about an hour.** `--require` is what makes a SKIP a failure,
-so if the analyser is not actually reachable the run fails instead of quietly
+**Expect it to take about four hours.** The sample is **17,135 word tokens**
+(4,437 unique) across 900 segments — TICO-19 is medical prose and averages 19
+words a segment, which is roughly three times what a general-domain corpus of
+the same line count would give. `--require` is what makes a SKIP a failure, so
+if the analyser is not actually reachable the run fails instead of quietly
 reporting nothing.
+
+⚠️ **There is no progress output**, and the checks are sequential, so nothing is
+written until all five finish. Run it detached.
 
 ⚠️ **Exact reproduction is not guaranteed** the way an `experiments/` entry's
 is. HornMorpho is installed from `master`, not a tag — `5.3.6` is the version it

@@ -401,6 +401,32 @@ drawn from the register**, and the register was stale — exactly the shape of t
 variety-gate failure recorded in DEC-010 Amendment 1, where planting could not
 have helped either. **Only an external probe catches this class.**
 
+### ✅ Settled 2026-09-07 — the install was done, and it paid twice
+
+`pip install git+https://github.com/hltdi/HornMorpho` **works**. The plan named
+that line *"the one untested link and the most likely failure point"*; it was
+neither, which is the fifth instance of the same pattern rather than a fourth.
+
+**The measurement was the smaller half of what it returned.** Running a real
+analyser through the instrument for the first time exposed three defects that
+no amount of testing against injected analysers could have found, because each
+one lived precisely where the fake stopped and the real thing began:
+
+| Found | What it was |
+| --- | --- |
+| `_render` mixed two axes | A POS tag and a segmentation rendered into the same `\|`-separated slot. **Every** fixture supplied `seg`, so the fallback branch had never once executed |
+| The CLI measured English | `load_corpus` on a parallel anchor sweeps in the source language — and `experiments/003-metric-validity/data`, which **CI** has been running morphology over, is 50% English |
+| Five tests and two plants asserted the *environment* | They hard-coded "HornMorpho is absent". They failed on the first machine that had it — including the plant harness, which reported *"a check has stopped being able to fail"* when nothing had |
+
+The third is the one worth remembering. A tool whose entire job is to be
+trusted about real alarms had a false alarm built into it, and the only thing
+that could ever have exposed it was the state it assumed would never occur.
+
+**Restating §13's lesson more strongly:** an unrun instrument is not a working
+instrument, and "verified against a fake" is a weaker claim than it reads as.
+Both are the same failure as the stale access register — a conclusion standing
+in for a measurement.
+
 Every item that has ever been on it is done: the validation instrument, three
 audits, the conformance suite, the consistency check, four experiments, the
 embeddings design, this document's own instrumentation, the date correction, the
