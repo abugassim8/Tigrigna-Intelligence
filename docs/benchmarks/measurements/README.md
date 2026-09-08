@@ -132,6 +132,22 @@ reporting nothing.
 ⚠️ **There is no progress output**, and the checks are sequential, so nothing is
 written until all five finish. Run it detached.
 
+### Worth sharpening next
+
+**`morphology.coverage` has the same shape of conflation** that
+`check_normalisation` was just fixed for — but *documented*, which is the whole
+difference. It counts "analysis equals surface" as uncovered, which merges two
+populations: words HornMorpho could not analyse, and words it analysed correctly
+whose analysis simply *is* the surface form (a genuinely uninflected word). That
+is why it is reported as a **lower bound** with no threshold.
+
+It could now be decomposed the same four-way way, by asking whether the analyser
+returned anything at all rather than comparing strings. That would turn a lower
+bound into a real number. It needs a pass over the uncovered tokens (~90 min),
+and it is **not** urgent: unlike the normalisation artefact, this one is stated
+plainly wherever the number appears and does not distort the headline in a
+misleading direction.
+
 **Dated by completion, not by start.** The run began 2026-09-07 and finished
 after midnight UTC; A-17's rule is that the commit date wins, so the file
 carries **2026-09-08**.
