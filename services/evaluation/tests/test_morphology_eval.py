@@ -273,3 +273,47 @@ def test_a_line_mixing_scripts_is_kept(tmp_path, capsys):
     (tmp_path / "mixed.txt").write_text("COVID-19 ሰላም\n", encoding="utf-8")
     morph_main([str(tmp_path)])
     assert "contain no Ethiopic script" not in capsys.readouterr().out
+
+
+# ------------------------------- normalisation: what the first live run found
+
+def test_pairs_unanalysable_in_both_forms_are_excluded_not_counted_as_disagreeing():
+    """The artefact that dragged the first live headline from 76% to 43%.
+
+    `analyse` falls back to the surface form when nothing is renderable, so a
+    pair where neither word analyses disagrees *by construction* — the two
+    surfaces differ, because differing is exactly what normalisation did. That
+    is a coverage fact wearing a normalisation number. On TICO-19 it was 31 of
+    41 apparent disagreements.
+    """
+    r = check_normalisation(["ፀሓይ"], analyser=lambda w: [])   # nothing analyses
+    assert r.total == 0, "a pair that cannot inform must not pad the denominator"
+    assert "measures coverage, not" in r.note
+
+
+def test_a_rescue_and_a_real_difference_are_not_the_same_finding():
+    """Both are disagreements; only one is a cost. The report must say which."""
+    def rescues(word):                     # analyses only the normalised form
+        return [] if "ፀ" in word else [{"seg": f"<{word}>"}]
+
+    r = check_normalisation(["ፀሓይ"], analyser=rescues)
+    assert r.total == 1 and r.passed == 0
+    assert r.failures[0][0] == "rescued", r.failures
+    assert "it is working" in r.note
+
+
+def test_a_lost_analysis_is_labelled_as_the_cost_it_is():
+    def loses(word):                       # analyses only the RAW form
+        return [{"seg": f"<{word}>"}] if "ፀ" in word else []
+
+    r = check_normalisation(["ፀሓይ"], analyser=loses)
+    assert r.failures[0][0] == "lost"
+    assert "destroying a distinction" in r.note
+
+
+def test_agreement_counts_only_pairs_that_actually_agree():
+    def stable(word):                      # same analysis either way
+        return [{"seg": "<SUN>"}]
+
+    r = check_normalisation(["ፀሓይ"], analyser=stable)
+    assert r.passed == 1 and r.total == 1 and not r.failures

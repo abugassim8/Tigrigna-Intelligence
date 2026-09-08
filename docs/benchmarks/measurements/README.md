@@ -31,10 +31,35 @@ guaranteed instead: the corpus is committed, the sample is derived by a stated
 command, the instrument is committed and unit-tested, and the sample's SHA-256
 is recorded below so a re-run can prove it measured the same bytes.
 
-## `morphology-2026-09-07.json`
+## `morphology-2026-09-08.json`
 
 **The first time any morphological property of Tigrinya was measured in this
 project.** Before this, all five checks had only ever reported SKIP.
+
+⚠️ **This is the second run. The first one's headline was wrong**, and the way
+it was wrong is worth more than the number.
+
+`check_normalisation` compares the analysis of a word against the analysis of
+its normalised form. But `analyse` falls back to the **surface form** when
+nothing is renderable — so when *neither* form is analysable, the two
+"analyses" are the two surfaces, and those differ **by construction**, because
+differing is precisely what normalisation just did. Every such pair was being
+counted as a disagreement.
+
+On this corpus that artefact was **31 of 41 apparent disagreements**. It
+dragged the reported agreement from 76% down to **43.06%**, a number that would
+have gone into `metrics.md` and read as *"normalisation changes the morphology
+of most words it touches"* — the opposite of what the data says.
+
+The check now excludes pairs that are unanalysable in both forms, and splits
+the rest four ways — **same**, **rescued**, **lost**, **differs** — because
+those mean different things and a single ratio hides it. Only `lost` and
+`differs` are costs. The first run's output was discarded rather than kept
+alongside: it is the output of an instrument now known to be wrong, and keeping
+it invites someone to quote it.
+
+*(Same class as the two defects the install itself exposed: not a wrong
+threshold, but the instrument measuring something other than what it named.)*
 
 ### Corpus
 
@@ -94,7 +119,7 @@ for v in tir_er tir_et tir_ti; do
   head -300 data/anchors/tico19/dev.$v.txt > /tmp/morph-sample/dev.$v.txt
 done
 /tmp/venv312/bin/python -m tigrinya_eval.morphology --require /tmp/morph-sample \
-  --json docs/benchmarks/measurements/morphology-2026-09-07.json
+  --json docs/benchmarks/measurements/morphology-2026-09-08.json
 ```
 
 **Expect it to take about four hours.** The sample is **17,135 word tokens**
@@ -106,6 +131,10 @@ reporting nothing.
 
 ⚠️ **There is no progress output**, and the checks are sequential, so nothing is
 written until all five finish. Run it detached.
+
+**Dated by completion, not by start.** The run began 2026-09-07 and finished
+after midnight UTC; A-17's rule is that the commit date wins, so the file
+carries **2026-09-08**.
 
 ⚠️ **Exact reproduction is not guaranteed** the way an `experiments/` entry's
 is. HornMorpho is installed from `master`, not a tag — `5.3.6` is the version it

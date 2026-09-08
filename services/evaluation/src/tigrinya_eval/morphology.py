@@ -316,6 +316,26 @@ def check_normalisation(words: Sequence[str], *,
 
     Restricted to words normalisation actually changes; counting words it leaves
     alone would inflate agreement toward 100% and measure the corpus.
+
+    ⚠️ **And restricted again, after the first real run.** `analyse` falls back
+    to the surface form when nothing is analysable, so a pair where **neither**
+    word is analysed disagrees automatically — the two surfaces differ, because
+    differing is what normalisation just did to them. On the first live corpus
+    that artefact was **31 of 41 apparent disagreements**, and it dragged the
+    headline from 76% to 43%. Such a pair says nothing about whether
+    normalisation changes morphology; it is a *coverage* fact wearing a
+    normalisation number. Those pairs are now excluded from the denominator and
+    counted separately.
+
+    The remaining pairs are split four ways, because they mean different things
+    and a single ratio hides it:
+
+    | Outcome | Meaning |
+    | --- | --- |
+    | **same** | Normalisation left the analysis alone. The only one counted as agreement |
+    | **rescued** | Only the normalised form analyses — normalisation *working* |
+    | **lost** | Only the raw form analyses — normalisation destroying a distinction |
+    | **differs** | Both analyse, differently — the case that needs a speaker |
     """
     analyser, reason = _resolve(analyser)
     if reason:
@@ -331,20 +351,57 @@ def check_normalisation(words: Sequence[str], *,
                  "nothing to compare. " + _NORMALISATION_NOTE,
         )
 
-    agree, disagreements = 0, []
+    same = rescued = lost = differs = neither = 0
+    reportable: list[tuple[str, str, str, str]] = []
     for raw, norm in pairs:
         try:
             a, b = _analyse(raw, analyser), _analyse(norm, analyser)
         except NotImplementedError:                        # pragma: no cover
             return _skip("morphology.normalisation", _SKIP_REASON)
-        if a.analysis == b.analysis:
-            agree += 1
-        elif len(disagreements) < 8:
-            disagreements.append((raw, a.analysis[:24], b.analysis[:24]))
+        # `analyse` returns the surface form when nothing was renderable, so
+        # "analysis == surface" is the uncovered signal check_coverage uses.
+        raw_uncovered, norm_uncovered = a.analysis == raw, b.analysis == norm
+        if raw_uncovered and norm_uncovered:
+            neither += 1
+            continue
+        if raw_uncovered:
+            kind = "rescued"
+            rescued += 1
+        elif norm_uncovered:
+            kind = "lost"
+            lost += 1
+        elif a.analysis == b.analysis:
+            same += 1
+            continue
+        else:
+            kind = "differs"
+            differs += 1
+        if len(reportable) < 8:
+            reportable.append((kind, raw, a.analysis[:24], b.analysis[:24]))
+
+    informative = len(pairs) - neither
+    if not informative:
+        return PropertyResult(
+            name="morphology.normalisation", passed=0, total=0,
+            threshold=0.0, measurement_only=True,
+            note=f"all {len(pairs)} words that change under normalisation are "
+                 f"unanalysable in both forms — this measures coverage, not "
+                 f"normalisation, and no comparison is possible. "
+                 + _NORMALISATION_NOTE,
+        )
+
     return PropertyResult(
-        name="morphology.normalisation", passed=agree, total=len(pairs),
+        name="morphology.normalisation", passed=same, total=informative,
         threshold=0.0, measurement_only=True,
-        failures=tuple(disagreements), note=_NORMALISATION_NOTE,
+        failures=tuple(reportable),
+        note=(f"{len(pairs)} words change under normalisation; {neither} are "
+              f"unanalysable in BOTH forms and are excluded — they would "
+              f"disagree by construction. Of the {informative} informative "
+              f"pairs: {same} unchanged, {rescued} analysable only AFTER "
+              f"normalisation (it is working), {lost} only BEFORE (it is "
+              f"destroying a distinction), {differs} analysed differently by "
+              f"both. Only the last two are costs, and only a speaker can rule "
+              f"(A-13). " + _NORMALISATION_NOTE),
     )
 
 
