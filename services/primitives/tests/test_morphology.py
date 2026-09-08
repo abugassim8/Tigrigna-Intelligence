@@ -193,7 +193,11 @@ def test_unrecognised_shape_degrades_to_surface_and_warns():
     result = morphology.analyse("ሰላም", analyser=lambda word: [Mystery()])
     assert result.spans[0].analysis == "ሰላም"      # surface, unchanged
     assert result.warnings, "an unrecognised shape must be reported"
-    assert "unverified" in result.warnings[0]
+    # The warning must name what is actually wrong. Since 2026-09-07 the
+    # expected shape IS verified, so an unrecognised one means a different
+    # analyser or a changed upstream — not an unverified mapping on our side.
+    assert "5.3.6" in result.warnings[0]
+    assert "unrecognised shape" in result.warnings[0]
     result.verify_offsets()
 
 

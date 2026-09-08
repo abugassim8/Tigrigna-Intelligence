@@ -267,8 +267,9 @@ def _render(entry: Any) -> tuple[str, str | None]:
     return "", (
         "HornMorpho returned analyses in an unrecognised shape "
         f"({sorted(unknown)}); the surface form is returned unchanged. "
-        "This mapping is unverified against a live install — see "
-        "tigrinya_primitives.morphology."
+        "The expected shape was verified against HornMorpho 5.3.6 on "
+        "2026-09-07, so this is a different analyser or a changed upstream — "
+        "see tigrinya_primitives.morphology."
     )
 
 
