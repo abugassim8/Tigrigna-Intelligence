@@ -22,6 +22,96 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Morphology is measured — and the analyser found three defects on the way — 2026-09-08
+
+**The first time any morphological property of Tigrinya was measured in this
+project.** Until now all five intrinsic checks had only ever reported SKIP.
+
+| Check | Result |
+| --- | --- |
+| `morphology.surface` | **899/899 = 100%** |
+| `morphology.alignment` | **899/899 = 100%** |
+| `morphology.determinism` | **4,435/4,435 = 100%** |
+| `morphology.coverage` | **10,668/17,133 = 62.27%** — MEAS, a lower bound |
+| `morphology.normalisation` | **31/41 = 75.61%** — MEAS |
+
+**The install everyone assumed was impossible took one command.**
+`pip install git+https://github.com/hltdi/HornMorpho` — 5.3.6. `NEXT_SESSION.md`
+had named that line *"the one untested link and the most likely failure point"*.
+It was neither. **Fifth instance** of a block that was assumed rather than
+measured.
+
+⚠️ **`import hm` needs `tkinter`**, via an unconditional `from .gui import *`
+whose entire package-wide justification is one call site in
+`Corpus.disambiguate()`. HornMorpho 5.3.6 cannot be imported headlessly at all —
+a fact about the dependency, not about this machine. Now **A-18**. Getting Tk
+was its own lesson: `python3.11-tk` lives on the deadsnakes PPA, which the proxy
+403s, and the way through was not a workaround but a **permitted source** —
+Ubuntu's own `python3-tk` for 3.12, from `archive.ubuntu.com`.
+
+### Three defects, none of them a wrong threshold
+
+Each lived exactly where the injected fake stopped and the real analyser began,
+which is why a 175-test suite could not have caught any of them.
+
+1. **`_render` mixed two axes.** A POS tag and a segmentation rendered into the
+   same `|`-separated slot — ኣብ came out `ADP|-<ኣብ>--`. **Every** fixture
+   supplied `seg`, so the fallback branch had never once executed. Tags are now
+   braced. *(Upstream's "contradictory" docstrings were the same thing said
+   twice: `Word` subclasses `list`, so it is a list of dicts.)*
+
+2. **The morphology CLI measured English.** `load_corpus` on a parallel anchor
+   sweeps in the source language. `data/anchors/tico19` is 6,142 lines of
+   English beside 9,213 of Tigrinya — and `experiments/003-metric-validity/data`,
+   which **CI has been running morphology over**, is **50% English**.
+
+3. **`check_normalisation` counted an artefact as a finding.** `analyse` falls
+   back to the surface form, so a pair where *neither* form is analysable
+   compares two surfaces — which differ **by construction**, because differing
+   is what normalisation just did. That was **31 of 41** apparent disagreements
+   and dragged the headline to **43.06%**, which would have read as
+   *"normalisation changes the morphology of most words it touches"* — the
+   opposite of the truth. Excluded now, and the rest split four ways.
+
+**What normalisation actually does**, on the 41 informative pairs: **31
+unchanged, 7 rescued** (analysable only *after* normalising — it is working),
+**0 lost**, **3 differ** (all word-final `አ`→`ኣ`). It helps seven, changes
+three, harms none. Only a speaker can rule on the three (**A-13**).
+
+**And a fourth, in the tooling itself:** five tests and **two planted cases**
+asserted that HornMorpho is *absent* — assertions about the environment, not the
+code. The plant harness announced *"a check has stopped being able to fail"*
+when nothing had: **a false alarm inside the one tool whose entire job is to be
+trusted about real alarms.** All gated on `is_available()` now, with
+present-path mirrors, and skips reported loudly.
+
+### A new category: `docs/benchmarks/measurements/`
+
+For numbers **CI cannot re-derive**. Morphology is the first: GPL-3.0 (never
+installed in CI, DEC-028), **~4.1 GB** resident, **~0.85 s per word token** — so
+the full anchor is ~40 hours and the measurement is a **900-segment sample**
+with each file's SHA-256 recorded.
+
+⚠️ **These carry a weaker guarantee than any `experiments/` entry**, and that
+cost is written down rather than hidden. What replaces it: the corpus is
+committed, the sample derives from a stated command, the instrument is
+unit-tested, and **`coverage` reproduced to the token — 10,668/17,133 — across
+two independent three-hour runs.**
+
+### Also found: a TICO-19 reference segment that is not a translation
+
+`dev.tir_et.txt:201` is the literal string **`{to remove}`** — an editor's note
+in a published reference. The English is a real sentence and both other Tigrinya
+references translate it. It is the **only** such segment in all 9,213. Screening
+could not see it: every gate is file-level, and 11 Latin characters in 76,752 are
+invisible at that resolution. Honest for a corpus; one level too coarse for an
+evaluation anchor, where every score is per segment.
+
+**Also:** `metrics.md`'s morphology row leaves ❌ after 17 days; GAP-5's
+measurement half closes; the open-action count in `NEXT_SESSION.md` corrected
+from "fourteen" to **twelve** (it had drifted, and nothing derives it).
+
+
 ### The validation sheets are sent — A-13 moves after five weeks — 2026-09-04
 
 **A speaker was found, and the instrument has left the building.** Six files —

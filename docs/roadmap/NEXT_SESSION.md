@@ -18,13 +18,14 @@ a person — see Part 5.
 ## Part 1 — Where the project actually is
 
 Two Python packages are built and tested (`services/primitives`,
-`services/evaluation`) — **171 tests**. Everything else under `services/` is a
+`services/evaluation`) — **175 tests**. Everything else under `services/` is a
 one-file scaffold. Two evaluation anchors are committed and screened
 (`data/anchors/hornmt`, `data/anchors/tico19`). 28 decisions, 10 experiments,
 16 summaries.
 
-**Four of five GAPs are open** — GAP-2 closed 2026-09-04 when CI was installed.
-**Three of six v0.1 exit criteria are met.**
+**Four of five GAPs are open** — GAP-2 closed 2026-09-04 when CI was installed,
+and **GAP-5's measurement half closed 2026-09-08** (its accuracy half needs
+A-13). **Three of six v0.1 exit criteria are met.**
 
 ✅ **CI enforces 28 checks** as of 2026-09-04. Its first run failed three of six
 jobs; all three were real and are fixed.
@@ -38,8 +39,8 @@ scored; nothing is deployed.**
 
 ⚠️ **Run the suite in both states.** `/tmp/venv` (Python 3.11) has no importable
 HornMorpho and is the environment the tests were designed around; `/tmp/venv312`
-has it. Counts differ **by design** — 169 pass / 2 skip absent, 167 pass / 4
-skip present, 171 collected either way. If neither number matches, something
+has it. Counts differ **by design** — 173 pass / 2 skip absent, 171 pass / 4
+skip present, 175 collected either way. If neither number matches, something
 broke; if you only ever run one, you are testing half the code.
 
 ---
@@ -106,6 +107,23 @@ it reads as, and it is the same failure as the stale access register — a
 conclusion standing in where a measurement should be.
 
 ### The measurement itself
+
+| Check | Result |
+| --- | --- |
+| `surface` · `alignment` · `determinism` | **100%** — 899/899, 899/899, 4,435/4,435 |
+| `coverage` | **10,668/17,133 = 62.27%** — MEAS, a **lower bound** |
+| `normalisation` | **31/41 = 75.61%** — MEAS |
+
+**What normalisation actually does**, on the 41 informative pairs: **31
+unchanged, 7 rescued** (analysable only *after* normalising — it is working),
+**0 lost**, **3 differ** (all word-final `አ`→`ኣ`). It helps seven, changes
+three, harms none. The three need a speaker (**A-13**).
+
+⚠️ **The first run's normalisation figure was 43.06% and was wrong** — 31 of 41
+"disagreements" were pairs unanalysable in *both* forms, which differ by
+construction because differing is what normalisation just did to them. Fixed,
+re-run whole. **`coverage` reproduced to the token across both three-hour
+runs**, which is the only cross-run reproduction evidence this category has.
 
 `docs/benchmarks/measurements/` — a new category, for numbers CI **cannot**
 re-derive. Morphology is the project's first: the analyser is GPL-3.0 and never
