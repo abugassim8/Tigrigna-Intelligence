@@ -517,7 +517,7 @@ The ninth: a retraction marker suppressed claims **in both directions**, so a
 wrong behind exactly that.
 
 **Planting is now a committed test rather than a habit** (`scripts/tests/
-test_plants.py`, 22 cases, in CI). That is the response to a discipline that
+test_plants.py`, 25 cases, in CI). That is the response to a discipline that
 depended on remembering to do it.
 
 ⚠️ **One failure in phase E could not have been caught by planting, and it is

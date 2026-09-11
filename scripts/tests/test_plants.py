@@ -208,6 +208,119 @@ PLANT_SKIP = 77
 skipped: list[str] = []
 
 
+# --------------------------------------------------------------------------
+# scripts/measure_morphology.py — the large-corpus harness
+#
+# This harness serves surface/alignment/coverage from a table built during
+# check_determinism's first pass, which is only legitimate because determinism
+# is measured at 100%. That makes `_Recorder.__call__`'s unconditional
+# call-through the single line the whole measurement rests on: serve a cached
+# value there and determinism compares a value to itself, reports a perfect
+# score, and licenses a table nobody checked.
+#
+# So two plants, and the second is the interesting one. It does not test the
+# harness — it tests that the safeguard is load-bearing, by breaking it and
+# showing a real failure becomes invisible.
+#
+# HornMorpho is absent here (DEC-028), so both patch `is_available` and
+# `_analyser` to inject a fake. Nothing GPL-3.0 is needed to run them.
+# --------------------------------------------------------------------------
+
+HARNESS_PLANT = '''
+import pathlib, sys, tempfile
+sys.path.insert(0, "scripts")
+sys.path.insert(0, "services/evaluation/src")
+sys.path.insert(0, "services/primitives/src")
+from tigrinya_primitives import morphology as _m
+
+n = [0]
+def steady(w):
+    return [{"seg": "<" + w + ">"}]
+def moving(w):                      # a different answer every call
+    n[0] += 1
+    return [{"seg": "<" + w + ":" + str(n[0]) + ">"}]
+
+def run(analyser, corpus, out, recorder_call=None):
+    """Run the harness with `analyser` injected. Returns (exit code, wrote?)."""
+    n[0] = 0
+    _m.is_available = lambda: True
+    _m._analyser = lambda: analyser
+    import measure_morphology as mm
+    original = mm._Recorder.__call__
+    if recorder_call:
+        mm._Recorder.__call__ = recorder_call
+    try:
+        code = mm.main([str(corpus), "--json", str(out)])
+    finally:
+        mm._Recorder.__call__ = original
+    return code, pathlib.Path(out).exists()
+
+def cached_call(self, word):
+    """The mutation: serve a stored value instead of calling through."""
+    self.calls += 1
+    if word in self.table:
+        return [self.table[word]]
+    raw = self._live(word)
+    self._store(word, raw)
+    return raw
+
+CASE = sys.argv[1]
+with tempfile.TemporaryDirectory() as tmp:
+    tmp = pathlib.Path(tmp)
+    (tmp / "c.txt").write_text("ሰላም ዓለም\\nፀሓይ ትወጽእ ኣላ\\n", encoding="utf-8")
+
+    if CASE == "harness_measures_with_a_steady_analyser":
+        code, wrote = run(steady, tmp, tmp / "a.json")
+        ok = code == 0 and wrote
+
+    elif CASE == "harness_aborts_and_writes_nothing_on_nondeterminism":
+        code, wrote = run(moving, tmp, tmp / "b.json")
+        # Not merely non-zero: it must not leave a partial artefact behind.
+        ok = code != 0 and not wrote
+
+    elif CASE == "call_through_is_load_bearing":
+        honest, honest_wrote = run(moving, tmp, tmp / "c.json")
+        broken, broken_wrote = run(moving, tmp, tmp / "d.json",
+                                   recorder_call=cached_call)
+        # Same broken analyser, one line changed: the honest recorder catches
+        # it and writes nothing; the caching one reports a clean run.
+        ok = (honest != 0 and not honest_wrote) and (broken == 0 and broken_wrote)
+        if not ok:
+            print("honest:", honest, honest_wrote, "broken:", broken, broken_wrote)
+
+    else:
+        raise SystemExit("unknown case")
+
+sys.exit(0 if ok else 1)
+'''
+
+HARNESS_PLANTS = [
+    ("measures with a steady analyser", "harness_measures_with_a_steady_analyser", 0),
+    ("aborts and writes NOTHING on non-determinism",
+     "harness_aborts_and_writes_nothing_on_nondeterminism", 0),
+    ("a caching recorder hides non-determinism (the safeguard is real)",
+     "call_through_is_load_bearing", 0),
+]
+
+
+def run_harness_plants() -> list[str]:
+    problems = []
+    with tempfile.TemporaryDirectory() as tmp:
+        script = pathlib.Path(tmp) / "harness_plant.py"
+        script.write_text(HARNESS_PLANT, encoding="utf-8")
+        for label, case, expect in HARNESS_PLANTS:
+            r = subprocess.run([sys.executable, str(script), case],
+                               cwd=REPO, capture_output=True, text=True)
+            status = "PASS" if r.returncode == expect else "FAIL"
+            print(f"  [{status}] measure_morphology: {label} "
+                  f"(exit {r.returncode}, expected {expect})")
+            if r.returncode != expect:
+                detail = (r.stderr or r.stdout).strip().splitlines()[-1:] or [""]
+                problems.append(
+                    f"measure_morphology plant misbehaved: {label} — {detail[0]}")
+    return problems
+
+
 def run_morphology_plants() -> list[str]:
     problems = []
     with tempfile.TemporaryDirectory() as tmp:
@@ -232,7 +345,7 @@ def run_morphology_plants() -> list[str]:
 
 def main() -> int:
     problems = (run_screen_plants() + run_figure_plants()
-                + run_morphology_plants())
+                + run_morphology_plants() + run_harness_plants())
     print()
     for p in problems:
         print(f"::error::{p}")
@@ -240,7 +353,8 @@ def main() -> int:
         print(f"{len(problems)} planted failure(s) did not behave as specified — "
               f"a check has stopped being able to fail")
         return 1
-    total = len(SCREEN_PLANTS) + len(FIGURE_PLANTS) + len(MORPH_PLANTS)
+    total = (len(SCREEN_PLANTS) + len(FIGURE_PLANTS) + len(MORPH_PLANTS)
+             + len(HARNESS_PLANTS))
     if skipped:
         print(f"{total - len(skipped)} of {total} planted cases behaved as "
               f"specified; {len(skipped)} NOT RUN — {', '.join(skipped)}")
