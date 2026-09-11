@@ -2,16 +2,21 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Live handoff.** Written 2026-09-03, approved by the owner · **updated 2026-09-07** (Part 2 done — HornMorpho installed, three instrument defects fixed) |
+| **Status** | **Live handoff.** Written 2026-09-03, approved by the owner · **updated 2026-09-11** — morphology measured over the **full** TICO-19 anchor; the 900-segment sample was optimistic |
 | **Supersedes** | `READINESS_PLAN.md` §12's *"Nothing. This list is empty"* — that conclusion is **false**, see below |
 | **Read first** | This file, then `READINESS_PLAN.md`, then `ACTIONS.md` |
 
 This file exists so a session that starts cold can pick up without re-deriving
 anything. It is deliberately short.
 
-**Part 2 is done.** The next agent-doable task is **Part 3** (experiment 011).
-The highest-leverage thing in the whole project is still **A-13**, and it needs
-a person — see Part 5.
+**Part 2 is done**, including the full-anchor measurement. The next
+agent-doable task is **Part 3** (experiment 011). The highest-leverage thing in
+the whole project is still **A-13**, and it needs a person — see Part 5.
+
+⚠️ **A-13's question got sharper on 2026-09-11.** The full anchor found two
+words where normalisation *destroys* the analysis (ኣአንጋዲ, ኣአንገድቲ). That is a
+specific thing to put to the reviewer, and the 900-segment sample said it never
+happened.
 
 ---
 
@@ -24,15 +29,18 @@ one-file scaffold. Two evaluation anchors are committed and screened
 16 summaries.
 
 **Four of five GAPs are open** — GAP-2 closed 2026-09-04 when CI was installed,
-and **GAP-5's measurement half closed 2026-09-08** (its accuracy half needs
-A-13). **Three of six v0.1 exit criteria are met.**
+and **GAP-5's measurement half closed 2026-09-08**, widened to the whole anchor
+2026-09-11 (its accuracy half needs A-13). **Three of six v0.1 exit criteria are
+met.**
 
 ✅ **CI enforces 28 checks** as of 2026-09-04. Its first run failed three of six
 jobs; all three were real and are fixed.
 
 ✅ **HornMorpho runs here** as of 2026-09-07, which had been assumed impossible
-since the project began. See Part 2 — it is done, and what it returned was
-mostly not the measurement.
+since the project began, and **morphology is measured over all 9,212 Tigrinya
+segments** as of 2026-09-11. See Part 2 — what the install returned was mostly
+*not* the measurement, and what the full anchor returned was mostly not a
+bigger *n*.
 
 Never done: **no speaker has validated a single output; no model has ever been
 scored; nothing is deployed.**
@@ -43,9 +51,14 @@ has it. Counts differ **by design** — 173 pass / 2 skip absent, 171 pass / 4
 skip present, 175 collected either way. If neither number matches, something
 broke; if you only ever run one, you are testing half the code.
 
+⚠️ **`/tmp/venv312` is not in the repository and will not survive a new
+container.** Rebuilding it — interpreter with `tkinter`, HornMorpho, the 159 MB
+language pack — is the recipe in
+[`../benchmarks/measurements/README.md`](../benchmarks/measurements/README.md).
+
 ---
 
-## Part 2 — ✅ DONE 2026-09-07: HornMorpho installed, instrument fixed
+## Part 2 — ✅ DONE: HornMorpho installed (09-07), full anchor measured (09-11)
 
 **It worked, and the install was the least interesting part.**
 
@@ -123,23 +136,55 @@ normalisation never destroys an analysis. Over the full anchor it does — **2
 lost**, against 22 rescued and 29 changed. Both are ኣአ → ኣኣ rewriting a word out
 of the lexicon (ኣአንጋዲ, ኣአንገድቲ). **A-13 now has a specific question to answer.**
 
-**What normalisation actually does**, on the 41 informative pairs: **31
-unchanged, 7 rescued** (analysable only *after* normalising — it is working),
-**0 lost**, **3 differ** (all word-final `አ`→`ኣ`). It helps seven, changes
-three, harms none. The three need a speaker (**A-13**).
+**What normalisation actually does**, on the **197** informative pairs (477
+words change; 280 are unanalysable either way and are excluded because they
+would disagree by construction):
 
-⚠️ **The first run's normalisation figure was 43.06% and was wrong** — 31 of 41
-"disagreements" were pairs unanalysable in *both* forms, which differ by
-construction because differing is what normalisation just did to them. Fixed,
-re-run whole. **`coverage` reproduced to the token across both three-hour
-runs**, which is the only cross-run reproduction evidence this category has.
+| Outcome | Count | Meaning |
+| --- | ---: | --- |
+| unchanged | **144** | normalisation left the analysis alone |
+| **rescued** | **22** | analysable only *after* normalising — it is working |
+| **lost** | **2** | ⚠️ a distinction destroyed |
+| differs | **29** | both analyse, differently |
 
-`docs/benchmarks/measurements/` — a new category, for numbers CI **cannot**
-re-derive. Morphology is the project's first: the analyser is GPL-3.0 and never
-installed in CI (DEC-028), it needs **~4.1 GB** resident, and it runs at
-**~0.85 s per word token**, so the full anchor is ~40 hours. The sample is the
-first 300 segments of each of the three TICO-19 dev references — **17,135 word
-tokens**, SHA-256 of each recorded, ~4 hours to run.
+Direction still favours normalising, but **"never harmful" is no longer
+available as a claim**, and that sentence is the whole return on running the
+full corpus.
+
+⚠️ **Two earlier normalisation figures were wrong or incomplete, in different
+ways.** The very first run reported **43.06%**, because pairs unanalysable in
+*both* forms were counted as disagreeing — they differ by construction, since
+differing is what normalisation just did to them. That was a defect and was
+fixed. The sample's **0 lost** was not a defect; it was a true statement about
+900 segments that did not generalise. Those are different mistakes and the
+second is the harder one to notice.
+
+### Running it — `scripts/measure_morphology.py`
+
+The naive path is ~650,800 analyses, **~31 hours**. The harness does ~65,980,
+**~3.3 hours**, from one observation: `check_determinism` already analyses every
+unique word twice, so `surface`, `alignment` and `coverage` can be served from
+the table its first pass builds.
+
+⚠️ **Determinism at 100% is what licenses that substitution**, and the harness
+writes nothing at all below it. So `check_determinism` is **not one result among
+five here — it is the precondition for the other four.** Say so wherever these
+numbers are quoted.
+
+⚠️ **`_Recorder.__call__` must always call through.** Serving a cached value
+there makes determinism compare a value to itself. A plant breaks exactly that
+line and proves a real failure then becomes invisible; if you change it, that
+plant must fail.
+
+⚠️ **One assumed cost was false and nobody had checked.** `check_determinism`'s
+docstring says *"HornMorpho memoises internally"*. It does not — a repeat costs
+**77%** of a cold analysis. That is what made the anchor look like a 31-hour job.
+Sixth instance of the pattern, and the first found inside our own code rather
+than in an access register.
+
+`docs/benchmarks/measurements/` — a category for numbers CI **cannot** re-derive.
+Morphology is the first: GPL-3.0 and never installed in CI (DEC-028), **~4.1 GB**
+resident, hours of compute.
 
 ⚠️ **These numbers carry a weaker guarantee than any `experiments/` entry**, and
 that cost is recorded rather than hidden. See that directory's README, which
@@ -188,15 +233,23 @@ quantitatively that they are one translation lineage, not independent references
   **A-09** — the exact dependency error the plan records as already corrected.
 - ~~`services/README.md` quotes `61` and `14` tests~~ ✅ **fixed 2026-09-07** —
   dropped rather than updated, per DEC-024.
-- **Nothing derives the open-action count.** It drifted to "fourteen … thirteen"
-  against a register holding twelve, and `check_figures.py` could not catch it
-  because `docs/figures.json` has no entry for it. A `grep_count` on
-  `^\| \*\*A-\d+\*\* \|` gives **15**, not 12 — three rows in the *Done*
-  table match the same shape — so this needs a **section-scoped** derive kind,
-  which `check_figures.py` does not have.
-  ⚠️ **Do this deliberately, not quickly.** Five of the nine checks-that-could-
-  not-fail lived in exactly this tooling; a new derive kind needs a planted
-  failure in `scripts/tests/test_plants.py` before it is worth anything.
+- **Two hand-maintained counts drift, and `docs/figures.json` derives neither.**
+  Both were corrected by hand again on 2026-09-11, which is the symptom, not
+  the fix:
+  - **Open actions.** Drifted to "fourteen … thirteen" against a register then
+    holding twelve; **thirteen** now, with A-19. A naive `grep_count` on
+    `^\| \*\*A-\d+\*\* \|` gives **16**, not 13, because the *Done* table
+    matches the same shape — so it needs a **section-scoped** derive kind that
+    `check_figures.py` does not have.
+  - **Planted cases.** `READINESS_PLAN.md` quoted **22** in one place and
+    **25** in another while the suite ran **27**. This one *is* derivable
+    without new machinery — the suite prints its own total — so it is the
+    cheaper of the two to fix.
+
+  ⚠️ **Do this deliberately, not quickly.** Five of the nine
+  checks-that-could-not-fail lived in exactly this tooling; a new derive kind
+  needs a planted failure in `scripts/tests/test_plants.py` before it is worth
+  anything.
 
 ---
 

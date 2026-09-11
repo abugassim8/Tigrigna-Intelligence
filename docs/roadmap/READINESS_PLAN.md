@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-02**, covering phases A–E |
+| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-11** — morphology measured over the full anchor, closing step 2.3 · phases A–E entered the plan on 2026-09-02 |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
 | **Basis** | **28 decisions · 10 experiments · 16 summaries · 175 tests · 5 audits** |
 | **Live handoff** | ⚠️ [`NEXT_SESSION.md`](NEXT_SESSION.md) — §12's *"nothing left to do"* was **wrong**; read that first |
@@ -69,15 +69,20 @@ degrading silently.
 GPL-3.0 analyser is absent — DEC-028).
 
 **Also built:** the native-speaker validation instrument (`validation/`, 134
-items), four enforcement scripts, a **planted-failure suite** (22 cases, CI),
+items), four enforcement scripts, a **planted-failure suite** (27 cases, CI),
 28 CI checks, and **two evaluation anchors** — **HornMT** (2,030 pairs,
 CC-BY-4.0, news) and **TICO-19** (3,071 segments × 3 references, CC0-1.0,
 COVID/medical, **variety-declared at source**), both screened on every side.
 
 **Not built:** Tier 1 serving, Tier 2 serving, HTTP API, MCP server, SDKs, any
-deployment. **Morphology is built, instrumented, and still unmeasured** — the
-checks exist and their failure paths are tested against injected analysers, but
-the analyser itself is never bundled, so all five report SKIP.
+deployment.
+
+✅ **Morphology is now measured** (2026-09-11) over **all 9,212 Tigrinya
+segments** of TICO-19 — 194,588 word tokens. `surface`, `alignment` and
+`determinism` at **100%**; `coverage` **59.91%** and `normalisation` **73.10%**
+recorded as MEAS. In a clean `pip install` the analyser is still absent and all
+five still SKIP, which is DEC-028 working as designed rather than a gap.
+⚠️ **Consistency, not accuracy** — these checks catch *broken*, not *wrong*.
 
 **Never done:** a native speaker has never seen our output. **No model has ever
 been scored.** ⚠️ CI ran for the **first time on 2026-09-04** and failed three of
@@ -224,7 +229,7 @@ validation is required before anything ships user-facing."*
 | ~~2.1~~ | HornMorpho licence resolved | ✅ **DONE** → **DEC-028**. It is **GPL-3.0**; adopted as a **user-installed** dependency we never distribute. `fgaim` POS models were rejected as *worse* — they state no licence at all |
 | ~~2.2~~ | `morphology.py` behind the existing stub API | ✅ **DONE** 2026-09-02. Adapter over a user-installed HornMorpho; word-level spans per DEC-023; **16 tests, no GPL dependency present** — the analyser is injected |
 | 2.2b | ⚠️ **Never package or image it** | DEC-028(c). CI check added; a hosted API may still call it, because HornMorpho is **GPL-3.0, not AGPL** |
-| 2.3 | **Intrinsic checks extended to morphology** | ⚠️ **Needs an actual install** — consistency and coverage are measurable, but only with an analyser present. The `metrics.md` row stays ❌ until then |
+| ~~2.3~~ | **Intrinsic checks extended to morphology** | ✅ **DONE.** The install was never tested until 2026-09-07 — `pip install git+https://github.com/hltdi/HornMorpho` simply works, and the assumption that it could not was the fifth instance of a block that was assumed rather than measured. Measured over the **full anchor** 2026-09-11: `coverage` **59.91%**, `normalisation` **73.10%**, three checks at 100%. The `metrics.md` row is no longer ❌ |
 | 2.4 | Gold data for morphological accuracy | The **one** capability DEC-023 could not free from annotation |
 
 ⚠️ **Do not repeat the `metrics.md` error.** That row claimed morphology was
@@ -427,6 +432,38 @@ instrument, and "verified against a fake" is a weaker claim than it reads as.
 Both are the same failure as the stale access register — a conclusion standing
 in for a measurement.
 
+### ✅ 2026-09-11 — and the *sample* turned out to be a smaller version of the same mistake
+
+The 2026-09-08 measurement covered **900 segments**, because the full anchor was
+recorded as *"roughly 40 hours"*. That estimate rested on a line in
+`check_determinism`'s own docstring — *"HornMorpho memoises internally"* — which
+**is false**: re-analysing the same 60 words costs **77%** of the first pass.
+Measuring it changed the shape of the problem, and
+`scripts/measure_morphology.py` brought the whole anchor down to **~3.3 hours**
+by serving three checks from the table `check_determinism`'s first pass already
+builds.
+
+**So a second assumed cost, carried in a docstring, was never checked either.**
+That is the sixth instance, and the first one found inside this repository's own
+code rather than in an access register.
+
+**It mattered, and not merely for sample size.** Over all 9,212 segments:
+
+| | Sample (900) | Full anchor |
+| --- | ---: | ---: |
+| coverage | 62.27% | **59.91%** |
+| normalisation, *rescued* | 7 | **22** |
+| normalisation, **lost** | **0** | **2** |
+| normalisation, *differs* | 3 | **29** |
+
+⚠️ **The sample said normalisation never destroys an analysis. It does** — ኣአ
+becomes ኣኣ and rewrites ኣአንጋዲ out of the lexicon. **DEC-010** predicted that
+cost without evidence; there is now a named instance, and **A-13** has a precise
+question rather than a general one.
+
+**The lesson is the same one again, one level up:** a sample is an instrument
+too, and its sufficiency is a measurement, not a judgement.
+
 Every item that has ever been on it is done: the validation instrument, three
 audits, the conformance suite, the consistency check, four experiments, the
 embeddings design, this document's own instrumentation, the date correction, the
@@ -517,7 +554,7 @@ The ninth: a retraction marker suppressed claims **in both directions**, so a
 wrong behind exactly that.
 
 **Planting is now a committed test rather than a habit** (`scripts/tests/
-test_plants.py`, 25 cases, in CI). That is the response to a discipline that
+test_plants.py`, 27 cases, in CI). That is the response to a discipline that
 depended on remembering to do it.
 
 ⚠️ **One failure in phase E could not have been caught by planting, and it is
