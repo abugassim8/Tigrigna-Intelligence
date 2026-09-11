@@ -62,6 +62,7 @@ itself a research finding.
 | **A-16** | Report epitran's position-sensitive transliteration upstream | 🟢 Low | Nothing — we work around it; but the next user will not know | TODO |
 | ~~**A-17**~~ | ~~Decide how the record is dated~~ | ✅ **DONE** | Resolved: **the commit date wins**; 71 stamps corrected | **DONE** |
 | **A-18** | Report HornMorpho's unconditional GUI import upstream | 🟢 Low | Nothing for us — we install Tk. But it makes HornMorpho **un-importable headless**, which will bite the next person deploying it | TODO |
+| **A-19** | Report HornMorpho's crash on a bare `#` upstream | 🟡 Medium | Nothing for us — the harness records and reports it. But it is a **crash on valid input**, and the same unparsed comment lines put three bogus entries in the Tigrinya lexicon | TODO |
 
 ---
 
@@ -865,6 +866,87 @@ Version tested: **5.3.6**, on Python 3.11.15 and 3.12.3.
 **Worth mentioning:** HornMorpho analysed Tigrinya correctly once Tk was
 installed — the report should be clearly a packaging note, not a complaint
 about the analyser.
+
+---
+
+## 🟡 A-19 — Report HornMorpho's crash on a bare `#` upstream
+
+**Who:** Michael Gasser (`gasser@iu.edu`), via a GitHub issue on
+`hltdi/HornMorpho`. Separate from **A-18** — different defect, different fix,
+and this one is a **crash on valid input** rather than a packaging
+inconvenience.
+
+📧 **The owner sends this.** Like every other draft in this file.
+
+**Blocks:** nothing for us. `scripts/measure_morphology.py` records a crashing
+word by name, reports it, and counts it as unanalysable. Found 2026-09-11 on the
+first run over the **full** TICO-19 anchor; the 900-segment sample never
+contained the token, which is the whole reason a full-corpus run was worth
+doing.
+
+**What to report — the crash:**
+
+```python
+import hm
+hm.analyze('ti', '#')
+```
+```
+File "hm/morpho/language.py", line 1697, in analyze_unanalyzed5
+    form, cats = words.get(word)
+ValueError: too many values to unpack (expected 2)
+```
+
+Real corpora contain bare `#`: TICO-19's Tigrinya references have nine, all in
+medical product codes such as `N95 (series # 1860)`.
+
+**Root cause — two defects, and fixing either would prevent the crash:**
+
+**1. The lexicon loader does not skip comment lines.**
+`Morphology.set_words` (`hm/morpho/morphology.py:362-364`) reads every line:
+
+```python
+pairs = [w.split() for w in file]
+self.words1 = dict([(w[0].strip(), w[1:]) for w in pairs])
+```
+
+`hm/languages/t/lex/words1.srf` has **9 lines beginning with `#`** — seven
+section headers and two commented-out entries. None is skipped, so:
+
+| Key inserted | Value | Where from |
+| --- | --- | --- |
+| `'#'` | `['Light', 'verb', 'particles']` | line 95, `# Light verb particles` — and the other six headers collapse into the same key, last one winning |
+| `'#ዋላ'` | `['ዋላ', 'ADV']` | line 70, `#ዋላ  ዋላ  ADV` |
+| `'#ወላ'` | `['ዋላ', 'ADV']` | line 71, `#ወላ ዋላ  ADV` |
+
+⚠️ Worth separating from the crash: **the two commented-out entries are being
+loaded as live lexicon entries** under corrupted keys. That is silent — no
+crash, no warning — and it means the file's author believes those two forms are
+disabled when they are in the lexicon.
+
+**2. `analyze_unanalyzed5` assumes exactly two fields.**
+`hm/morpho/language.py:1689-1697` handles a length-1 entry, then unpacks:
+
+```python
+lex = words.get(word)
+if len(lex) == 1:
+    ...
+form, cats = words.get(word)      # assumes len(lex) == 2
+```
+
+Any entry of length 3 or more raises. A guard here would make the analyser
+robust to a malformed lexicon rather than dependent on one being perfect.
+
+**Suggested fix, in their terms:** skip lines whose first non-space character is
+`#` (and blank lines) in `set_words`; separately, treat an entry that is neither
+length 1 nor length 2 as unanalysable rather than unpacking it.
+
+**Version tested:** **5.3.6**, Python 3.12.3. Only the Tigrinya (`t`) data is
+installed here, so we cannot say whether other languages' `words1.srf` files
+have the same comment lines — worth checking, since the loader is shared.
+
+**Worth mentioning:** HornMorpho analysed 32,989 of the anchor's 32,990 unique
+words without incident. The report should read as one malformed data line and a
+missing guard, not as a complaint about the analyser.
 
 ---
 

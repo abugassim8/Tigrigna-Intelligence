@@ -197,11 +197,11 @@ quantitatively that they are one translation lineage, not independent references
 instruction, 2026-09-04). Drafts in `ACTIONS.md` are written *for the owner to
 send*; an assistant may compose and refine, never send.
 
-**Twelve open actions; eleven need a human.** ⚠️ *This line said "fourteen …
+**Thirteen open actions; twelve need a human.** ⚠️ *This line said "fourteen …
 thirteen" until 2026-09-07 and had drifted — counting the register's at-a-glance
-table gives twelve open (A-01, A-03, A-04, A-05, A-06, A-09, A-10, A-11, A-13,
-A-14, A-16, A-18), of which **A-14** is the only one an agent could do, and only
-once A-09 lands. `check_figures.py` does not track this count, which is why it
+table gives thirteen open (A-01, A-03, A-04, A-05, A-06, A-09, A-10, A-11,
+A-13, A-14, A-16, A-18, A-19), of which **A-14** is the only one an agent could
+do, and only once A-09 lands. `check_figures.py` does not track this count, which is why it
 drifted quietly — the same class as the test count that went 145 → 161
 unnoticed.* Full detail and ready-to-send drafts are in
 [`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:
@@ -215,7 +215,7 @@ unnoticed.* Full detail and ready-to-send drafts are in
 | 5 | **A-08** — set `HF_TOKEN` | ⚠️ **token created, not yet reaching the agent** | Full FLORES+. Needs the value in the environment's settings AND the gate accepted on the dataset page |
 | 6 | **A-01** — licence on the `fgaim` models | one email | Licensing-clean criterion |
 | 7 | **A-03** — report the TiQuAD contamination | one post | An ecosystem obligation we are sitting on |
-| 8 | A-04, A-05, A-06, A-10, A-11, A-16, **A-18** | varies | Lower leverage; drafts ready. **A-18 is new** — HornMorpho cannot be imported without `tkinter`; a two-line upstream fix |
+| 8 | A-04, A-05, A-06, A-10, A-11, A-16, **A-18**, **A-19** | varies | Lower leverage; drafts ready. **Two upstream reports are new:** A-18 — HornMorpho cannot be imported without `tkinter`; A-19 — it **crashes on a bare `#`**, because its lexicon loader parses comment lines as entries. Both are courtesy, neither blocks us |
 
 **If you do exactly one thing, do A-13.** It has the longest lead time of
 anything in the project and every correctness claim waits behind it.
