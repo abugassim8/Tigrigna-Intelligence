@@ -90,6 +90,10 @@ from tigrinya_eval.primitives import (                           # noqa: E402
 #: pass should not cost the whole pass.
 CHECKPOINT_EVERY = 500
 
+#: Above this share of unique words, an analyser that raises is not hitting
+#: edge cases — it is broken, and measuring around it would be dishonest.
+CRASH_ABORT_FRACTION = 0.01
+
 
 class _Recorder:
     """Wraps the live analyser; keeps the first result seen for each word.
@@ -108,6 +112,11 @@ class _Recorder:
         self._checkpoint = checkpoint
         self.table: dict[str, str] = {}
         self.warnings: list[str] = []
+        #: Words the analyser *raised* on. Kept apart from words it simply
+        #: found nothing for: "the analyser threw" and "there is no analysis"
+        #: are different facts, and reporting them as one number is the
+        #: conflation this repository keeps finding.
+        self.crashed: dict[str, str] = {}
         #: Words whose *first* analysis comes from a previous process, for
         #: --resume. Popped on first use, so the second (reverse-order) pass
         #: still goes live and determinism still compares two real analyses.
@@ -129,7 +138,23 @@ class _Recorder:
             replayed = self._replay.pop(word)
             self.table.setdefault(word, replayed)
             return [replayed]
-        raw = self._live(word)                    # ALWAYS live. See docstring.
+        try:
+            raw = self._live(word)                # ALWAYS live. See docstring.
+        except Exception as exc:                  # noqa: BLE001 — see below
+            # HornMorpho 5.3.6 raises on some tokens: `analyze_unanalyzed5`
+            # handles a lexicon entry of length 1, then assumes length 2, so
+            # any longer entry is a ValueError. Its Tigrinya lexicon has one —
+            # `'#' -> ['Light', 'verb', 'particles']`, a comment header parsed
+            # as a word — and the anchor contains a bare `#`.
+            #
+            # Dying here would mean no measurement at all because of one
+            # token. Swallowing it would turn an upstream defect into a
+            # coverage statistic. So: recorded by name, reported loudly, and
+            # counted as unanalysable — which is what an empty result already
+            # means to `analyse`.
+            self.crashed.setdefault(word, f"{type(exc).__name__}: {exc}")
+            self.table.setdefault(word, word)
+            return []
         if word not in self.table:
             self._store(word, raw)
         return raw
@@ -233,6 +258,21 @@ def main(argv: list[str] | None = None) -> int:
     determinism = check_determinism(unique, analyser=rec)
     rec.save()
 
+    if rec.crashed:
+        share = len(rec.crashed) / len(unique)
+        print(f"\n  ⚠️  the analyser RAISED on {len(rec.crashed)} of "
+              f"{len(unique):,} unique words ({share:.3%}). These are counted "
+              f"as unanalysable, and named here so they are never mistaken "
+              f"for words it simply had no analysis for:")
+        for w, err in list(rec.crashed.items())[:10]:
+            print(f"        {w!r}  {err}")
+        if share > CRASH_ABORT_FRACTION:
+            print(f"\n::error::that is above {CRASH_ABORT_FRACTION:.0%} — the "
+                  f"analyser is broken here, not meeting edge cases, and "
+                  f"measuring around it would be dishonest. Nothing written.")
+            return 1
+        print()
+
     if rec.warnings:
         print("\n::error::the analyser produced warnings that a replayed "
               "table would silently drop:")
@@ -279,6 +319,17 @@ def main(argv: list[str] | None = None) -> int:
         "morphology is the Tier 0 primitive that genuinely needs gold data "
         "(A-006) and a speaker (A-13).",
     ]
+    if rec.crashed:
+        notes.append(
+            f"THE ANALYSER RAISED on {len(rec.crashed)} of {len(unique):,} "
+            f"unique words and they are counted as unanalysable: "
+            f"{sorted(rec.crashed)[:10]}. HornMorpho 5.3.6's "
+            f"analyze_unanalyzed5 unpacks a lexicon entry as exactly two "
+            f"fields after handling length 1, so a longer entry raises "
+            f"ValueError; its Tigrinya lexicon contains one — '#' mapped to "
+            f"['Light', 'verb', 'particles'], a comment header parsed as a "
+            f"word entry. This depresses coverage by that many tokens and is "
+            f"an upstream defect, not a property of Tigrinya.")
     if rec.replayed:
         notes.append(
             f"RESUMED: {rec.replayed:,} first-pass analyses came from a "

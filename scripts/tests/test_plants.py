@@ -236,6 +236,12 @@ from tigrinya_primitives import morphology as _m
 n = [0]
 def steady(w):
     return [{"seg": "<" + w + ">"}]
+def crashes_on_one(w):
+    if w == "ዓለም":
+        raise ValueError("too many values to unpack (expected 2)")
+    return [{"seg": "<" + w + ">"}]
+def always_crashes(w):
+    raise ValueError("too many values to unpack (expected 2)")
 def moving(w):                      # a different answer every call
     n[0] += 1
     return [{"seg": "<" + w + ":" + str(n[0]) + ">"}]
@@ -268,6 +274,12 @@ CASE = sys.argv[1]
 with tempfile.TemporaryDirectory() as tmp:
     tmp = pathlib.Path(tmp)
     (tmp / "c.txt").write_text("ሰላም ዓለም\\nፀሓይ ትወጽእ ኣላ\\n", encoding="utf-8")
+    # 300 distinct Ethiopic words, so a single crashing word is 0.3% — under
+    # CRASH_ABORT_FRACTION, which is the case worth testing.
+    big = tmp / "big"
+    big.mkdir()
+    filler = " ".join("ቃል" + chr(0x1200 + i) for i in range(300))
+    (big / "c.txt").write_text("ሰላም ዓለም\\n" + filler + "\\n", encoding="utf-8")
 
     if CASE == "harness_measures_with_a_steady_analyser":
         code, wrote = run(steady, tmp, tmp / "a.json")
@@ -288,6 +300,18 @@ with tempfile.TemporaryDirectory() as tmp:
         if not ok:
             print("honest:", honest, honest_wrote, "broken:", broken, broken_wrote)
 
+    elif CASE == "a_crashing_word_is_recorded_not_fatal":
+        code, wrote = run(crashes_on_one, big, tmp / "e.json")
+        # One pathological token must not cost the whole measurement — but it
+        # must be named, never folded into "no analysis found".
+        ok = code == 0 and wrote
+
+    elif CASE == "an_analyser_that_always_raises_aborts":
+        code, wrote = run(always_crashes, big, tmp / "f.json")
+        # Past the threshold this is a broken analyser, not an edge case, and
+        # measuring around it would be dishonest.
+        ok = code != 0 and not wrote
+
     else:
         raise SystemExit("unknown case")
 
@@ -300,6 +324,10 @@ HARNESS_PLANTS = [
      "harness_aborts_and_writes_nothing_on_nondeterminism", 0),
     ("a caching recorder hides non-determinism (the safeguard is real)",
      "call_through_is_load_bearing", 0),
+    ("one crashing word is recorded, not fatal",
+     "a_crashing_word_is_recorded_not_fatal", 0),
+    ("an analyser that always raises aborts and writes nothing",
+     "an_analyser_that_always_raises_aborts", 0),
 ]
 
 
