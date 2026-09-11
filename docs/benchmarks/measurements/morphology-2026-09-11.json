@@ -1,0 +1,149 @@
+{
+  "texts": 9212,
+  "words": 194588,
+  "unique_words": 32990,
+  "holds": true,
+  "complete": false,
+  "skipped": [],
+  "caveat": "INTRINSIC CHECKS CATCH *BROKEN*, NOT *WRONG*. A transliterator returning deterministically incorrect phonemes passes every check here. These properties are necessary and nowhere near sufficient: accuracy needs a gold standard and a native speaker, neither of which exists yet (A-006).",
+  "results": [
+    {
+      "name": "morphology.surface",
+      "passed": 9212,
+      "total": 9212,
+      "rate": 1.0,
+      "threshold": 1.0,
+      "regression_guard": false,
+      "holds": true,
+      "verdict": "PASS",
+      "skipped": false,
+      "skip_reason": "",
+      "measurement_only": false,
+      "note": "DEC-022 verbatim-surface guarantee",
+      "failures": []
+    },
+    {
+      "name": "morphology.alignment",
+      "passed": 9212,
+      "total": 9212,
+      "rate": 1.0,
+      "threshold": 1.0,
+      "regression_guard": false,
+      "holds": true,
+      "verdict": "PASS",
+      "skipped": false,
+      "skip_reason": "",
+      "measurement_only": false,
+      "note": "exact equality on the rebuilt analysis form, never containment",
+      "failures": []
+    },
+    {
+      "name": "morphology.determinism",
+      "passed": 32990,
+      "total": 32990,
+      "rate": 1.0,
+      "threshold": 1.0,
+      "regression_guard": false,
+      "holds": true,
+      "verdict": "PASS",
+      "skipped": false,
+      "skip_reason": "",
+      "measurement_only": false,
+      "note": "second pass runs in reverse order, not back to back",
+      "failures": []
+    },
+    {
+      "name": "morphology.coverage",
+      "passed": 116583,
+      "total": 194588,
+      "rate": 0.599127,
+      "threshold": 0.0,
+      "regression_guard": false,
+      "holds": true,
+      "verdict": "MEAS",
+      "skipped": false,
+      "skip_reason": "",
+      "measurement_only": true,
+      "note": "LOWER BOUND, and no threshold. An analysis identical to the surface form is counted as uncovered, which also catches genuinely uninflected words — so the true rate is at least this. No floor is set because nothing has ever measured Tigrinya morphological coverage; the first real install sets one.",
+      "failures": [
+        "ካብዞም",
+        "ኣፍልብካ",
+        "ከምኡውን",
+        "ዲዩ፥",
+        "ስለዚ",
+        "ኣፍ",
+        "ዲዩ፥",
+        "ከምኡ’ውን"
+      ]
+    },
+    {
+      "name": "morphology.normalisation",
+      "passed": 144,
+      "total": 197,
+      "rate": 0.730964,
+      "threshold": 0.0,
+      "regression_guard": false,
+      "holds": true,
+      "verdict": "MEAS",
+      "skipped": false,
+      "skip_reason": "",
+      "measurement_only": true,
+      "note": "477 words change under normalisation; 280 are unanalysable in BOTH forms and are excluded — they would disagree by construction. Of the 197 informative pairs: 144 unchanged, 22 analysable only AFTER normalisation (it is working), 2 only BEFORE (it is destroying a distinction), 29 analysed differently by both. Only the last two are costs, and only a speaker can rule (A-13). SIGNAL, not a threshold. Measures how often normalising ጸ/ፀ and ኣ/አ changes the analysis. Disagreement is not automatically a defect: if a lexicon holds only one variant, normalisation legitimately *rescues* a word. Direction matters and only a speaker can rule (A-13).",
+      "failures": [
+        [
+          "differs",
+          "መሊአን",
+          "---<--መሊእ-ኤ->-ን|---<--መሊ",
+          "---<--መሊእ-ኣ->-ን|---<--መሊ"
+        ],
+        [
+          "rescued",
+          "መአረምታዊ",
+          "መአረምታዊ",
+          "-<መኣረምታዊ>--"
+        ],
+        [
+          "rescued",
+          "መአከቢ",
+          "መአከቢ",
+          "-<መኣከቢ>--"
+        ],
+        [
+          "rescued",
+          "ምርዳአ",
+          "ምርዳአ",
+          "-<ም-ርዳእ>ኣ--"
+        ],
+        [
+          "differs",
+          "ረአ",
+          "---<--ረአ-->-",
+          "---<--ረኣ-->-"
+        ],
+        [
+          "differs",
+          "ብዝርአ",
+          "ብ-ዝ--<ይ--ርአ-->-|ብ-ዝ--<ይ-",
+          "ብ-ዝ--<ይ--ርኣ-->-|ብ-ዝ--<ይ-"
+        ],
+        [
+          "rescued",
+          "ብዝኸፈአ",
+          "ብዝኸፈአ",
+          "ብ-ዝ--<ይ--ከፍ--ኣ>-|ብ-ዝ--<ይ"
+        ],
+        [
+          "rescued",
+          "ብግቡአ",
+          "ብግቡአ",
+          "ብ-<ግቡእ>ኣ--"
+        ]
+      ]
+    }
+  ],
+  "notes": [
+    "MEASURED THROUGH scripts/measure_morphology.py, not the CLI. The analyser was called twice per unique word — by check_determinism — and surface/alignment/coverage were served from the table that built. Determinism at 100% is what licenses that substitution; at anything less the run aborts and writes nothing.",
+    "Accuracy is not measured here and cannot be. Experiment 004 found morphology is the Tier 0 primitive that genuinely needs gold data (A-006) and a speaker (A-13).",
+    "THE ANALYSER RAISED on 1 of 32,990 unique words and they are counted as unanalysable: ['#']. HornMorpho 5.3.6's analyze_unanalyzed5 unpacks a lexicon entry as exactly two fields after handling length 1, so a longer entry raises ValueError; its Tigrinya lexicon contains one — '#' mapped to ['Light', 'verb', 'particles'], a comment header parsed as a word entry. This depresses coverage by that many tokens and is an upstream defect, not a property of Tigrinya."
+  ]
+}

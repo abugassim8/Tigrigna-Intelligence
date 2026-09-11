@@ -31,10 +31,114 @@ guaranteed instead: the corpus is committed, the sample is derived by a stated
 command, the instrument is committed and unit-tested, and the sample's SHA-256
 is recorded below so a re-run can prove it measured the same bytes.
 
+## `morphology-2026-09-11.json` — the full anchor
+
+**Every Tigrinya segment in TICO-19**: 9,212 texts, **194,588 word tokens,
+32,990 unique**, across both splits and all three references. This supersedes
+the 900-segment sample below as the headline measurement.
+
+| Check | Result |
+| --- | --- |
+| `surface` | **9,212/9,212 = 100%** |
+| `alignment` | **9,212/9,212 = 100%** |
+| `determinism` | **32,990/32,990 = 100%** |
+| `coverage` | **116,583/194,588 = 59.91%** — MEAS, a lower bound |
+| `normalisation` | **144/197 = 73.10%** — MEAS |
+
+### What the sample could not see
+
+The 900-segment sample is not wrong, but it was **optimistic**, and in one place
+it was qualitatively misleading:
+
+| | Sample (900 seg) | Full anchor | |
+| --- | ---: | ---: | --- |
+| coverage | 62.27% | **59.91%** | 2.4 points lower |
+| words changed by normalisation | 72 | **477** | |
+| … **rescued** (working) | 7 | **22** | |
+| … **lost** (a distinction destroyed) | **0** | **2** | ⚠️ |
+| … **differs** (both analyse, differently) | 3 | **29** | |
+
+⚠️ **The sample reported that normalisation never destroys anything. It does.**
+Both cases are the same shape, and both are lexical:
+
+| Word | Normalised | Analysis before | After |
+| --- | --- | --- | --- |
+| ኣአንጋዲ | ኣኣንጋዲ | `-<ኣአንጋዲ>--` | none |
+| ኣአንገድቲ | ኣኣንገድቲ | `-<ኣአንጋዲ>--` | none |
+
+Normalising ኣ/አ turns the sequence **ኣአ into ኣኣ**, and the lemma itself is
+ኣአንጋዲ — so normalisation rewrites the word out of the lexicon. This is exactly
+the cost **DEC-010** anticipated without evidence, now a named, reproducible
+instance. **Only a speaker can rule on it (A-13).**
+
+Direction still favours normalising on this corpus — 22 rescued against 2 lost
+and 29 changed — but "never harmful" is no longer available as a claim.
+
+### Corpus
+
+`data/anchors/tico19`, all six Tigrinya reference files. The directory also
+holds the English source, which the CLI's script filter drops, along with
+`dev.tir_et.txt:201` (`{to remove}`) — 6,143 lines filtered, 9,212 measured.
+
+| File | SHA-256 |
+| --- | --- |
+| `dev.tir_er.txt` | `0177c1965714997b1d960b1334fb9534645ab5a31f91f099c84a133414169877` |
+| `dev.tir_et.txt` | `17ed98c8261d7173a66a630e8381109eabdc5d57575017df5e53bd90a9bf89f9` |
+| `dev.tir_ti.txt` | `fa3bbf7afe95201bb4459974fcff1b7379a73a59ef307849e9e91fa1f252f1e6` |
+| `test.tir_er.txt` | `72d077fe9107e13ed85aa9c7cdde19560ced2b4060f877eb363cf945fbc57114` |
+| `test.tir_et.txt` | `1002828fccdde9731d6b819bc2577d0c2b3acb11b5feb1012d79e1358f6913fd` |
+| `test.tir_ti.txt` | `585bd74968632e7cb61aaf116185fa4049ba3cb8569da1b60ef45dca6ed979ce` |
+
+⚠️ **`tir_er` is the only independent translation.** `tir_ti` and `tir_et` are
+one lineage (chrF 83.65 between them), so this is not three independent samples
+of Tigrinya.
+
+### One word crashes the analyser
+
+`hm.analyze('ti', '#')` raises `ValueError`. HornMorpho's lexicon loader parses
+comment lines as entries, so `# Light verb particles` becomes the key `'#'` with
+a three-field value, and `analyze_unanalyzed5` unpacks it as two. The anchor has
+**nine bare `#`**, in medical product codes like `N95 (series # 1860)`.
+
+Counted as unanalysable and **named in the report's own notes**, never folded
+into "no analysis found" — *the analyser threw* and *there is no analysis* are
+different facts. It costs 9 of 194,588 tokens (0.005%), so it does not move
+59.91%, and it is an **upstream defect, not a property of Tigrinya**. Reported
+as **A-19**.
+
+### How it was run
+
+Not the CLI — `scripts/measure_morphology.py`, because the naive path is
+~650,800 analyses (**~31 hours**) and this is ~65,980 (**~3.3 hours**). The
+saving comes from one observation: `check_determinism` already analyses every
+unique word twice, so `surface`, `alignment` and `coverage` can be served from
+the table its first pass builds.
+
+⚠️ **Determinism at 100% is what licenses that**, and the harness aborts writing
+anything at all if it is less. So `check_determinism` is not one result among
+five here — **it is the precondition for the other four.**
+
+**Validated before use, twice**, by re-running the 900-segment corpus below and
+requiring it to reproduce all five numbers exactly — which it did, including the
+whole normalisation breakdown. Three planted cases guard it, one of which breaks
+the recorder's call-through and proves a real failure then becomes invisible.
+
+```bash
+/tmp/venv312/bin/python scripts/measure_morphology.py data/anchors/tico19 \
+  --json docs/benchmarks/measurements/morphology-2026-09-11.json \
+  --checkpoint /tmp/anchor-table.json
+```
+
+---
+
 ## `morphology-2026-09-08.json`
 
 **The first time any morphological property of Tigrinya was measured in this
 project.** Before this, all five checks had only ever reported SKIP.
+**Superseded as the headline 2026-09-11** by the full anchor above, and kept for
+two reasons: it is the project's only cross-run reproduction evidence — two
+independent three-hour runs agreeing to the token — and it is now the fixture
+that validates `scripts/measure_morphology.py`.
 
 ⚠️ **This is the second run. The first one's headline was wrong**, and the way
 it was wrong is worth more than the number.

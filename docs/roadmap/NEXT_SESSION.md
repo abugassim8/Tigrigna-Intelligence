@@ -108,11 +108,20 @@ conclusion standing in where a measurement should be.
 
 ### The measurement itself
 
-| Check | Result |
-| --- | --- |
-| `surface` · `alignment` · `determinism` | **100%** — 899/899, 899/899, 4,435/4,435 |
-| `coverage` | **10,668/17,133 = 62.27%** — MEAS, a **lower bound** |
-| `normalisation` | **31/41 = 75.61%** — MEAS |
+✅ **Re-measured over the FULL anchor 2026-09-11** — all 9,212 Tigrinya
+segments, 194,588 word tokens, via `scripts/measure_morphology.py` (~3.3 h; the
+naive path is ~31 h).
+
+| Check | Full anchor | Sample |
+| --- | --- | --- |
+| `surface` · `alignment` · `determinism` | **100%** | 100% |
+| `coverage` | **116,583/194,588 = 59.91%** | 62.27% |
+| `normalisation` | **144/197 = 73.10%** | 31/41 |
+
+⚠️ **The sample was optimistic, and in one place misleading.** It reported that
+normalisation never destroys an analysis. Over the full anchor it does — **2
+lost**, against 22 rescued and 29 changed. Both are ኣአ → ኣኣ rewriting a word out
+of the lexicon (ኣአንጋዲ, ኣአንገድቲ). **A-13 now has a specific question to answer.**
 
 **What normalisation actually does**, on the 41 informative pairs: **31
 unchanged, 7 rescued** (analysable only *after* normalising — it is working),

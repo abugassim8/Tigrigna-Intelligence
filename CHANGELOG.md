@@ -22,6 +22,74 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Morphology measured over the whole anchor — and the sample was optimistic — 2026-09-11
+
+**All 9,212 Tigrinya segments of TICO-19**: 194,588 word tokens, 32,990 unique.
+11× the 900-segment sample, which this supersedes as the headline.
+
+| Check | Full anchor | Sample (2026-09-08) |
+| --- | --- | --- |
+| `surface` · `alignment` · `determinism` | **100%** | 100% |
+| `coverage` | **116,583/194,588 = 59.91%** | 62.27% |
+| `normalisation` | **144/197 = 73.10%** | 31/41 = 75.61% |
+
+### ⚠️ The sample said normalisation never destroys anything. It does.
+
+That is the finding, and no sample was going to produce it. Of 477 words changed
+by ጸ/ፀ · ኣ/አ normalisation, 280 are unanalysable either way; of the **197**
+informative pairs: **144 unchanged, 22 rescued, 2 LOST, 29 differ** — against
+the sample's 31 / 7 / **0** / 3.
+
+Both losses are one shape: normalising ኣ/አ turns **ኣአ into ኣኣ**, and the lemma
+*is* ኣአንጋዲ, so the word is rewritten out of the lexicon.
+
+| Word | Normalised | Before | After |
+| --- | --- | --- | --- |
+| ኣአንጋዲ | ኣኣንጋዲ | `-<ኣአንጋዲ>--` | none |
+| ኣአንገድቲ | ኣኣንገድቲ | `-<ኣአንጋዲ>--` | none |
+
+**DEC-010** anticipated this cost without evidence. There is now a named,
+reproducible instance, and **only a speaker can rule on it (A-13)** — a far
+sharper question than the validation sheets could pose. Direction still favours
+normalising (22 rescued against 2 lost, 29 changed), but *"never harmful"* is no
+longer available as a claim.
+
+### Running it at all needed a 10× saving
+
+The naive path is ~650,800 analyses — **~31 hours**, all-or-nothing. Measured
+first, because the code assumed otherwise: `check_determinism`'s docstring says
+*"HornMorpho memoises internally"*; **it does not.** Re-analysing the same 60
+words costs **77%** of the first pass.
+
+`scripts/measure_morphology.py` gets it to ~65,980 analyses (**~3.3 h**) from one
+observation: `check_determinism` already analyses every unique word twice, so
+`surface`, `alignment` and `coverage` can be served from the table its first pass
+builds. ⚠️ **Determinism at 100% is what licenses that**, and below 100% the
+harness writes nothing at all — which promotes it from one result among five into
+**the precondition for the other four**.
+
+**Validated before use, twice**: re-running the 900-segment corpus reproduced all
+five numbers exactly, including the whole normalisation breakdown. Five plants
+guard the harness — one breaks the recorder's call-through and proves that a real
+non-determinism then becomes invisible; two cover a crashing analyser. 27 planted
+cases now.
+
+### A second upstream bug — A-19
+
+`hm.analyze('ti', '#')` raises `ValueError`. HornMorpho's lexicon loader parses
+comment lines as entries, so `# Light verb particles` becomes the key `'#'` with
+three fields and `analyze_unanalyzed5` unpacks it as two. The anchor has nine
+bare `#`, in medical product codes like `N95 (series # 1860)` — so the full
+corpus hits it and the sample never did.
+
+⚠️ **Two commented-out lexicon entries are also loaded as live data** (`#ዋላ`,
+`#ወላ`), silently. Drafted for the owner to send, like A-18.
+
+Counted as unanalysable and **named in the report's notes**, never folded into
+"no analysis found": *the analyser threw* and *there is no analysis* are
+different facts. 9 of 194,588 tokens, so it does not move 59.91%.
+
+
 ### Morphology is measured — and the analyser found three defects on the way — 2026-09-08
 
 **The first time any morphological property of Tigrinya was measured in this
