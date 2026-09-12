@@ -22,6 +22,69 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The last hand-maintained counts are derived — and doing it wrote the tenth check that could not fail — 2026-09-12
+
+`check_figures.py` now derives **nine** counts, up from seven. The two added
+were the last a human kept by hand, and both had already drifted:
+
+| Count | Was | Mechanism |
+| --- | --- | --- |
+| `plants` | 22 in one document, 25 in another, suite running 27 | new `python_list_lengths` kind — `ast`-parses `test_plants.py`, sums every `*_PLANTS` list |
+| `open_actions` | "fourteen … thirteen" against a register holding twelve | new `between` option on `grep_count`, scoping to the register's at-a-glance section |
+
+### ⚠️ A tenth check that could not fail — in the audit tooling, and the ninth's component again
+
+**Registering the plant count produced a check that passed on 29 and on 31.**
+`planted` is itself a COUNT_MARKER — prose describing a planted failure quotes a
+deliberately wrong number and must not be flagged — so the sentence stating how
+many planted cases there are **exempted itself**. Green on any number.
+
+**This is the ninth failing again, not a new kind.** The ninth was
+`check_figures.py` suppressing a claim because a `⚠️` sat within ±8 lines, and
+it was fixed by narrowing the marker's *window*. Narrowing the window could
+never have caught a marker that matches the claim's own **subject**. Six of the
+ten are now in the audit tooling.
+
+**The first of the ten caught before it was committed**, and only because it was
+tested against a wrong number. A green run on a check you have just written is
+not evidence of anything — that is the whole lesson of the other nine, and it
+took a deliberate by-hand failure to apply it here.
+
+⚠️ **The 2026-09-02 entry above predicted this**: *"Building blind is how the
+tenth gets written."* Half right. There was a tenth. It was not written by
+building blind — it was written while building a check **against** drift, by
+someone being careful. The wrong half is the more useful one.
+
+**The open-action count would have been an eleventh** — a `⚠️` sat on its claim
+line — but it was caught by reading `_has_marker` before the check was ever
+registered, so no unfailable check existed. **Not counted**, on the same
+principle that kept the variety gate out of the tally.
+
+### Two counts, two different fixes
+
+- `plants` **needs** `ignore_markers`: its subject *is* the marker word.
+- `open_actions` **does not** — rewording its claim line to drop the ⚠️ makes it
+  fail correctly, measured. Its flag is insurance against a future marker
+  landing within eight lines, and is recorded as such rather than left looking
+  necessary.
+
+Both flags **remove** a suppression rather than adding one, so the worst they
+cost is a false positive.
+
+### One number was deleted rather than derived
+
+*"Twelve need a human"* is 13 minus A-14 — a judgement recorded nowhere
+machine-readable. The handoff now names the exception instead of counting it,
+which tells a reader *which one* rather than *how many*. Automating a number is
+not always the fix; sometimes the number should not be there.
+
+**Also:** both derives **raise** rather than returning 0 or silently widening
+when their file, pattern or section boundary goes missing. A derivation that
+quietly returns 0 agrees with nothing and is the same defect one level down.
+Planted-case count now **29**, guarded by two plants that each move the number
+they guard.
+
+
 ### Morphology measured over the whole anchor — and the sample was optimistic — 2026-09-11
 
 **All 9,212 Tigrinya segments of TICO-19**: 194,588 word tokens, 32,990 unique.

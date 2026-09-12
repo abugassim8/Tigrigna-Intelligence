@@ -47,7 +47,7 @@ quoted, that has to be said.
 `_Recorder.__call__` **always calls the live analyser**, even for a word it has
 already seen. Serving a cached value there would make `check_determinism`
 compare a value against itself, and the check would silently stop being able to
-fail — the single failure mode this repository has found nine times. It is
+fail — the single failure mode this repository has found ten times. It is
 planted against in `scripts/tests/test_plants.py`; if you change it, that plant
 must fail.
 

@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Live handoff.** Written 2026-09-03, approved by the owner · **updated 2026-09-11** — morphology measured over the **full** TICO-19 anchor; the 900-segment sample was optimistic |
+| **Status** | **Live handoff.** Written 2026-09-03, approved by the owner · **updated 2026-09-12** — the last hand-maintained counts are derived, and building the first of them wrote the tenth check that could not fail |
 | **Supersedes** | `READINESS_PLAN.md` §12's *"Nothing. This list is empty"* — that conclusion is **false**, see below |
 | **Read first** | This file, then `READINESS_PLAN.md`, then `ACTIONS.md` |
 
@@ -35,6 +35,14 @@ met.**
 
 ✅ **CI enforces 28 checks** as of 2026-09-04. Its first run failed three of six
 jobs; all three were real and are fixed.
+
+✅ **`check_figures.py` derives nine counts** as of 2026-09-12, up from seven —
+`plants` and `open_actions` were the last two a human maintained by hand, and
+both had already drifted. ⚠️ **Building the first of them wrote the tenth check
+that could not fail** (§13): `planted` is itself a suppression marker, so a
+count of *planted cases* exempted its own claim and passed on any number. Caught
+by testing it against a wrong number — the first of the ten caught before it was
+committed.
 
 ✅ **HornMorpho runs here** as of 2026-09-07, which had been assumed impossible
 since the project began, and **morphology is measured over all 9,212 Tigrinya

@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-11** — morphology measured over the full anchor, closing step 2.3 · phases A–E entered the plan on 2026-09-02 |
+| **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-12** — the last two hand-maintained counts are now derived · morphology measured over the full anchor on 2026-09-11 · phases A–E entered the plan on 2026-09-02 |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
 | **Basis** | **28 decisions · 10 experiments · 16 summaries · 175 tests · 5 audits** |
 | **Live handoff** | ⚠️ [`NEXT_SESSION.md`](NEXT_SESSION.md) — §12's *"nothing left to do"* was **wrong**; read that first |
@@ -482,9 +482,18 @@ matters more:
    unblock, the temptation is to build the API surface before **A-02** says who
    it is for, or Tier 1 before **A-09** lets it be measured. That would produce
    more unmeasured artefacts, and this project's own record says what happens
-   next: **nine** checks have been found that could not fail, every one written
-   in good faith, none caught by review. Building blind is how the tenth gets
-   written.
+   next: **ten** checks have been found that could not fail, every one written
+   in good faith, none caught by review.
+
+   ⚠️ **That sentence used to end "Building blind is how the tenth gets
+   written." The tenth was written on 2026-09-12 — and not by building blind.**
+   It was written while building a check *against* drift: registering a derived
+   count of *planted cases* produced a check that passed on any number, because
+   `planted` is itself a suppression marker. The prediction that there would be
+   a tenth was right; the guess about where it would come from was wrong, and
+   the wrong half is the more useful one to keep. **Care about what you are
+   building is not protection — the tenth was written by the person being
+   careful.**
 
 **So the correct next action is to wait, and the correct thing to do while
 waiting is nothing.** Stopping is a real option and is being taken deliberately
@@ -542,8 +551,8 @@ variety gate worked. It did not, for a month, on every corpus, in the wrong
 direction.
 
 **The engineering discipline is real and it is not self-congratulation:**
-**nine** checks have been found that *could not fail*, every one caught by
-deliberately planting a failure rather than by reading the code. **Five were in
+**ten** checks have been found that *could not fail*, every one caught by
+deliberately planting a failure rather than by reading the code. **Six were in
 the audit tooling itself.** The seventh: the derived-counts check matched no
 phrasing used in *this document*, so the plan of record was the one file whose
 headline numbers nothing verified — and it was wrong when checked. The eighth:
@@ -552,6 +561,20 @@ that same check compared **line by line**, and prose wraps, so the README's
 The ninth: a retraction marker suppressed claims **in both directions**, so a
 `⚠️` opening the *next* paragraph exempted the claim above it — and one was
 wrong behind exactly that.
+
+⚠️ **The tenth (2026-09-12) is the ninth's component failing again**, and that
+is the part worth keeping. The ninth was fixed by narrowing the marker's
+*window*. The tenth was the same file and the same vocabulary failing a
+different way: registering a derived count of **planted cases** produced a check
+that passed on 29 and on 31, because `planted` is itself a marker, so the
+sentence counting planted cases exempted **itself**. No amount of narrowing the
+window could have caught a marker that matches the claim's own subject.
+
+**It is the first of the ten caught before it was committed** — by testing it
+against a wrong number, which is the only thing that ever finds these. A green
+run on a check you just wrote is not evidence. *(The same collision was then
+spotted in the open-action count before that check was ever registered, so it is
+**not** counted as an eleventh — no unfailable check ever existed.)*
 
 **Planting is now a committed test rather than a habit** (`scripts/tests/
 test_plants.py`, 29 cases, in CI). That is the response to a discipline that

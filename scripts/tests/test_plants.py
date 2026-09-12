@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Plant known failures and assert the audit tooling reports them.
 
-Nine checks in this repository have been found that **could not fail** — five of
+Ten checks in this repository have been found that **could not fail** — six of
 them inside the audit tooling itself. Every one was written in good faith,
 reviewed, and passing; none was caught by reading the code. They were caught by
 planting a failure and watching nothing happen.
