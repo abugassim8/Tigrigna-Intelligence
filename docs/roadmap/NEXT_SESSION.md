@@ -207,8 +207,15 @@ an accuracy number.
 
 ⚠️ **The headline numbers were already observed during planning**, so under
 DEC-016 they cannot be presented as pre-committed hypotheses. Record them as
-`MEAS`, or pre-commit only on quantities not yet seen (the dev split, HornMT,
-the per-segment distribution).
+`MEAS`, or pre-commit only on quantities not yet seen — **the dev split and the
+per-segment distribution.**
+
+⚠️ **Not HornMT.** An earlier version of this line listed it, and that was
+wrong: `data/anchors/hornmt/` holds **one** Tigrinya reference (`tir.txt`), so
+there is no second translator to compare against and inter-translator agreement
+cannot be measured there at all. **TICO-19 is the only anchor with an
+independent pair**, and only `tir_er` vs `tir_et` — `tir_ti` and `tir_et` are
+one lineage.
 
 Measured on TICO-19 `test`, chrF:
 

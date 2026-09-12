@@ -27,7 +27,7 @@ output, and know what they are getting.
 | Tier 0 complete | ⚠️ **4 of 4 built, 3 of 4 usable out of the box** — morphology needs an analyser the user installs | **DEC-028** *(A-07 closed)* — HornMorpho is GPL-3.0 and never bundled |
 | Licensing clean | ⚠️ **partial** — bi-encoders Apache-2.0 but built on an **unlicensed base**; `fgaim` base models unstated | **A-01** |
 | Rules enforce themselves | ✅ **MET 2026-09-04** — CI installed, 28 checks enforcing | — |
-| **A native speaker has validated the output** | ❌ **instrument built and unsent** | **A-13** |
+| **A native speaker has validated the output** | ❌ **instrument built; sheets with the reviewer since 2026-09-04, none returned** | **A-13** |
 
 **Three of six met outright**, up from two: CI is installed, so the rules now
 enforce themselves. Tier 0 is *built* in full and *usable* in three-quarters —

@@ -74,6 +74,16 @@ instance. **Only a speaker can rule on it (A-13).**
 Direction still favours normalising on this corpus — 22 rescued against 2 lost
 and 29 changed — but "never harmful" is no longer available as a claim.
 
+**Every one of those cases is listed in
+`morphology-2026-09-11-normalisation-cases.json`** — all 2 lost, 29 differs and
+22 rescued, with the analysis before and after. The run's own `results.json`
+caps its examples at eight, and these are the sharpest question **A-13** can be
+asked, so they are kept in full rather than left to be re-derived from a
+three-hour run.
+
+⚠️ **Held, not sent.** Whether the reviewer sees a second round is the owner's
+call.
+
 ### Corpus
 
 `data/anchors/tico19`, all six Tigrinya reference files. The directory also
