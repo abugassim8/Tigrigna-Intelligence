@@ -22,6 +22,67 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Two humans agree at chrF 24 — and measuring it found an eleventh check that could not fail — 2026-09-12
+
+**Experiment 011.** When A-09 lands and the first model is scored, "chrF 30"
+needs something to be read against. Now it has one.
+
+| Pair | dev | test |
+| --- | ---: | ---: |
+| **ER vs ET** — independent translators | **23.84** | **24.58** |
+| ti vs ET — one lineage | 85.59 | 83.65 |
+
+All three pre-registered hypotheses confirmed. The `test` figures were seen
+during planning so are recorded as MEAS, not as predictions met; that they
+reproduced to the decimal is an implementation check.
+
+**H3 is the one that changes how the number reads.** A corpus chrF of ~24 could
+be every segment at 24, or half at 5 and half at 45. **It is neither and much
+closer to the first:** 80% of segments fall between 13 and 37, only ~3% below 10
+and ~2% above 50. So ~24 is the *typical* segment — which makes it a far
+stronger reference point.
+
+⚠️ **Not a ceiling.** chrF between two translations and chrF between a system
+and a reference are different quantities. ⚠️ **The pair varies twice over** —
+translator *and* standard (ER vs ET) — and this cannot separate them. **A-13**
+is what would.
+
+**HornMT cannot contribute at all**: one Tigrinya reference, so no second
+translator. The handoff said to pre-commit on it; that was wrong and is
+corrected.
+
+### ⚠️ An eleventh check that could not fail — the plan of record's own Basis line
+
+Adding the experiment moved the `experiments` count 10 → 11, which should have
+flagged the plan's `| **Basis** |` row. **It did not.** A markdown table is one
+paragraph, so the `⚠️` in the adjacent `| **Live handoff** |` row exempted every
+row of that table. Measured: the Basis line could claim **99 decisions and 77
+experiments** and `check_figures.py` exited **0**.
+
+**This is the seventh and the ninth failing together.** The seventh was *"the
+plan of record was the one file whose headline numbers nothing verified"*, fixed
+by adding the phrasings the plan uses. The ninth narrowed marker scope so a
+marker could not reach into the next paragraph — and inside a table there is no
+next paragraph. So the phrasings matched, the marker exempted them anyway, and
+the plan of record was again the one file whose headline numbers nothing
+verified. **Seven of the eleven are in the audit tooling.**
+
+Fixed with the ninth's own asymmetry one level down: **backwards stays generous,
+forwards stops at the end of the row.** Scoping strictly to the row was tried
+first and **broke every retraction table in the repository**, whose markers
+legitimately sit in a header row or the prose above — so the asymmetry is doing
+real work, not decoration. Planted; 30 cases now.
+
+### A correction to this session's own verification
+
+A loop here claimed "all 11 experiments reproduce" by running `run.py --check`.
+**Nine of them have no `--check` flag**, so the argument was ignored and they
+ran in write mode — verifying nothing. It rewrote `006-tier0-latency`, which
+measures latency and is declared non-deterministic under DEC-016 Amendment 1
+precisely so it is *not* byte-compared. Reverted, and re-verified the way CI
+actually does it: **10 byte-identical, 1 exempt by declaration, 0 drifted.**
+
+
 ### The last hand-maintained counts are derived — and doing it wrote the tenth check that could not fail — 2026-09-12
 
 `check_figures.py` now derives **nine** counts, up from seven. The two added
@@ -377,6 +438,7 @@ skewed — it only stops the skew being averaged away. Rated **Severe**.
 
 #### The plan's own Basis line had an unverified number
 
+As of this entry, the plan's Basis line read
 `28 decisions · 10 experiments · 16 summaries · **145 tests** · 5 audits` — the
 decisions, experiments and summaries counts are all derived and checked. **The
 test count was not**, appeared exactly once in the repository, and had drifted

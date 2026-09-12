@@ -11,8 +11,8 @@ That single fact shapes everything here.
 
 The problem this module is mostly about
 ---------------------------------------
-**A check that cannot run must not report a pass.** Ten checks in this
-repository have been found that could not fail, six of them in the audit
+**A check that cannot run must not report a pass.** Eleven checks in this
+repository have been found that could not fail, seven of them in the audit
 tooling. The obvious way to write morphology evaluation — "if the analyser is
 missing, return early" — manufactures a tenth, and a particularly bad one: the
 `metrics.md` morphology row would flip from ❌ to ✅ on a machine where

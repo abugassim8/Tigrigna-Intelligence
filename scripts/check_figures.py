@@ -165,8 +165,28 @@ def _has_marker(lowered: list[str], i: int, markers: tuple) -> bool:
     This is the ninth check found unable to fail, and the fifth inside the audit
     tooling itself.
     """
+    # ⚠️ A markdown table is ONE paragraph, so without this a single ⚠️
+    # anywhere in a table exempts every row of it. That is not hypothetical:
+    # the plan of record's `| **Basis** |` row sits directly above a
+    # `| **Live handoff** | ⚠️ ...` row, and the Basis line — the headline
+    # counts this whole check exists to verify — could claim **99 decisions
+    # and 77 experiments** and pass. Measured 2026-09-12.
+    #
+    # Table rows are independent claims, not one flowing argument, so a row
+    # scopes only itself. This is the same failure as the ninth
+    # checks-that-could-not-fail one level down: that fix stopped a marker
+    # reaching into the next *paragraph*, and inside a table there is no next
+    # paragraph to reach into.
     lo = max(0, i - WINDOW)
-    hi = _para_end(lowered, i)
+    # Forwards stops at the end of the ROW when the claim is in a table, not
+    # the end of the paragraph: a markdown table is one paragraph, so
+    # otherwise a single ⚠️ in any row exempts every other row of it.
+    #
+    # Backwards stays generous, and that asymmetry is what keeps retraction
+    # TABLES working — their marker lives in the header row or the prose
+    # introducing them, above the rows it covers. Scoping strictly to the row
+    # was tried first and broke every one of them.
+    hi = i if lowered[i].lstrip().startswith("|") else _para_end(lowered, i)
     context = "\n".join(lowered[lo:hi + 1])
     return any(m in context for m in markers)
 
@@ -481,8 +501,8 @@ def check_identifiers() -> list[str]:
     **Known limit, deliberately unfixed:** a document cannot cite a non-existent
     id even to discuss one, so prose about a negative control has to describe
     the planted ids rather than quote them. There is no marker escape hatch on
-    purpose — a marker vocabulary is what made three earlier checks in this
-    file unable to fail, with a fourth demonstrated and prevented. Reword
+    purpose — a marker vocabulary is what made four earlier checks in this
+    file unable to fail, with a fifth demonstrated and prevented. Reword
     around the false positive.
     """
     goals = set(_GOAL_DEF.findall(GOALS.read_text(encoding="utf-8")))

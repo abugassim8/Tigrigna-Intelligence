@@ -10,7 +10,7 @@ application, but as infrastructure that others can build on.
 
 > **Status: 13 research domains complete** — every planned domain, from
 > `00_project_definition` through `12_master_blueprint`. **28** decisions
-> recorded and **10** reproducible experiments. **Tier 0 is built**: two Python
+> recorded and **11** reproducible experiments. **Tier 0 is built**: two Python
 > packages (`services/primitives`, `services/evaluation`), both test suites
 > passing.
 > See [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).

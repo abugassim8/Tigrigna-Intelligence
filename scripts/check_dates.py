@@ -57,7 +57,7 @@ here, and so is a wholly invented date on a commit made the same day.
 discusses a stamp — a changelog entry quoting the line it corrected — reads as
 a stale stamp and fails. That is deliberate: `check_figures.py` solved the same
 problem with a marker vocabulary, and that vocabulary made its checks unable to
-fail **three times**, with a fourth demonstrated and prevented. Both of the
+fail **four times**, with a fifth demonstrated and prevented. Both of the
 2026-09-12 ones were counts whose own claim line carried a marker: `planted`
 cases (the word is itself a marker — shipped, and passed on any number until
 someone tested it) and open actions (a ⚠️ on the line — caught before

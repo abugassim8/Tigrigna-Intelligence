@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Plant known failures and assert the audit tooling reports them.
 
-Ten checks in this repository have been found that **could not fail** — six of
+Eleven checks in this repository have been found that **could not fail** — seven of
 them inside the audit tooling itself. Every one was written in good faith,
 reviewed, and passing; none was caught by reading the code. They were caught by
 planting a failure and watching nothing happen.
@@ -100,6 +100,13 @@ FIGURE_PLANTS = [
     # this is the only thing standing between it and a silent pass.
     ("open-action count contradicting the register",
      "\n\n**3 open actions.**\n", 1),
+    # A markdown table is one paragraph, so a ⚠️ in ANY row used to exempt
+    # EVERY row — which left the plan of record's `| **Basis** |` line free to
+    # claim 99 decisions and 77 experiments. The marked row here must not
+    # protect the row above it.
+    ("table row exempted by a marker in a sibling row",
+     "\n\n| x | y |\n| --- | --- |\n| Basis | 3 reproducible experiments |\n"
+     "| Note | ⚠️ superseded |\n", 1),
     ("derived count, spelled out",
      "\n\nThis project has three reproducible experiments.\n", 1),
     ("undefined goal id", "\n\nSee G-99 for details.\n", 1),

@@ -4,7 +4,7 @@
 | --- | --- |
 | **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-12** — the last two hand-maintained counts are now derived · morphology measured over the full anchor on 2026-09-11 · phases A–E entered the plan on 2026-09-02 |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
-| **Basis** | **28 decisions · 10 experiments · 16 summaries · 175 tests · 5 audits** |
+| **Basis** | **28 decisions · 11 experiments · 16 summaries · 175 tests · 5 audits** |
 | **Live handoff** | ⚠️ [`NEXT_SESSION.md`](NEXT_SESSION.md) — §12's *"nothing left to do"* was **wrong**; read that first |
 
 ---
@@ -69,7 +69,7 @@ degrading silently.
 GPL-3.0 analyser is absent — DEC-028).
 
 **Also built:** the native-speaker validation instrument (`validation/`, 134
-items), four enforcement scripts, a **planted-failure suite** (29 cases, CI),
+items), four enforcement scripts, a **planted-failure suite** (30 cases, CI),
 28 CI checks, and **two evaluation anchors** — **HornMT** (2,030 pairs,
 CC-BY-4.0, news) and **TICO-19** (3,071 segments × 3 references, CC0-1.0,
 COVID/medical, **variety-declared at source**), both screened on every side.
@@ -482,8 +482,8 @@ matters more:
    unblock, the temptation is to build the API surface before **A-02** says who
    it is for, or Tier 1 before **A-09** lets it be measured. That would produce
    more unmeasured artefacts, and this project's own record says what happens
-   next: **ten** checks have been found that could not fail, every one written
-   in good faith, none caught by review.
+   next: **eleven** checks have been found that could not fail, every one
+   written in good faith, none caught by review.
 
    ⚠️ **That sentence used to end "Building blind is how the tenth gets
    written." The tenth was written on 2026-09-12 — and not by building blind.**
@@ -551,8 +551,8 @@ variety gate worked. It did not, for a month, on every corpus, in the wrong
 direction.
 
 **The engineering discipline is real and it is not self-congratulation:**
-**ten** checks have been found that *could not fail*, every one caught by
-deliberately planting a failure rather than by reading the code. **Six were in
+**eleven** checks have been found that *could not fail*, every one caught by
+deliberately planting a failure rather than by reading the code. **Seven were in
 the audit tooling itself.** The seventh: the derived-counts check matched no
 phrasing used in *this document*, so the plan of record was the one file whose
 headline numbers nothing verified — and it was wrong when checked. The eighth:
@@ -576,8 +576,28 @@ run on a check you just wrote is not evidence. *(The same collision was then
 spotted in the open-action count before that check was ever registered, so it is
 **not** counted as an eleventh — no unfailable check ever existed.)*
 
+⚠️ **The eleventh (2026-09-12) had been shipped for some time, and it is the
+worst-placed of the eleven.** A markdown table is **one paragraph**, so the
+`⚠️` in the plan's `| **Live handoff** |` row exempted every other row of that
+table — including `| **Basis** |`, the headline counts this entire check exists
+to verify. Measured: the Basis line could claim **99 decisions and 77
+experiments** and `check_figures.py` exited **0**.
+
+**It is the seventh and the ninth failing together.** The seventh was *"the plan
+of record was the one file whose headline numbers nothing verified"*, fixed by
+adding phrasings the plan actually uses. The ninth narrowed marker scope so a
+marker could not reach into the next paragraph. Inside a table there is no next
+paragraph to reach into — so the phrasings matched, and the marker exempted them
+anyway, and the plan of record was again the one file whose headline numbers
+nothing verified.
+
+Fixed by applying the ninth's own asymmetry one level down: **backwards stays
+generous, forwards stops at the end of the row.** Scoping strictly to the row
+was tried first and broke every retraction *table* in the repository, whose
+markers legitimately sit in a header row or the prose above. Planted.
+
 **Planting is now a committed test rather than a habit** (`scripts/tests/
-test_plants.py`, 29 cases, in CI). That is the response to a discipline that
+test_plants.py`, 30 cases, in CI). That is the response to a discipline that
 depended on remembering to do it.
 
 ⚠️ **One failure in phase E could not have been caught by planting, and it is

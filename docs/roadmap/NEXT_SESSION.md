@@ -203,7 +203,27 @@ HornMorpho's Tigrinya is **correct** — that needs a speaker (**A-13**), exactl
 as experiment 004 found. Do not let a coverage number drift into sounding like
 an accuracy number.
 
-## Part 3 — The next agent task: Experiment 011, inter-translator agreement
+## Part 3 — ✅ DONE 2026-09-12: Experiment 011, inter-translator agreement
+
+**Two professional humans translating the same English agree at chrF ≈ 24.**
+`experiments/011-inter-translator-agreement/` — all three pre-registered
+hypotheses confirmed, `results.json` reproduces byte-identically.
+
+The finding worth carrying: **the distribution is tight, not bimodal.** 80% of
+segments fall between chrF 13 and 37; only ~3% score below 10 and ~2% above 50.
+So ~24 is the *typical* segment, not an average of agreement and disagreement —
+which makes it a much stronger reference point for reading a model score.
+
+⚠️ **It is not a ceiling**, and the README says so where the number lives. chrF
+between two translations is a different quantity from chrF between a system and
+a reference.
+
+⚠️ **Adding it uncovered the eleventh check that could not fail** — see §13 of
+the plan. The `experiments` count moved 10 → 11, which should have flagged the
+plan's own `Basis` line, and did not: a `⚠️` in the next table row exempted it.
+
+### Original brief, kept for the reasoning
+
 
 ⚠️ **The headline numbers were already observed during planning**, so under
 DEC-016 they cannot be presented as pre-committed hypotheses. Record them as
