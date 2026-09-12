@@ -95,6 +95,11 @@ FIGURE_PLANTS = [
     # guards, which is the cleanest evidence the derivation is live.
     ("planted-case count contradicting the suite",
      "\n\nThe planted-failure suite is (3 cases, CI).\n", 1),
+    # The other derived count that documents kept getting wrong by hand. Its
+    # claim pattern is anchored tightly *and* its markers are switched off, so
+    # this is the only thing standing between it and a silent pass.
+    ("open-action count contradicting the register",
+     "\n\n**3 open actions.**\n", 1),
     ("derived count, spelled out",
      "\n\nThis project has three reproducible experiments.\n", 1),
     ("undefined goal id", "\n\nSee G-99 for details.\n", 1),

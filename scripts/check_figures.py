@@ -263,6 +263,8 @@ def _derive(spec: dict) -> int:
     kind = spec["kind"]
     if kind == "grep_count":
         text = _resolve_file(spec).read_text(encoding="utf-8")
+        if "between" in spec:
+            text = _between(text, spec)
         return len(re.findall(spec["pattern"], text, flags=re.MULTILINE))
     if kind == "dir_count":
         return len(list(REPO.glob(spec["glob"])))
@@ -273,6 +275,40 @@ def _derive(spec: dict) -> int:
     if kind == "python_list_lengths":
         return _python_list_lengths(spec)
     raise ValueError(f"unknown derivation kind: {kind}")
+
+
+def _between(text: str, spec: dict) -> str:
+    """The slice of `text` from the `start` line to the next `end` line.
+
+    For "how many actions are still open". The register's at-a-glance table and
+    its **Done** table use the same row shape, so an unscoped pattern counts
+    **16** where the answer is 13 — a count that is wrong in the direction of
+    looking finished.
+
+    ⚠️ **Both boundaries must be found or this raises.** Falling back to the
+    whole file would silently return that 16; falling back to empty would
+    silently return 0. Either is a check that cannot fail, and this file has
+    already produced three of those.
+    """
+    start = re.compile(spec["between"]["start"])
+    end = re.compile(spec["between"]["end"])
+    lines = text.splitlines()
+    first = next((i for i, ln in enumerate(lines) if start.match(ln)), None)
+    if first is None:
+        raise SystemExit(
+            f"::error::{spec.get('file')}: no line matches "
+            f"{spec['between']['start']!r}, so the section cannot be located "
+            f"and the count would be taken over the whole file — fix the "
+            f"boundary rather than letting it silently widen.")
+    last = next((i for i in range(first + 1, len(lines)) if end.match(lines[i])),
+                None)
+    if last is None:
+        raise SystemExit(
+            f"::error::{spec.get('file')}: no line after "
+            f"{spec['between']['start']!r} matches {spec['between']['end']!r}, "
+            f"so the section has no end — fix the boundary rather than letting "
+            f"the count run past it.")
+    return "\n".join(lines[first:last])
 
 
 def _python_list_lengths(spec: dict) -> int:
@@ -380,9 +416,15 @@ def check_counts(reg: dict) -> list[str]:
         # produced a check that passed on 29 and on 31: an ornament.
         #
         # **Third time the marker vocabulary has disabled a check in this file**
-        # (`ci/README.md` records the first two). Per-count rather than
+        # (`ci/README.md` records the first two), and `open_actions` made four
+        # the same day — a ⚠️ on its claim line, caught before registering and
+        # then confirmed to exit 0 on a wrong number. Per-count rather than
         # narrowing `planted` globally, because the blast radius is then two
         # lines instead of every marker-suppressed line in the repository.
+        #
+        # ⚠️ `open_actions` does not actually need this today: rewording its
+        # claim line to drop the ⚠️ is what makes it fail correctly. The flag
+        # is insurance against a future marker landing within WINDOW lines.
         ignore_markers = bool(spec.get("ignore_markers"))
         for path in _files():
             try:
@@ -440,7 +482,8 @@ def check_identifiers() -> list[str]:
     id even to discuss one, so prose about a negative control has to describe
     the planted ids rather than quote them. There is no marker escape hatch on
     purpose — a marker vocabulary is what made three earlier checks in this
-    file unable to fail. Reword around the false positive.
+    file unable to fail, with a fourth demonstrated and prevented. Reword
+    around the false positive.
     """
     goals = set(_GOAL_DEF.findall(GOALS.read_text(encoding="utf-8")))
     gaps = set(_GAP_DEF.findall(PLAN.read_text(encoding="utf-8")))

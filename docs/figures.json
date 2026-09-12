@@ -39,7 +39,21 @@
     "marker vocabulary: 'planted' is a COUNT_MARKER, so the sentence stating how",
     "many plants there are exempts itself. Without it the check passed on 29 and",
     "on 31 — an ornament. Keep its claim patterns narrow instead; they are what",
-    "stops it matching the CHANGELOG's dated snapshots."
+    "stops it matching the CHANGELOG's dated snapshots.",
+    "",
+    "`open_actions` is scoped with `between` because the register's Done table",
+    "repeats the at-a-glance row shape: unscoped the pattern counts 16 where the",
+    "answer is 13, wrong in the direction of looking finished.",
+    "",
+    "Both `plants` and `open_actions` carry ignore_markers, for different",
+    "reasons. `plants` needs it: its subject IS the marker word, so the sentence",
+    "stating how many plants there are exempts itself, and it passed on 29 and on",
+    "31 before anyone tested it. `open_actions` does NOT need it today — the",
+    "claim line was reworded to drop a WARNING sign, and that alone makes it fail",
+    "correctly; the flag is insurance against a future marker landing within",
+    "eight lines. Both flags REMOVE a suppression rather than adding one, so the",
+    "worst they cost is a false positive. Before a third count gets one, ask",
+    "whether its claim can simply be reworded."
   ],
   "counts": [
     {
@@ -155,6 +169,23 @@
         ", (\\d+) cases, in CI\\)"
       ],
       "ignore_markers": true
+    },
+    {
+      "id": "open_actions",
+      "name": "Open actions",
+      "derive": {
+        "kind": "grep_count",
+        "file": "ACTIONS.md",
+        "pattern": "^\\| \\*\\*A-\\d+\\*\\* \\|",
+        "between": {
+          "start": "^## At a glance",
+          "end": "^---\\s*$"
+        }
+      },
+      "ignore_markers": true,
+      "claims": [
+        "\\*\\*(\\d+) open actions\\.\\*\\*"
+      ]
     }
   ],
   "figures": [

@@ -233,14 +233,16 @@ quantitatively that they are one translation lineage, not independent references
   **A-09** — the exact dependency error the plan records as already corrected.
 - ~~`services/README.md` quotes `61` and `14` tests~~ ✅ **fixed 2026-09-07** —
   dropped rather than updated, per DEC-024.
-- **Two hand-maintained counts drift, and `docs/figures.json` derives neither.**
-  Both were corrected by hand again on 2026-09-11, which is the symptom, not
-  the fix:
-  - **Open actions.** Drifted to "fourteen … thirteen" against a register then
-    holding twelve; **thirteen** now, with A-19. A naive `grep_count` on
-    `^\| \*\*A-\d+\*\* \|` gives **16**, not 13, because the *Done* table
-    matches the same shape — so it needs a **section-scoped** derive kind that
-    `check_figures.py` does not have.
+- ~~**Two hand-maintained counts drift, and `docs/figures.json` derives
+  neither.**~~ ✅ **Both derived, 2026-09-12.** Kept here because *how* they
+  failed is worth more than that they are fixed:
+  - ~~**Open actions.**~~ ✅ Derived with a new `between` option on
+    `grep_count`, scoping the pattern to the register's at-a-glance section.
+    Unscoped it counts **16** against an answer of 13, because the *Done* table
+    repeats the row shape — wrong in the direction of looking finished.
+    The second number in that sentence, *"twelve need a human"*, was **deleted
+    rather than derived**: it is 13 minus A-14, a judgement recorded nowhere
+    machine-readable. Naming the exception beats counting it.
   - ~~**Planted cases.**~~ ✅ **Derived 2026-09-12.** `docs/figures.json` gains
     a `plants` count from a new `python_list_lengths` derive kind, which `ast`-
     parses `test_plants.py` and sums every module-level `*_PLANTS` list. The
@@ -253,10 +255,22 @@ quantitatively that they are one translation lineage, not independent references
     per-count `ignore_markers`, which *removes* a suppression rather than
     adding one.
 
-  ⚠️ **Do this deliberately, not quickly.** Five of the nine
-  checks-that-could-not-fail lived in exactly this tooling; a new derive kind
-  needs a planted failure in `scripts/tests/test_plants.py` before it is worth
-  anything.
+  ⚠️ **The marker vocabulary disabled both**, and a green run proves nothing —
+  only testing against a *wrong* number shows it. The two differ in one way
+  worth keeping straight:
+  - `plants` **shipped broken.** It passed on 29 and on 31 before anyone
+    checked, because `planted` is itself a COUNT_MARKER. **Third instance.**
+  - `open_actions` **was caught before registering**, by reading `_has_marker`
+    rather than by running anything — and then demonstrated: against the
+    original claim line, which carried a ⚠️, the check exits **0** on a wrong
+    number. **Fourth instance, prevented rather than shipped.**
+
+  Rewording the claim line is what fixes it — measured: with the ⚠️ gone the
+  check fails correctly even with markers on. `ignore_markers` is *insurance*
+  against a future ⚠️ landing within eight lines, not load-bearing today. It
+  *removes* a suppression rather than adding one, which is why a false positive
+  is the worst it can cost. Before giving a third count that flag, ask whether
+  its claim can simply be reworded.
 
 ---
 
@@ -266,13 +280,8 @@ quantitatively that they are one translation lineage, not independent references
 instruction, 2026-09-04). Drafts in `ACTIONS.md` are written *for the owner to
 send*; an assistant may compose and refine, never send.
 
-**Thirteen open actions; twelve need a human.** ⚠️ *This line said "fourteen …
-thirteen" until 2026-09-07 and had drifted — counting the register's at-a-glance
-table gives thirteen open (A-01, A-03, A-04, A-05, A-06, A-09, A-10, A-11,
-A-13, A-14, A-16, A-18, A-19), of which **A-14** is the only one an agent could
-do, and only once A-09 lands. `check_figures.py` does not track this count, which is why it
-drifted quietly — the same class as the test count that went 145 → 161
-unnoticed.* Full detail and ready-to-send drafts are in
+**Thirteen open actions.** All but **A-14** need a person, and A-14 is blocked
+on A-09 anyway. Full detail and ready-to-send drafts are in
 [`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:
 
 | # | Action | Effort | Unlocks |
