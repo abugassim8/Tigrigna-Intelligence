@@ -822,7 +822,9 @@ describe the inconsistency, not assert a bug in the phonology.
 ## 🟢 A-18 — Report HornMorpho's unconditional GUI import upstream
 
 **Who:** Michael Gasser (`gasser@iu.edu`), via a GitHub issue on
-`hltdi/HornMorpho`.
+`hltdi/HornMorpho`. **File alongside A-19, as a separate issue** — the owner
+confirmed 2026-09-12 that the two stay apart. Filing this one without A-19
+leaves the crash unreported.
 
 📧 **The owner sends this.** Like every other draft in this file — see the
 standing constraint in the header.
@@ -872,9 +874,11 @@ about the analyser.
 ## 🟡 A-19 — Report HornMorpho's crash on a bare `#` upstream
 
 **Who:** Michael Gasser (`gasser@iu.edu`), via a GitHub issue on
-`hltdi/HornMorpho`. Separate from **A-18** — different defect, different fix,
-and this one is a **crash on valid input** rather than a packaging
-inconvenience.
+`hltdi/HornMorpho`. **Separate from A-18, confirmed by the owner 2026-09-12** —
+different defect, different fix, and this one is a **crash on valid input**
+rather than a packaging inconvenience. ⚠️ **Do not merge them into one issue**
+on the grounds that both go to the same maintainer: bundling a crash with a
+packaging note is how half of it gets fixed.
 
 📧 **The owner sends this.** Like every other draft in this file.
 
