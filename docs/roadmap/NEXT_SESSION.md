@@ -241,10 +241,17 @@ quantitatively that they are one translation lineage, not independent references
     `^\| \*\*A-\d+\*\* \|` gives **16**, not 13, because the *Done* table
     matches the same shape — so it needs a **section-scoped** derive kind that
     `check_figures.py` does not have.
-  - **Planted cases.** `READINESS_PLAN.md` quoted **22** in one place and
-    **25** in another while the suite ran **27**. This one *is* derivable
-    without new machinery — the suite prints its own total — so it is the
-    cheaper of the two to fix.
+  - ~~**Planted cases.**~~ ✅ **Derived 2026-09-12.** `docs/figures.json` gains
+    a `plants` count from a new `python_list_lengths` derive kind, which `ast`-
+    parses `test_plants.py` and sums every module-level `*_PLANTS` list. The
+    suite now computes its own total the same way, so a fifth list cannot make
+    the printed and documented numbers disagree.
+    ⚠️ **It did not work on the first attempt, and the way it failed is the
+    point.** `planted` is itself a COUNT_MARKER, so the sentence stating how
+    many plants there are exempted itself: the check passed on 29 and on 31.
+    **Third time this marker vocabulary has disabled a check.** Fixed with a
+    per-count `ignore_markers`, which *removes* a suppression rather than
+    adding one.
 
   ⚠️ **Do this deliberately, not quickly.** Five of the nine
   checks-that-could-not-fail lived in exactly this tooling; a new derive kind

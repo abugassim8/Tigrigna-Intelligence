@@ -90,6 +90,11 @@ FIGURE_PLANTS = [
      "\n\nThe standing-cost saving from tiering\ndelivers a 22x saving overall.\n", 1),
     ("derived count contradicting the tree",
      "\n\nThis project has 3 reproducible experiments.\n", 1),
+    # The count of plants is itself a derived count now. This plant is the
+    # reason that is worth anything — and note it changes the very number it
+    # guards, which is the cleanest evidence the derivation is live.
+    ("planted-case count contradicting the suite",
+     "\n\nThe planted-failure suite is (3 cases, CI).\n", 1),
     ("derived count, spelled out",
      "\n\nThis project has three reproducible experiments.\n", 1),
     ("undefined goal id", "\n\nSee G-99 for details.\n", 1),
@@ -381,8 +386,12 @@ def main() -> int:
         print(f"{len(problems)} planted failure(s) did not behave as specified — "
               f"a check has stopped being able to fail")
         return 1
-    total = (len(SCREEN_PLANTS) + len(FIGURE_PLANTS) + len(MORPH_PLANTS)
-             + len(HARNESS_PLANTS))
+    # Summed by convention rather than by name, so a fifth *_PLANTS list is
+    # counted here the day it is added. `docs/figures.json` derives the same
+    # number the same way; listing the four names in both places is how the
+    # printed total and the documented one would quietly come to disagree.
+    total = sum(len(v) for k, v in sorted(globals().items())
+                if k.endswith("_PLANTS") and isinstance(v, list))
     if skipped:
         print(f"{total - len(skipped)} of {total} planted cases behaved as "
               f"specified; {len(skipped)} NOT RUN — {', '.join(skipped)}")

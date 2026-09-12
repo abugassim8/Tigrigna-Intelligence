@@ -27,7 +27,19 @@
     "",
     "Volatile counts are deliberately absent. Test totals change on almost every",
     "commit, so living documents say 'both suites passing' and exact numbers",
-    "appear only in dated CHANGELOG entries, which are snapshots and stay true."
+    "appear only in dated CHANGELOG entries, which are snapshots and stay true.",
+    "",
+    "Enforcement machinery IS counted, though, and the line is not arbitrary: a",
+    "pytest total moves on almost every commit, while `ci_checks` and `plants`",
+    "move when someone deliberately adds an enforcement mechanism. The planted-",
+    "case count drifted to 22 in one document and 25 in another while the suite",
+    "ran 27, which is what being uncounted buys you.",
+    "",
+    "`plants` carries ignore_markers because its subject collides with the",
+    "marker vocabulary: 'planted' is a COUNT_MARKER, so the sentence stating how",
+    "many plants there are exempts itself. Without it the check passed on 29 and",
+    "on 31 — an ornament. Keep its claim patterns narrow instead; they are what",
+    "stops it matching the CHANGELOG's dated snapshots."
   ],
   "counts": [
     {
@@ -101,7 +113,10 @@
       "name": "CI checks",
       "derive": {
         "kind": "grep_count",
-        "file": [".github/workflows/verify.yml", "ci/verify.yml"],
+        "file": [
+          ".github/workflows/verify.yml",
+          "ci/verify.yml"
+        ],
         "pattern": "^      - name: (?!Install)"
       },
       "claims": [
@@ -126,6 +141,20 @@
         "(\\d+) items, 5 strata",
         "\\*\\*(\\d+) items\\*\\*"
       ]
+    },
+    {
+      "id": "plants",
+      "name": "Planted failure cases",
+      "derive": {
+        "kind": "python_list_lengths",
+        "file": "scripts/tests/test_plants.py",
+        "name_pattern": ".*_PLANTS$"
+      },
+      "claims": [
+        "\\((\\d+) cases, CI\\)",
+        ", (\\d+) cases, in CI\\)"
+      ],
+      "ignore_markers": true
     }
   ],
   "figures": [

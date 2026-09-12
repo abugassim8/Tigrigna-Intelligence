@@ -60,6 +60,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import pathlib
 import re
@@ -269,7 +270,54 @@ def _derive(spec: dict) -> int:
         return _section_owners(spec)
     if kind == "csv_rows":
         return _csv_rows(spec)
+    if kind == "python_list_lengths":
+        return _python_list_lengths(spec)
     raise ValueError(f"unknown derivation kind: {kind}")
+
+
+def _python_list_lengths(spec: dict) -> int:
+    """Total elements across module-level list literals whose names match.
+
+    For "how many planted cases are there". `grep_count` can approximate it —
+    `^    \(\"` happens to give the right answer today — but it counts
+    *formatting*, so reindenting an entry or wrapping one across lines makes it
+    quietly wrong. This counts the lists themselves, which is what the suite's
+    own total means.
+
+    Parsed with `ast`, never imported: `check_figures.py` has to keep running
+    with nothing installed, and importing a test module to count it would be a
+    strange way to earn a number.
+
+    Names are matched by pattern rather than listed, so a fifth `*_PLANTS` list
+    is counted the day it is added instead of the day someone remembers.
+    """
+    path = REPO / spec["file"]
+    if not path.exists():
+        raise SystemExit(
+            f"::error::{spec['file']} does not exist, so `{spec.get('id', 'this')}` "
+            f"cannot be derived and the check would verify nothing — fix the "
+            f"path rather than removing it.")
+    pattern = re.compile(spec["name_pattern"])
+    total, found = 0, []
+    for node in ast.parse(path.read_text(encoding="utf-8")).body:
+        if not isinstance(node, ast.Assign):
+            continue
+        if not isinstance(node.value, (ast.List, ast.Tuple)):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name) and pattern.match(target.id):
+                total += len(node.value.elts)
+                found.append(target.id)
+    if not found:
+        # A derivation that returns 0 because it found nothing is a check that
+        # cannot fail — the defect this whole file exists to prevent, and five
+        # of the nine found so far lived in exactly this tooling.
+        raise SystemExit(
+            f"::error::no module-level list in {spec['file']} matches "
+            f"{spec['name_pattern']!r}. The count would silently derive as 0 "
+            f"and agree with nothing — fix the pattern rather than letting it "
+            f"pass.")
+    return total
 
 
 def _section_owners(spec: dict) -> int:
@@ -319,6 +367,23 @@ def check_counts(reg: dict) -> list[str]:
     for spec in reg.get("counts", []):
         actual = _derive(spec["derive"])
         claims = [re.compile(p) for p in spec["claims"]]
+        # ⚠️ Read this as *removing* a suppression path, not adding one — the
+        # opposite of the escape hatch `check_dates.py` warns against. Markers
+        # exempt a line from being checked; this switches that exemption off
+        # for one count, making it stricter.
+        #
+        # It exists because a count's SUBJECT can collide with the marker
+        # vocabulary. `planted` is a COUNT_MARKER — prose describing a planted
+        # failure quotes a deliberately wrong number and must not be flagged —
+        # but that also exempts the sentence stating how many plants there are,
+        # because it too contains the word. Registering the count without this
+        # produced a check that passed on 29 and on 31: an ornament.
+        #
+        # **Third time the marker vocabulary has disabled a check in this file**
+        # (`ci/README.md` records the first two). Per-count rather than
+        # narrowing `planted` globally, because the blast radius is then two
+        # lines instead of every marker-suppressed line in the repository.
+        ignore_markers = bool(spec.get("ignore_markers"))
         for path in _files():
             try:
                 lines = path.read_text(encoding="utf-8").splitlines()
@@ -335,7 +400,8 @@ def check_counts(reg: dict) -> list[str]:
                     claimed = int(m.group(1))
                     if claimed == actual:
                         continue
-                    if _has_marker(lowered, i, COUNT_MARKERS):
+                    if not ignore_markers and _has_marker(lowered, i,
+                                                           COUNT_MARKERS):
                         continue
                     rel = path.relative_to(REPO).as_posix()
                     problems.append(
@@ -373,8 +439,8 @@ def check_identifiers() -> list[str]:
     **Known limit, deliberately unfixed:** a document cannot cite a non-existent
     id even to discuss one, so prose about a negative control has to describe
     the planted ids rather than quote them. There is no marker escape hatch on
-    purpose — a marker vocabulary is what made two earlier checks in this file
-    unable to fail. Reword around the false positive.
+    purpose — a marker vocabulary is what made three earlier checks in this
+    file unable to fail. Reword around the false positive.
     """
     goals = set(_GOAL_DEF.findall(GOALS.read_text(encoding="utf-8")))
     gaps = set(_GAP_DEF.findall(PLAN.read_text(encoding="utf-8")))

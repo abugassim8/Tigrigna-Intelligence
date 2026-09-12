@@ -57,7 +57,9 @@ here, and so is a wholly invented date on a commit made the same day.
 discusses a stamp — a changelog entry quoting the line it corrected — reads as
 a stale stamp and fails. That is deliberate: `check_figures.py` solved the same
 problem with a marker vocabulary, and that vocabulary made its checks unable to
-fail **twice**. A false positive you reword around is cheaper than a suppression
+fail **three times** — the third on 2026-09-12, when registering a count of
+*planted cases* produced a check that passed on any number, because `planted`
+is itself a marker. A false positive you reword around is cheaper than a suppression
 path that silently covers real drift. If this becomes frequent, fix it by
 narrowing the stamp patterns, not by adding an escape hatch.
 
