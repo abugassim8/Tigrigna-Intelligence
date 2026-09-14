@@ -14,6 +14,8 @@ mistakes a green suite for linguistic validation.
 
 from __future__ import annotations
 
+import pathlib
+
 import pytest
 
 from tigrinya_primitives import (
@@ -304,3 +306,41 @@ def test_fertility_counts_tokens_per_word():
     assert f.tokens_per_word == f.tokens / f.words
     assert GeezTokenizer.train(["ሰላም"], vocab_size=300,
                                min_frequency=1).fertility([]).tokens_per_word == 0.0
+
+
+# ------------------------------------------- the Windows encoding failure
+
+def test_transliteration_survives_a_non_utf8_default_encoding(monkeypatch):
+    """Simulates the Windows cp1252 default that broke 53 tests at once.
+
+    `panphon` 0.22.2 reads its IPA feature table with `Path.open()` and no
+    `encoding`, so the *locale* decides. On Linux that is UTF-8 and everything
+    works; on Windows it is **cp1252**, which cannot decode the 6,368 IPA lines
+    in `ipa_all.csv`, and `epitran.Epitran("tir-Ethi")` raises before any
+    Tigrinya is transliterated.
+
+    This forces the Windows behaviour on every platform. Without
+    `transliterate._utf8_resource_reads` it raises `UnicodeDecodeError`;
+    with it, the explicit UTF-8 wins because the encoding is no longer `None`.
+
+    ⚠️ Both caches are cleared: `transliterate_word` would otherwise answer from
+    its own cache and never reach the loader this test exists to exercise.
+    """
+    original = pathlib.Path.open
+
+    def windows_default(self, mode="r", buffering=-1, encoding=None,
+                        errors=None, newline=None):
+        if "b" not in mode and encoding is None:
+            encoding = "cp1252"
+        return original(self, mode, buffering, encoding, errors, newline)
+
+    monkeypatch.setattr(pathlib.Path, "open", windows_default)
+    transliterate_module = __import__(
+        "tigrinya_primitives.transliterate", fromlist=["_epi"])
+    transliterate_module._epi.cache_clear()
+    transliterate_module.transliterate_word.cache_clear()
+    try:
+        assert transliterate_module.transliterate_word("\u1230\u120b\u121d")
+    finally:
+        transliterate_module._epi.cache_clear()
+        transliterate_module.transliterate_word.cache_clear()

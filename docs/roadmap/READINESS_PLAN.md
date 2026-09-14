@@ -4,7 +4,7 @@
 | --- | --- |
 | **Status** | **Plan of record** · first written 2026-08-23 · **refreshed 2026-09-12** — the last two hand-maintained counts are now derived · morphology measured over the full anchor on 2026-09-11 · phases A–E entered the plan on 2026-09-02 |
 | **Supersedes** | The horizon documents (`30_days` … `2_years`) as the *execution* plan. They were written before any research and remain useful as direction, not sequence |
-| **Basis** | **28 decisions · 11 experiments · 16 summaries · 175 tests · 5 audits** |
+| **Basis** | **28 decisions · 11 experiments · 16 summaries · 176 tests · 5 audits** |
 | **Live handoff** | ⚠️ [`NEXT_SESSION.md`](NEXT_SESSION.md) — §12's *"nothing left to do"* was **wrong**; read that first |
 
 ---

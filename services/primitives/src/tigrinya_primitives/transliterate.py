@@ -56,7 +56,9 @@ must not assume IPA — `Analysis.analysis_is_phonemic` says so explicitly.
 
 from __future__ import annotations
 
+import contextlib
 import functools
+import pathlib
 import re
 
 from .types import Analysis, OffsetUnit, Span, Variety
@@ -88,6 +90,59 @@ def warmup() -> None:
     _epi()
 
 
+@contextlib.contextmanager
+def _utf8_resource_reads():
+    """Force text-mode `Path.open()` to UTF-8 while a dependency loads its data.
+
+    ⚠️ **Without this, every call into this module fails on Windows.**
+
+    `panphon` **0.22.2** — epitran's feature-table dependency, and the latest
+    release, so there is nothing to upgrade to — reads its IPA table like this
+    (`panphon/featuretable.py:83`)::
+
+        with files("panphon").joinpath(fn).open() as f:
+            df = pd.read_csv(f)
+
+    `.open()` with no `encoding` uses the **locale default**. That is UTF-8 on
+    Linux and macOS, and **cp1252 on Windows** — and `ipa_all.csv` has 6,368
+    lines containing IPA characters cp1252 cannot decode. The result is
+    `UnicodeDecodeError: 'charmap' codec can't decode byte 0x90`, raised before
+    a single Tigrinya character is transliterated, which fails 53 tests across
+    both packages from one root cause.
+
+    Only that one file is affected: `feature_weights.csv`, read at line 105 by
+    the same pattern, is pure ASCII — checked, not assumed.
+
+    **Why patch `pathlib.Path.open` rather than panphon's method:**
+    `importlib.resources.files("panphon")` returns a real `Path`, so this is the
+    call that actually decides the encoding. Wrapping the method instead would
+    mean copying an upstream function body and re-copying it on every panphon
+    release.
+
+    **Why not `PYTHONUTF8=1`:** it works, but it makes correctness depend on how
+    the user launched the interpreter. A library should not be able to fail
+    because someone opened a different terminal.
+
+    Scoped to the load and restored in `finally`, so nothing else in the process
+    sees a patched `Path.open`. ⚠️ It is a global for that instant, so it is not
+    safe to call from two threads at once — `_epi()` is `lru_cache`d, so it runs
+    once per process.
+    """
+    original = pathlib.Path.open
+
+    def _open(self, mode="r", buffering=-1, encoding=None, errors=None,
+              newline=None):
+        if "b" not in mode and encoding is None:
+            encoding = "utf-8"
+        return original(self, mode, buffering, encoding, errors, newline)
+
+    pathlib.Path.open = _open
+    try:
+        yield
+    finally:
+        pathlib.Path.open = original
+
+
 @functools.lru_cache(maxsize=1)
 def _epi():
     """Load epitran lazily.
@@ -97,7 +152,8 @@ def _epi():
     """
     import epitran
 
-    return epitran.Epitran("tir-Ethi")
+    with _utf8_resource_reads():
+        return epitran.Epitran("tir-Ethi")
 
 
 @functools.lru_cache(maxsize=100_000)

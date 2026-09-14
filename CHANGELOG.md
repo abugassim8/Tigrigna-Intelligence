@@ -22,6 +22,59 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Tigrinya transliteration was broken on Windows, from one missing word — 2026-09-14
+
+Following the migration guide on Windows produced **53 failures from a single
+root cause**: 6 errors in `test_contract.py`, 47 failures across
+`test_primitives.py`, `test_contract.py` and `test_properties.py`. Every one was
+downstream of `epitran.Epitran("tir-Ethi")` refusing to construct.
+
+```
+UnicodeDecodeError: 'charmap' codec can't decode byte 0x90 in position 970
+```
+
+**The cause is one missing argument in a dependency.** `panphon`
+(`featuretable.py:83`) reads its IPA feature table as:
+
+```python
+with files("panphon").joinpath(fn).open() as f:
+    df = pd.read_csv(f)
+```
+
+`.open()` without `encoding` uses the **locale default** — UTF-8 on Linux and
+macOS, **cp1252 on Windows**. `ipa_all.csv` has **6,368 lines** containing IPA
+characters cp1252 cannot decode, so the table never loads and nothing
+transliterates.
+
+Reproduced here before fixing, by forcing a non-UTF-8 locale
+(`PYTHONUTF8=0 LC_ALL=C`), which gives the identical failure class under ASCII —
+a stricter condition than Windows.
+
+**No upstream fix to take.** `panphon` **0.22.2** is the latest release, checked
+against PyPI. A version bump was not an option.
+
+`transliterate._utf8_resource_reads()` now scopes a `pathlib.Path.open` patch
+around the epitran load: text-mode opens with no encoding get UTF-8, restored in
+`finally`.
+
+- **`pathlib.Path.open`, not panphon's method** — `importlib.resources.files()`
+  returns a real `Path`, so that call is what decides the encoding. Wrapping the
+  method would mean copying an upstream body and re-copying it every release.
+- **Not `PYTHONUTF8=1`** — it works, but it makes correctness depend on how the
+  interpreter was launched. A library should not fail because someone opened a
+  different terminal.
+- **Only one file was ever at risk.** `feature_weights.csv`, read by the same
+  pattern at line 105, is pure ASCII — checked rather than assumed, so the fix
+  is not guarding something that never needed it.
+
+**Planted, not just tested.** `test_transliteration_survives_a_non_utf8_default_
+encoding` forces cp1252 on every platform. Verified in both directions: with the
+fix removed it fails with `UnicodeDecodeError` inside pandas; restored, it
+passes. 176 tests.
+
+⚠️ **Worth reporting upstream** — one `encoding="utf-8"` in panphon fixes this
+for every Windows user of epitran, not just this project.
+
 ### Two humans agree at chrF 24 — and measuring it found an eleventh check that could not fail — 2026-09-12
 
 **Experiment 011.** When A-09 lands and the first model is scored, "chrF 30"
