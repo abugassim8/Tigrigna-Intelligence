@@ -42,6 +42,7 @@ from __future__ import annotations
 import json
 import pathlib
 import random
+import sys
 import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Sequence
@@ -634,10 +635,45 @@ def load_corpus(paths: Iterable[str | pathlib.Path],
     return texts
 
 
+def force_utf8_stdio() -> None:
+    """Make stdout/stderr UTF-8 regardless of locale, launcher, or caller.
+
+    ⚠️ **This belongs at the top of an entry FUNCTION, not in a
+    `if __name__ == "__main__":` guard.** Both exist in this repository and they
+    cover different situations:
+
+      - the **guard** serves a process launched as a script;
+      - **this** serves an entry function called by *someone else*.
+
+    The distinction is not hypothetical. `scripts/tests/test_plants.py` runs
+    `import measure_morphology as mm; mm.main(...)`, so the guard never
+    executes for that caller — and on Windows, where a child writing to a pipe
+    encodes with cp1252 rather than the console's codec, `main()` then dies
+    printing Ge'ez. Five plants failed exactly that way, *after* the guards had
+    been added everywhere and declared sufficient.
+
+    Deliberately a no-op in two cases, so importing a module never changes
+    behaviour that was already correct:
+
+      - **the stream is already UTF-8** — the normal case on Linux and macOS;
+      - **the stream has no `reconfigure`** — pytest's `capsys` and any
+        `StringIO`, which must be left exactly as the caller set them up.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        if (getattr(stream, "encoding", "") or "").lower() in ("utf-8", "utf8"):
+            continue
+        reconfigure(encoding="utf-8", errors="replace")
+
+
 def _main(argv: Sequence[str] | None = None) -> int:
     """Run the intrinsic evaluation over corpus paths and exit non-zero on
     failure, so CI enforces DEC-023(a) rather than merely recording it."""
     import argparse
+
+    force_utf8_stdio()
 
     ap = argparse.ArgumentParser(
         prog="python -m tigrinya_eval.primitives",
@@ -670,10 +706,4 @@ def _main(argv: Sequence[str] | None = None) -> int:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    # ⚠️ Windows writes to a pipe or a redirect with the locale codec
-    # (cp1252), not the console's. Without this, printing `⚠️` or `—`
-    # raises UnicodeEncodeError — including while printing a traceback.
-    import sys
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-    raise SystemExit(_main())
+    raise SystemExit(_main())      # _main() calls force_utf8_stdio() itself

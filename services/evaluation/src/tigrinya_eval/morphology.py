@@ -83,7 +83,8 @@ from typing import Any, Callable, Sequence
 
 from tigrinya_primitives import morphology, normalise
 
-from .primitives import (IntrinsicReport, PropertyResult, is_ethiopic,
+from .primitives import (IntrinsicReport, PropertyResult, force_utf8_stdio,
+                         is_ethiopic,
                          load_corpus)
 
 Analyser = Callable[[str], Any]
@@ -475,6 +476,8 @@ def evaluate_morphology(texts: Sequence[str], *,
 def _main(argv: Sequence[str] | None = None) -> int:
     import argparse
 
+    force_utf8_stdio()
+
     ap = argparse.ArgumentParser(
         prog="python -m tigrinya_eval.morphology",
         description="Intrinsic evaluation of morphological analysis "
@@ -523,10 +526,4 @@ def _main(argv: Sequence[str] | None = None) -> int:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    # ⚠️ Windows writes to a pipe or a redirect with the locale codec
-    # (cp1252), not the console's. Without this, printing `⚠️` or `—`
-    # raises UnicodeEncodeError — including while printing a traceback.
-    import sys
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-    raise SystemExit(_main())
+    raise SystemExit(_main())      # _main() calls force_utf8_stdio() itself

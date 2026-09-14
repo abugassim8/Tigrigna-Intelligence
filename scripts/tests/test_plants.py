@@ -431,6 +431,10 @@ def run_morphology_plants() -> list[str]:
 ASCII_ENV = {"PYTHONUTF8": "0", "PYTHONCOERCECLOCALE": "0",
              "LC_ALL": "C", "LANG": "C", "LC_CTYPE": "C"}
 
+#: Set in the child when this suite re-runs *itself* under ASCII, so the
+#: re-run does not re-run itself for ever.
+ASCII_PASS = "TIGRINYA_PLANTS_ASCII_PASS"
+
 #: Written to a temp file rather than passed with `-c`: under an ASCII locale
 #: Python decodes a `-c` argument with the filesystem encoding, so Ge'ez on the
 #: command line would fail for a reason that has nothing to do with the code
@@ -473,6 +477,16 @@ ENCODING_PLANTS = [
     ("check_figures.py prints under an ASCII locale",     ["scripts/check_figures.py"], 0),
     ("check_definitions.py prints under an ASCII locale", ["scripts/check_definitions.py"], 0),
     ("Harness.save() writes Ge'ez under an ASCII locale", None, 0),
+    # ⚠️ The one that matters, and the one that was missing. The four above are
+    # a HAND-WRITTEN LIST, and a hand-written list is exactly what failed: it
+    # did not name `measure_morphology`, which imports nothing of the sort but
+    # is reached through `mm.main()` from HARNESS_PLANT — so five plants went on
+    # failing on Windows while this group reported the class closed.
+    #
+    # This entry needs no list. It re-runs *every* plant under ASCII and
+    # requires identical behaviour, which reproduces those five failures and
+    # nothing else. Whatever is planted next is covered the day it is added.
+    ("every plant behaves identically under an ASCII locale", [__file__], 0),
 ]
 
 
@@ -481,11 +495,21 @@ def run_encoding_plants() -> list[str]:
     env = dict(os.environ)
     env.pop("PYTHONIOENCODING", None)          # would defeat the whole check
     env.update(ASCII_ENV)
+    env[ASCII_PASS] = "1"
+
+    #: True when we ARE the ASCII re-run. Everything still runs; only the entry
+    #: that would spawn another copy of this file is held back.
+    inner = bool(os.environ.get(ASCII_PASS))
 
     with tempfile.TemporaryDirectory() as tmp:
         script = pathlib.Path(tmp) / "encoding_plant.py"
         script.write_text(ENCODING_WRITE_PLANT, encoding="utf-8")
         for label, argv, expect in ENCODING_PLANTS:
+            if inner and argv == [__file__]:
+                skipped.append(label)
+                print(f"  [SKIP] ascii-locale: {label} — this IS the ASCII "
+                      f"re-run; nesting it would not terminate")
+                continue
             argv = [str(script)] if argv is None else argv
             r = subprocess.run([sys.executable, *argv], cwd=REPO, env=env,
                                capture_output=True, **CHILD_IO)

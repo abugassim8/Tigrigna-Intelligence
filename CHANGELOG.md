@@ -22,6 +22,75 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The plant written to close the encoding class missed the next instance — 2026-09-14
+
+The entry below claims *"the fix is the plant, not the eighteen edits"* and that
+`ENCODING_PLANTS` *"reruns the entry points with an ASCII default."* Both are
+**overstated, and the same day proved it.** It reran **three** entry points from
+a hand-written list, and five plants went on failing on Windows.
+
+⚠️ The claim is left standing rather than edited away. Under **DEC-024** a dated
+entry is a snapshot, and the overclaim is the useful part of the record: a check
+was declared to close a class on the strength of covering three named cases.
+
+**The guard was in a place that does not always run.** `sys.stdout.reconfigure`
+went into `if __name__ == "__main__":` in all 23 entry points. But
+`scripts/tests/test_plants.py` does:
+
+```python
+import measure_morphology as mm
+code = mm.main([str(corpus), "--json", str(out)])
+```
+
+`main()` **called by import** — so the guard never executes, `main()` prints
+Ge'ez into a pipe, and on Windows a pipe is cp1252 whatever the console is.
+
+Reproduced on Linux against the commit that claimed the fix, which is the only
+reason it was found at all:
+
+```
+env -u PYTHONIOENCODING PYTHONUTF8=0 PYTHONCOERCECLOCALE=0 LC_ALL=C LANG=C \
+    python scripts/tests/test_plants.py
+```
+
+→ the same five failures, and nothing else. Isolated to stdout and nothing else
+by forcing only the child's stdout to UTF-8 under the same ASCII locale: all
+five green. The `--json` write path was already correct.
+
+**`force_utf8_stdio()` goes at the top of the entry FUNCTION**, not in the
+guard, for the three entry functions reachable by import — `measure_morphology.
+main`, `tigrinya_eval.morphology._main`, `tigrinya_eval.primitives._main`. It
+no-ops when the stream is already UTF-8, and when the stream has no
+`reconfigure` at all, so pytest's `capsys` is left exactly as the caller set it
+up. The 23 guard lines stay: they correctly serve a process *launched* as a
+script, which is a different situation.
+
+✅ **The proof it is in the right layer: the five plants went green with
+`test_plants.py` untouched.** Had the plant needed editing, the fix would have
+been papering over the symptom.
+
+**The hand-written list is replaced by the suite itself.** A 35th plant re-runs
+**every** plant under an ASCII locale and requires identical behaviour —
+measured to reproduce those five failures and nothing else. Whatever is planted
+next is covered the day it is added, with no list to maintain. A
+`TIGRINYA_PLANTS_ASCII_PASS` variable stops the re-run re-running itself.
+
+Verified in both directions: with `force_utf8_stdio()` removed from
+`measure_morphology.main()` alone, the new plant fails — and **only** it —
+reporting "5 planted failure(s) did not behave as specified".
+
+⚠️ **Not a twelfth check that could not fail.** `ENCODING_PLANTS` *can* fail; it
+was verified three ways the day it was written. It was **incomplete**, which is
+a different defect, and the running count stays at **eleven**. Counting it would
+repeat the error this entry exists to correct.
+
+⚠️ **Cost: the plant suite now runs roughly twice as long** — it runs itself
+twice, once per locale. That is the price of the only check that has caught this
+class.
+
+35 planted cases. 174 passed, 2 skipped. No experiment artefact changed —
+confirmed rather than assumed.
+
 ### The Windows encoding defect was ours too — eighteen sites, one plant — 2026-09-14
 
 Fixing `panphon` cured the **dependency**. Two days later `check_dates.py` and

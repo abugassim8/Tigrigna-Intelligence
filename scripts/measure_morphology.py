@@ -83,7 +83,7 @@ from tigrinya_eval.morphology import (                           # noqa: E402
     check_normalisation, check_surface,
 )
 from tigrinya_eval.primitives import (                           # noqa: E402
-    IntrinsicReport, is_ethiopic, load_corpus,
+    IntrinsicReport, force_utf8_stdio, is_ethiopic, load_corpus,
 )
 
 #: How often to write the table to disk, in words. A crash inside a three-hour
@@ -201,6 +201,10 @@ def table_analyser(table: dict[str, str]) -> Callable[[str], Any]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # ⚠️ NOT in the `__main__` guard: scripts/tests/test_plants.py imports this
+    # module and calls main() directly, so the guard never runs for it.
+    force_utf8_stdio()
+
     ap = argparse.ArgumentParser(
         prog="scripts/measure_morphology.py",
         description="Morphology intrinsic evaluation over a large corpus "
@@ -359,9 +363,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":                                 # pragma: no cover
-    # ⚠️ Windows writes to a pipe or a redirect with the locale codec
-    # (cp1252), not the console's. Without this, printing `⚠️` or `—`
-    # raises UnicodeEncodeError — including while printing a traceback.
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-    raise SystemExit(main())
+    raise SystemExit(main())       # main() calls force_utf8_stdio() itself
