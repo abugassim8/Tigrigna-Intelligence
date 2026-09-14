@@ -22,6 +22,85 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The Windows encoding defect was ours too — eighteen sites, one plant — 2026-09-14
+
+Fixing `panphon` cured the **dependency**. Two days later `check_dates.py` and
+`test_plants.py` crashed on Windows with the same defect **in this repository's
+own code**, and the audit that should have followed the panphon fix had not been
+done.
+
+```
+UnicodeDecodeError: 'charmap' codec ...   in Thread-7
+AttributeError: 'NoneType' object has no attribute 'split'   at check_dates.py:157
+```
+
+**Two errors, one cause, and the second one lies.** `subprocess.run(text=True)`
+decodes with the locale codec — cp1252 on Windows — and `git blame
+--line-porcelain` emits the *content* of every line, which here includes Ge'ez,
+`—` and `⚠️`. The decode runs in a **reader thread**: that thread dies, `stdout`
+becomes `None`, and `check=True` still sees a process that exited 0. The
+traceback then lands sixty lines away, pointing at innocent code.
+
+**The audit found three groups, not two symptoms.**
+
+| Defect | Sites | Consequence on Windows |
+| --- | ---: | --- |
+| `subprocess.run(text=True)`, no `encoding` | 6 | Decode crash on any non-ASCII child output |
+| `write_text(...)`, no `encoding` | 10 | `UnicodeEncodeError` **on write** |
+| stdout/stderr not forced to UTF-8 | 23 | `print("⚠️")` fails into a pipe or a redirect |
+
+**The write side was the serious one.** Eight `experiments/*/run.py` could not
+rewrite their own `results.json` under a non-UTF-8 locale, so **DEC-016
+byte-identity was uncheckable on Windows** — `run.py --check` would crash before
+comparing anything.
+
+✅ **The read side was already correct** — every `read_text`/`open` passed an
+explicit encoding. A one-directional gap, not rot.
+
+⚠️ **The reported "11 of 30 plants passed" could not be trusted.** A plant
+expecting exit 1 **still passes when the child dies of an encoding crash**,
+because a crash also exits non-zero. That is precisely the failure this suite
+exists to prevent, so it had to be fixed rather than worked around.
+
+**The fix is the plant, not the eighteen edits.** `ENCODING_PLANTS` reruns the
+entry points with an **ASCII** default — stricter than cp1252, so anything
+Windows rejects is rejected here — and CI catches the regression on Linux.
+
+⚠️ **`LC_ALL=C` alone would have been an ornament.** PEP 538 coerces the C
+locale to C.UTF-8 and PEP 540 has a UTF-8 mode, so Python hands back UTF-8
+anyway and the plant would pass on every input. `PYTHONCOERCECLOCALE=0`,
+`PYTHONUTF8=0` and an unset `PYTHONIOENCODING` are each required; together they
+were verified to yield `ANSI_X3.4-1968`, and the write plant now **aborts
+loudly** if the locale is ever UTF-8 rather than passing. Caught while writing
+it, so it is **not** counted among the checks that could not fail — the count
+stands at eleven.
+
+**Verified in both directions, one revert at a time.** Each revert failed
+**exactly one** plant, with the error class that revert predicts:
+
+| Reverted | Plant that failed | Error |
+| --- | --- | --- |
+| stdout reconfigure in `check_figures.py` | `check_figures.py` prints | `UnicodeEncodeError` |
+| `encoding=` in `Harness.save()` | `Harness.save()` writes Ge'ez | `UnicodeEncodeError` |
+| subprocess `encoding=` in `check_dates.py` | `check_dates.py` prints | `UnicodeDecodeError` |
+
+34 planted cases, up from 30.
+
+**`.gitattributes` removes the line-ending trap** rather than documenting it.
+`* -text` stops Git for Windows rewriting LF to CRLF on checkout, which would
+break the SHA-256 anchor verification, DEC-016 byte-identity, and the mixed-ending
+`validation/sheets/*.csv`. Verified to change no committed byte
+(`git add --renormalize` staged nothing new). The migration guide's step 0 now
+documents a setting the repository enforces.
+
+**`check_dates.py` also raises `NoHistoryError` when blame output is `None`** —
+so a decode failure says *what* failed instead of surfacing as `AttributeError`
+in unrelated code.
+
+All 11 experiments re-run: **byte-identical except `006-tier0-latency`**, which
+is declared `"deterministic": false` under DEC-016 Amendment 1. 174 passed, 2
+skipped.
+
 ### Tigrinya transliteration was broken on Windows, from one missing word — 2026-09-14
 
 Following the migration guide on Windows produced **53 failures from a single

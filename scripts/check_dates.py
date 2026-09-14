@@ -147,10 +147,26 @@ def _blame_dates(path: pathlib.Path) -> dict[int, datetime.date]:
     try:
         out = subprocess.run(
             cmd + ["--", str(path)],
-            cwd=REPO, capture_output=True, text=True, check=True,
+            cwd=REPO, capture_output=True, check=True,
+            # ⚠️ Both arguments are load-bearing on Windows. `text=True` alone
+            # decodes with the locale default — cp1252 there — and
+            # `--line-porcelain` emits the CONTENT of every line, which in this
+            # repository includes Ge'ez, em-dashes and ⚠️. The decode happens in
+            # a reader thread, so on failure that thread dies, `check=True` sees
+            # a process that exited 0, and `.stdout` silently becomes None. The
+            # traceback then lands 60 lines away on `None.split`, pointing at
+            # innocent code. `errors="replace"` means a surprising byte becomes
+            # a visible character instead of a dead thread.
+            encoding="utf-8", errors="replace",
         ).stdout
     except (subprocess.CalledProcessError, FileNotFoundError):
         return {}
+
+    if out is None:                      # belt-and-braces; see the note above
+        raise NoHistoryError(
+            f"git blame produced no output for {path} — its stdout could not be "
+            f"decoded. This check cannot report drift it never read."
+        )
 
     dates: dict[int, datetime.date] = {}
     line_no, stamp = None, None
@@ -190,11 +206,12 @@ def _is_shallow() -> bool:
     try:
         out = subprocess.run(
             ["git", "rev-parse", "--is-shallow-repository"],
-            cwd=REPO, capture_output=True, text=True, check=True,
-        ).stdout.strip()
+            cwd=REPO, capture_output=True, check=True,
+            encoding="utf-8", errors="replace",
+        ).stdout
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
-    return out == "true"
+    return (out or "").strip() == "true"
 
 
 def drifted() -> list[tuple[str, int, str, str, int, str]]:
@@ -303,4 +320,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # ⚠️ Windows writes to a pipe or a redirect with the locale codec
+    # (cp1252), not the console's. Without this, printing `⚠️` or `—`
+    # raises UnicodeEncodeError — including while printing a traceback.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     sys.exit(main())

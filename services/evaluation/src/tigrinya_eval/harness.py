@@ -160,5 +160,6 @@ class Harness:
     def save(self, path: str | pathlib.Path) -> None:
         pathlib.Path(path).write_text(
             json.dumps({"results": [r.to_dict() for r in self._results]},
-                       ensure_ascii=False, indent=2)
+                       ensure_ascii=False, indent=2),
+            encoding="utf-8",
         )

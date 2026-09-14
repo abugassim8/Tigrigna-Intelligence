@@ -535,10 +535,16 @@ def main():
     }
     report(record)
     if args.json:
-        pathlib.Path(args.json).write_text(json.dumps(record, ensure_ascii=False, indent=2))
+        pathlib.Path(args.json).write_text(
+            json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"\nWrote {args.json}")
     return 1 if blocking else 0
 
 
 if __name__ == "__main__":
+    # ⚠️ Windows writes to a pipe or a redirect with the locale codec
+    # (cp1252), not the console's. Without this, printing `⚠️` or `—`
+    # raises UnicodeEncodeError — including while printing a traceback.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     sys.exit(main())

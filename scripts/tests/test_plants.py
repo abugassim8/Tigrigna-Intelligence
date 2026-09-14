@@ -20,6 +20,7 @@ Usage:
 
 from __future__ import annotations
 
+import os
 import pathlib
 import shutil
 import subprocess
@@ -27,6 +28,23 @@ import sys
 import tempfile
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
+
+#: How every plant subprocess decodes its child.
+#:
+#: ⚠️ `text=True` on its own decodes with the *locale* default — UTF-8 on Linux
+#: but **cp1252 on Windows** — and every script planted here prints `⚠️`, `—`
+#: and Ge'ez. The decode runs in a reader thread, so a failure there does not
+#: raise at the call: the thread dies, `.stdout` becomes None, and the plant
+#: reports a misleading exit status instead of a decode error.
+#:
+#: That is the failure mode this suite exists to prevent, so it must not be the
+#: suite's own. ⚠️ A plant expecting exit 1 **still "passes" when the child died
+#: of an encoding crash**, because a crash also exits non-zero.
+#:
+#: This is only half the fix. The other half is in the children: a Python
+#: process writing to a *pipe* on Windows encodes with cp1252 regardless of the
+#: console, so each entry point forces its own stdout to UTF-8.
+CHILD_IO = {"text": True, "encoding": "utf-8", "errors": "replace"}
 
 # --------------------------------------------------------------------------
 # screen_dataset.py — the Ge'ez mojibake gate
@@ -65,7 +83,7 @@ def run_screen_plants() -> list[str]:
             r = subprocess.run(
                 [sys.executable, str(SCREEN), str(corpus), "--licence", "mit",
                  "--script", "geez", "--eval-set", str(EVAL_SET)],
-                capture_output=True, text=True)
+                capture_output=True, **CHILD_IO)
             status = "PASS" if r.returncode == expect else "FAIL"
             print(f"  [{status}] screen_dataset: {label} "
                   f"(exit {r.returncode}, expected {expect})")
@@ -131,7 +149,7 @@ def run_figure_plants() -> list[str]:
         for label, plant, expect in FIGURE_PLANTS:
             target.write_text(original + plant, encoding="utf-8")
             r = subprocess.run([sys.executable, "scripts/check_figures.py"],
-                               cwd=work, capture_output=True, text=True)
+                               cwd=work, capture_output=True, **CHILD_IO)
             status = "PASS" if r.returncode == expect else "FAIL"
             print(f"  [{status}] check_figures: {label} "
                   f"(exit {r.returncode}, expected {expect})")
@@ -355,7 +373,7 @@ def run_harness_plants() -> list[str]:
         script.write_text(HARNESS_PLANT, encoding="utf-8")
         for label, case, expect in HARNESS_PLANTS:
             r = subprocess.run([sys.executable, str(script), case],
-                               cwd=REPO, capture_output=True, text=True)
+                               cwd=REPO, capture_output=True, **CHILD_IO)
             status = "PASS" if r.returncode == expect else "FAIL"
             print(f"  [{status}] measure_morphology: {label} "
                   f"(exit {r.returncode}, expected {expect})")
@@ -373,7 +391,7 @@ def run_morphology_plants() -> list[str]:
         script.write_text(MORPH_PLANT, encoding="utf-8")
         for label, case, expect in MORPH_PLANTS:
             r = subprocess.run([sys.executable, str(script), case],
-                               cwd=REPO, capture_output=True, text=True)
+                               cwd=REPO, capture_output=True, **CHILD_IO)
             if r.returncode == PLANT_SKIP:
                 skipped.append(label)
                 print(f"  [SKIP] morphology: {label} — needs HornMorpho ABSENT; "
@@ -388,9 +406,103 @@ def run_morphology_plants() -> list[str]:
     return problems
 
 
+# --------------------------------------------------------------------------
+# The whole Windows text-encoding class
+#
+# Two of these scripts were reported crashing on Windows, and both were the
+# same defect: text I/O with no explicit encoding, which uses the **locale
+# default** — UTF-8 on Linux, cp1252 on Windows. Fixing the eighteen call
+# sites is not the fix; this is. It reruns the entry points with an ASCII
+# default, which is *stricter* than cp1252, so anything Windows would reject
+# is rejected here too and CI catches the regression on Linux.
+#
+# ⚠️ `LC_ALL=C` alone is not enough. PEP 538 coerces the C locale to C.UTF-8
+# and PEP 540 has a UTF-8 mode, so Python quietly hands back UTF-8 anyway and
+# the plant would pass on every input — the very failure this file exists to
+# catch. `PYTHONCOERCECLOCALE=0`, `PYTHONUTF8=0` and an unset
+# `PYTHONIOENCODING` are each required; together they were verified to yield
+# `ANSI_X3.4-1968`, and the write plant aborts loudly if they ever stop.
+#
+# The two halves are tested separately and both are needed:
+#   - **printing** — the three checkers emit `⚠️` and `—` into a pipe;
+#   - **writing**  — `Harness.save()` writes Ge'ez to a file.
+# --------------------------------------------------------------------------
+
+ASCII_ENV = {"PYTHONUTF8": "0", "PYTHONCOERCECLOCALE": "0",
+             "LC_ALL": "C", "LANG": "C", "LC_CTYPE": "C"}
+
+#: Written to a temp file rather than passed with `-c`: under an ASCII locale
+#: Python decodes a `-c` argument with the filesystem encoding, so Ge'ez on the
+#: command line would fail for a reason that has nothing to do with the code
+#: under test. A `.py` file is UTF-8 by default whatever the locale is.
+ENCODING_WRITE_PLANT = r'''
+"""Round-trip Ge'ez through Harness.save() with no UTF-8 anywhere in the env.
+
+PRINTS ASCII ONLY, on purpose. The *printing* half of this defect is covered
+by running the real checkers; this plant isolates the *writing* half, and a
+print failure here would mask it.
+"""
+import json, locale, pathlib, sys, tempfile
+
+if locale.getpreferredencoding(False).lower().replace("-", "") in (
+        "utf8", "cp65001"):
+    print("ABORT: the locale is still UTF-8, so this plant proves nothing")
+    sys.exit(3)
+
+from tigrinya_eval.harness import EvalSet, Harness
+
+GEEZ = ["ሰላም ዓለም"]           # "selam alem"
+EM_DASH = "—"
+
+h = Harness()
+h.evaluate("plant", GEEZ, EvalSet("plant", "unknown", GEEZ), notes=(EM_DASH,))
+
+with tempfile.TemporaryDirectory() as tmp:
+    out = pathlib.Path(tmp) / "r.json"
+    h.save(out)                      # UnicodeEncodeError here if unfixed
+    back = json.loads(out.read_text(encoding="utf-8"))
+
+assert back["results"][0]["notes"] == [EM_DASH], back
+print("OK: non-ASCII round-tripped under", locale.getpreferredencoding(False))
+'''
+
+#: (label, argv after the interpreter, expected exit). `None` marks the case
+#: that runs ENCODING_WRITE_PLANT from a temp file.
+ENCODING_PLANTS = [
+    ("check_dates.py prints under an ASCII locale",       ["scripts/check_dates.py"], 0),
+    ("check_figures.py prints under an ASCII locale",     ["scripts/check_figures.py"], 0),
+    ("check_definitions.py prints under an ASCII locale", ["scripts/check_definitions.py"], 0),
+    ("Harness.save() writes Ge'ez under an ASCII locale", None, 0),
+]
+
+
+def run_encoding_plants() -> list[str]:
+    problems = []
+    env = dict(os.environ)
+    env.pop("PYTHONIOENCODING", None)          # would defeat the whole check
+    env.update(ASCII_ENV)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        script = pathlib.Path(tmp) / "encoding_plant.py"
+        script.write_text(ENCODING_WRITE_PLANT, encoding="utf-8")
+        for label, argv, expect in ENCODING_PLANTS:
+            argv = [str(script)] if argv is None else argv
+            r = subprocess.run([sys.executable, *argv], cwd=REPO, env=env,
+                               capture_output=True, **CHILD_IO)
+            status = "PASS" if r.returncode == expect else "FAIL"
+            print(f"  [{status}] ascii-locale: {label} "
+                  f"(exit {r.returncode}, expected {expect})")
+            if r.returncode != expect:
+                detail = (r.stderr or r.stdout).strip().splitlines()[-1:] or [""]
+                problems.append(
+                    f"ascii-locale plant misbehaved: {label} — {detail[0]}")
+    return problems
+
+
 def main() -> int:
     problems = (run_screen_plants() + run_figure_plants()
-                + run_morphology_plants() + run_harness_plants())
+                + run_morphology_plants() + run_harness_plants()
+                + run_encoding_plants())
     print()
     for p in problems:
         print(f"::error::{p}")
@@ -413,4 +525,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # ⚠️ Windows writes to a pipe or a redirect with the locale codec
+    # (cp1252), not the console's. Without this, printing `⚠️` or `—`
+    # raises UnicodeEncodeError — including while printing a traceback.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     sys.exit(main())

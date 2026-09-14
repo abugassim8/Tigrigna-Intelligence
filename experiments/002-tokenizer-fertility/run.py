@@ -288,9 +288,16 @@ def main():
     print(f"\n  DEC-007 token-efficiency rationale: "
           f"{'SUPPORTED' if results['H3']['confirmed'] else 'NOT SUPPORTED'}")
 
-    RESULTS.write_text(json.dumps(results, ensure_ascii=False, indent=2))
+    RESULTS.write_text(
+        json.dumps(results, ensure_ascii=False, indent=2),
+        encoding="utf-8")
     print(f"\n  Wrote {RESULTS.name}")
 
 
 if __name__ == "__main__":
+    # ⚠️ Windows writes to a pipe or a redirect with the locale codec
+    # (cp1252), not the console's. Without this, printing `⚠️` or `—`
+    # raises UnicodeEncodeError — including while printing a traceback.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     main()

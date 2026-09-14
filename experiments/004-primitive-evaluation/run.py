@@ -192,9 +192,16 @@ def main():
     print(f"  Alignment (DEC-007/DEC-022) sound     : "
           f"{'YES' if results['H3']['confirmed'] else 'NO — needs a real design'}")
 
-    RESULTS.write_text(json.dumps(results, ensure_ascii=False, indent=2))
+    RESULTS.write_text(
+        json.dumps(results, ensure_ascii=False, indent=2),
+        encoding="utf-8")
     print(f"\n  Wrote {RESULTS.name}")
 
 
 if __name__ == "__main__":
+    # ⚠️ Windows writes to a pipe or a redirect with the locale codec
+    # (cp1252), not the console's. Without this, printing `⚠️` or `—`
+    # raises UnicodeEncodeError — including while printing a traceback.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     main()
