@@ -47,24 +47,29 @@ from tigrinya_translate.translate import MadladTranslator
 out = translate_all(["Wash your hands often."], MadladTranslator())
 ```
 
-## ⚠️ The language token has never been verified
+## The language token — verified, and the gate stays anyway
 
-MADLAD selects its target language with a prefix token, and `LANGUAGE_TOKEN` is
-set to `"<2ti>"` — **the obvious guess from the ISO code, checked against
-nothing.** `huggingface.co` was unreachable from the environment this was
-written in.
+`LANGUAGE_TOKEN = "<2ti>"`. ✅ **Verified 2026-09-15** against the Hub's
+`tokenizer.json`: MADLAD's language tokens are ordinary Unigram vocab pieces
+from index 4, sorted alphabetically, and `"<2ti>"` sits between `<2tet>` and
+`<2tiv>`. It was an unchecked guess for a day; it is not now.
 
-The obvious guess is exactly what went wrong with `hm.download('ti')`: a
-plausible language code, written into instructions, never checked, and wrong
-(**A-20**). A translation model is the worse case, because an unknown prefix
-does not fail — it becomes ordinary text, and the model emits *some* language,
-fluently, with the right segment count and a perfectly scoreable chrF.
+⚠️ **The gate is not removed, and removing it would be the mistake.** The value
+is verified for *this checkpoint*. An unknown prefix does not fail — it becomes
+ordinary text, and the model emits *some* language, fluently, with the right
+segment count and a perfectly scoreable chrF. That failure is invisible to every
+other check here, so `MadladTranslator` checks the token against **the
+tokenizer's own vocabulary** at load time and refuses to run if it is absent,
+naming what is accepted; `scripts/translate_tico19.py` then checks the *output*
+for Ethiopic script and aborts without writing if it is not there.
 
-So `MadladTranslator` checks the token against **the tokenizer's own
-vocabulary** at load time and refuses to run if it is absent, naming what is
-accepted. `scripts/translate_tico19.py` then checks the *output* for Ethiopic
-script and aborts without writing if it is not there — two independent gates,
-because this failure is invisible to every other check in the repository.
+⚠️ **The gate nearly failed the other way, which is the more interesting risk.**
+`tokenizer_config.json` has `"additional_special_tokens": []` and
+`tokenizer.json` has `"added_tokens": []`. Had the `<2xx>` prefixes been split
+into subwords rather than being real vocab entries, `get_vocab()` would not
+contain `"<2ti>"` and this check would have **rejected a valid token and blocked
+the run** after an 11.8 GB download — a check firing on correct input, which is
+how checks get switched off. They are real pieces, so it does not.
 
 ## Installing
 
@@ -88,8 +93,20 @@ python3 scripts/translate_tico19.py --self-test
 python3 scripts/translate_tico19.py --json PATH --sheet PATH
 ```
 
-The first needs no model and no network. The second downloads ~12 GB on first
-run and takes tens of minutes on CPU for 100 segments.
+The first needs no model and no network. The second downloads **11.76 GB**
+(`model.safetensors`, 11,761,587,872 bytes) plus ~21 MB of tokenizer, and takes
+tens of minutes on CPU for 100 segments.
+
+⚠️ **Set `HF_TOKEN` first.** An unauthenticated Hub request is throttled hard —
+measured at **57 kB/s**, which is about **47 hours** for this download. With a
+token it is minutes. The project has had one since **A-08** (2026-09-03);
+`pip install hf_transfer` and `HF_HUB_ENABLE_HF_TRANSFER=1` help further, and a
+partial download resumes from the cache, so an interrupted fetch costs nothing.
+
+⚠️ The three GGUF files in the same repo (965 MB / 1.26 GB / **1.65 GB** at Q4)
+are **not** fetched by `transformers`. Using one means a different runtime
+(llama.cpp or candle) and, because quantisation changes the output, **a
+different measurement** — recorded as one, never swapped in silently.
 
 ⚠️ **chrF is not the finding.** Experiment 011 measured two professional human
 translators agreeing with each other at **chrF ≈ 24** on this same data, so the

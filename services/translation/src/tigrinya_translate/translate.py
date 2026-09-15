@@ -19,17 +19,25 @@ MODEL = "google/madlad400-3b-mt"
 
 #: MADLAD selects the target language with a prefix token on the source text.
 #:
-#: ⚠️ **This value has never been verified against the tokenizer.** It is the
-#: obvious guess from the ISO code, and the obvious guess is exactly what went
-#: wrong with `hm.download('ti')` — a plausible language code, written into
-#: instructions, never checked, and wrong. HornMorpho rejected 'ti' outright;
-#: a translation model is worse, because an unknown prefix is just text and the
-#: model will happily translate into *something*, producing a plausible,
-#: scoreable, meaningless result.
+#: ✅ **Verified 2026-09-15** against `tokenizer.json` on the Hub: language
+#: tokens are ordinary Unigram vocab pieces from index 4, sorted alphabetically,
+#: and `"<2ti>"` sits between `<2tet>` and `<2tiv>`. `ti` is also in the model
+#: card's language list. It was an unchecked guess when written; it is not now.
 #:
-#: So `MadladTranslator` checks it against the tokenizer's own vocabulary at
-#: load time and refuses to run if it is absent. See
-#: `UnknownLanguageTokenError`.
+#: ⚠️ **The check below stays anyway, and deleting it would be the mistake.**
+#: The value is verified for *this checkpoint*. It costs nothing and it guards
+#: a different checkpoint, a different model, or a careless edit — and the
+#: failure it prevents is silent: an unknown prefix does not raise, it becomes
+#: ordinary text, and the model emits fluent output in some other language with
+#: the right segment count and a perfectly scoreable chrF.
+#:
+#: ⚠️ It also nearly failed the *other* way. `tokenizer_config.json` has
+#: `"additional_special_tokens": []` and `tokenizer.json` has
+#: `"added_tokens": []`. Had the `<2xx>` prefixes been split into subwords
+#: rather than being real vocab entries, `get_vocab()` would not contain
+#: `"<2ti>"` and this gate would have **rejected a valid token and blocked the
+#: run** — a check firing on correct input, which is how checks get switched
+#: off. They are real pieces, so it does not.
 LANGUAGE_TOKEN = "<2ti>"
 
 #: A callable taking English segments and returning the same number of Tigrinya
@@ -107,6 +115,11 @@ class MadladTranslator:
     download it is the first test it has ever had — which is why the
     language-token check is loud and comes first.
 
+    `LANGUAGE_TOKEN` itself **is** now verified (2026-09-15, against the Hub's
+    `tokenizer.json`). The `generate` call below is not, and the two should not
+    be confused: knowing the right prefix says nothing about whether the
+    decoding arguments are right.
+
     CPU notes, for the 16 GB machine this was written for:
 
       - `bfloat16` is about 6 GB resident; float32 is about 12 GB and will
@@ -134,11 +147,19 @@ class MadladTranslator:
         tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self._assert_language_token(tokenizer, self.language_token)
 
-        model = AutoModelForSeq2SeqLM.from_pretrained(
-            self.model_name,
-            torch_dtype=getattr(torch, self.dtype),
-            low_cpu_mem_usage=True,
-        )
+        # ⚠️ The keyword was renamed. `transformers` 5.x takes `dtype=` and
+        # warns loudly on `torch_dtype=`; 4.x takes only `torch_dtype=`. The
+        # pyproject floor is `>=4.40`, so both are live and neither spelling is
+        # safe on its own — try the new one and fall back rather than pinning
+        # the floor upward for a keyword rename.
+        kwargs = {"low_cpu_mem_usage": True}
+        precision = getattr(torch, self.dtype)
+        try:
+            model = AutoModelForSeq2SeqLM.from_pretrained(
+                self.model_name, dtype=precision, **kwargs)
+        except TypeError:
+            model = AutoModelForSeq2SeqLM.from_pretrained(
+                self.model_name, torch_dtype=precision, **kwargs)
         model.eval()
         return tokenizer, model
 

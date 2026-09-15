@@ -530,8 +530,9 @@ parallel sentences"** (there were 2,030, public and CC-BY-4.0 throughout),
 at 55.5% once the instrument was calibrated against a corpus that declares its
 own variety.
 
-**Eight decisions now carry amendments** (DEC-005, 007, 009, **010**, 016, 020,
-023, 030), all of them corrections the project made against itself — including
+**Nine decisions now carry amendments** (DEC-005, 007, 009, **010**, **011**,
+016, 020, 023, 030), all of them corrections the project made against itself —
+including
 **DEC-020**, whose "no dependency imposes copyleft" basis survived only because
 the one dependency on the critical path had never been read, and **DEC-030**,
 whose quarantine of the 1.4M corpus rested on licence until somebody finally

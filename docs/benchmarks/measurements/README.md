@@ -14,7 +14,8 @@ re-checks.
 
 **`translation-en-ti-*.json`**, produced by `scripts/translate_tico19.py`, is
 here for the same reason and a different dependency: `google/madlad400-3b-mt` is
-**~12 GB to download and 6 GB resident**. CI re-runs every `experiments/*/run.py`
+**11.76 GB to download** (`model.safetensors`, 11,761,587,872 bytes, read from
+the Hub listing 2026-09-15) **and ~6 GB resident in bfloat16**. CI re-runs every `experiments/*/run.py`
 and byte-compares its artefact; it cannot do that with a model of this size.
 
 ⚠️ **The model is Apache-2.0, which is the whole point.** DEC-011 quarantines

@@ -22,6 +22,59 @@ first service is deployed.
 
 ## [Unreleased]
 
+### `<2ti>` verified, DEC-011's size corrected, and a token my guide never mentioned — 2026-09-15
+
+Three corrections, all from reading the Hub listing while the owner's first
+model download was in progress.
+
+**✅ `<2ti>` is right.** The entry below records it as *"an unverified guess,
+checked against nothing"*, which was true when written. It is not now: MADLAD's
+language tokens are ordinary Unigram vocab pieces from index 4, sorted
+alphabetically, and `"<2ti>"` sits between `<2tet>` and `<2tiv>`.
+
+⚠️ **The gate stays, and the near-miss is the interesting part.**
+`tokenizer_config.json` has `"additional_special_tokens": []` and
+`tokenizer.json` has `"added_tokens": []`. Had the `<2xx>` prefixes been split
+into subwords rather than being real vocab entries, `get_vocab()` would not
+contain `"<2ti>"` and the check would have **rejected a valid token and blocked
+the run after an 11.8 GB download** — a check firing on correct input, which is
+how checks get switched off. They are real pieces, so it does not.
+
+**⚠️ DEC-011 states a size the artefact contradicts.** It says MADLAD-400-3B is
+*"1.4 GB at Q4"*, in three places. `model-q4k.gguf` is **1,654,597,280 bytes —
+1.65 GB**, and the model card itself says *"1.65 GB vs the original 11.8 GB
+file"*. Recorded as **DEC-011 Amendment 1**; the decision is unaffected, since
+1.65 GB is still within commodity CPU serving and A-008 still survives.
+
+**This is a figure nothing here could have caught.** `check_figures.py` enforces
+every derived count against the tree, and `1.4 GB` was invisible to it because
+the ground truth lives on a remote host. It went eight weeks unchallenged inside
+an accepted decision.
+
+**⚠️ The migration guide never mentioned `HF_TOKEN`, and it cost an hour.** The
+owner's download crawled at **57 kB/s** — about **47 hours** for the remaining
+9.3 GB — because the Hub throttles unauthenticated requests. Hugging Face printed
+the fix in its own warning, and **the project already knew**: `ACTIONS.md`
+records **A-08 — "Set an `HF_TOKEN`" — owner set it 2026-09-03**.
+
+So the information existed, in this repository, and the guide sent them into an
+11.8 GB download without it. **That is `hm.download('ti')` again** — a step the
+repo knew about, missing from the instructions a person actually follows. The
+guide now sets the token *before* any model download, and records that partial
+downloads resume so an interrupted fetch costs nothing.
+
+**The real download size is now written down**: `model.safetensors` is
+**11,761,587,872 bytes (11.76 GB)** plus ~21 MB of tokenizer. It had never been
+stated at all, which is why nobody could have budgeted for it.
+
+**Also fixed from the owner's terminal output:** `transformers` 5.x renamed
+`torch_dtype=` to `dtype=` and warns on the old spelling, while 4.x accepts only
+the old one. The pyproject floor is `>=4.40`, so both are live — the loader now
+tries the new keyword and falls back, rather than pinning the floor upward for a
+rename.
+
+No behaviour changed. 48 planted cases, 188 tests, unchanged.
+
 ### A model can finally be scored — and it is MADLAD, not NLLB — 2026-09-15
 
 **Nothing in this project had ever loaded a model.** Eleven experiments, a

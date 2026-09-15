@@ -73,7 +73,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
 | DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted — **caveat added by Amendment 1** |
 | DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted — **evidence corrected by Amendment 1** |
-| DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted |
+| DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted — **sizes corrected by Amendment 1** |
 | DEC-012 | 2026-08-10 | Library-first; services are thin wrappers over libraries | Accepted |
 | DEC-013 | 2026-08-10 | Tier by resource profile; never co-locate tiers in one process | Accepted |
 | DEC-014 | 2026-08-10 | CTranslate2 is the single model runtime | Accepted |
@@ -1036,6 +1036,41 @@ evaluations, and the documentation all assume the model that has to be removed.
 
 **Evidence:** `../research/summaries/007-translation-model-selection.md`;
 Hub metadata `[verified]` 2026-08-10
+
+### Amendment 1 — 2026-09-15: the Q4 size was wrong, and the download is bigger than stated
+
+**The decision stands; two of its numbers do not.** Read from the Hub's own file
+listing on 2026-09-15, while the owner was downloading the model for the first
+time:
+
+| Claimed above | Actual | Source |
+| --- | --- | --- |
+| "**1.4 GB at Q4**" (three places) | **1.65 GB** — `model-q4k.gguf`, 1,654,597,280 bytes | Hub listing; the model card says *"1.65 GB vs the original 11.8 GB file"* |
+| — (never stated) | **11.76 GB** — `model.safetensors`, 11,761,587,872 bytes | Hub listing |
+
+**This changes nothing about the choice.** 1.65 GB is still within commodity CPU
+serving and **A-008 still survives** — the argument is unaffected and Option B
+remains the only Apache-2.0 path that includes Tigrinya at a servable size.
+
+⚠️ **It is recorded because it is a figure this repository could not catch.**
+`check_figures.py` enforces every derived count against the tree, and `1.4 GB`
+was invisible to it: the ground truth lives on a remote host, not in the
+repository. Nothing here can verify a claim about someone else's file, and this
+one went eight weeks unchallenged in an accepted decision.
+
+⚠️ **The 11.76 GB figure is the one that had a cost.** It was never written down
+at all, so the migration guide told the owner to start the download without
+saying how large it was, or that an unauthenticated Hub request is throttled —
+see **A-08**, where the project had already established a token was needed.
+
+Also corrected while reading the same listing: **`<2ti>` is the right MADLAD
+language token for Tigrinya**, verified against `tokenizer.json` rather than
+assumed. It had been an unchecked guess for a day.
+
+⚠️ The 1.4 GB figures above are **left standing** as the decision recorded them.
+Under **DEC-024** a dated entry is a snapshot; the correction belongs here, not
+in a silent edit to eight-week-old prose. The unrelated "~1.4 GB peak" for LoRA
+elsewhere in this file is a different quantity and is untouched.
 
 ---
 
