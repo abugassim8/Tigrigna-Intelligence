@@ -113,7 +113,7 @@ _SKIP_REASON = (
     "so it is never bundled (DEC-028). This property is UNVERIFIED — not "
     "verified-true. Install it and re-run to measure:\n"
     "        pip install git+https://github.com/hltdi/HornMorpho\n"
-    '        python -c "import hm; hm.download(\'ti\')"'
+    '        python -c "import hm; hm.download(\'t\')"'
 )
 
 _COVERAGE_NOTE = (

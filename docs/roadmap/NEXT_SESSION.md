@@ -315,7 +315,7 @@ quantitatively that they are one translation lineage, not independent references
 instruction, 2026-09-04). Drafts in `ACTIONS.md` are written *for the owner to
 send*; an assistant may compose and refine, never send.
 
-**Thirteen open actions.** All but **A-14** need a person, and A-14 is blocked
+**Fifteen open actions.** All but **A-14** need a person, and A-14 is blocked
 on A-09 anyway. Full detail and ready-to-send drafts are in
 [`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:
 

@@ -407,6 +407,57 @@ def run_morphology_plants() -> list[str]:
 
 
 # --------------------------------------------------------------------------
+# check_commands.py — the instructions a human follows by hand
+#
+# Every other claim in this repository was enforced: figures, dates, derived
+# counts, planted behaviour. The commands it *prints* were not, and two of them
+# did not work — one of them the error message shown at the exact moment a user
+# needs the right answer (`hm.download('ti')`, A-20), and one a `--verify` flag
+# that no script has ever defined.
+#
+# ⚠️ The negative cases matter more than usual here. A checker that flagged
+# every `--flag` it saw would fire on `--write`, `--check` and `--list`, all of
+# which are real, and would be switched off the same day.
+# --------------------------------------------------------------------------
+
+COMMAND_PLANTS = [
+    # The two defects that prompted this, restored verbatim.
+    ("a flag no script declares",
+     "\n\nRun `python data/anchors/tico19/fetch.py --verify` to check.\n", 1),
+    ("a script path that resolves nowhere",
+     "\n\nRun `python scripts/check_nothing.py --list` first.\n", 1),
+    # Negative cases: every one of these is a real, working command today.
+    ("a real flag on a repo-root path", "\n\n`python scripts/check_dates.py --list`\n", 0),
+    ("a real flag on a script beside the document",
+     "\n\n`python3 scripts/check_figures.py --list`\n", 0),
+    ("a flag that is argparse's own", "\n\n`python scripts/check_dates.py --help`\n", 0),
+    ("untouched control", "", 0),
+]
+
+
+def run_command_plants() -> list[str]:
+    problems = []
+    with tempfile.TemporaryDirectory() as tmp:
+        work = pathlib.Path(tmp) / "repo"
+        shutil.copytree(REPO, work,
+                        ignore=shutil.ignore_patterns(".git", "__pycache__",
+                                                      ".pytest_cache"))
+        target = work / "docs" / "vision" / "goals.md"
+        original = target.read_text(encoding="utf-8")
+        for label, plant, expect in COMMAND_PLANTS:
+            target.write_text(original + plant, encoding="utf-8")
+            r = subprocess.run([sys.executable, "scripts/check_commands.py"],
+                               cwd=work, capture_output=True, **CHILD_IO)
+            status = "PASS" if r.returncode == expect else "FAIL"
+            print(f"  [{status}] check_commands: {label} "
+                  f"(exit {r.returncode}, expected {expect})")
+            if r.returncode != expect:
+                detail = (r.stdout or r.stderr).strip().splitlines()[-1:] or [""]
+                problems.append(
+                    f"check_commands plant misbehaved: {label} — {detail[0]}")
+    return problems
+
+# --------------------------------------------------------------------------
 # The whole Windows text-encoding class
 #
 # Two of these scripts were reported crashing on Windows, and both were the
@@ -526,7 +577,7 @@ def run_encoding_plants() -> list[str]:
 def main() -> int:
     problems = (run_screen_plants() + run_figure_plants()
                 + run_morphology_plants() + run_harness_plants()
-                + run_encoding_plants())
+                + run_command_plants() + run_encoding_plants())
     print()
     for p in problems:
         print(f"::error::{p}")

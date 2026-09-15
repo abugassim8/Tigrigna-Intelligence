@@ -22,6 +22,87 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Two of the commands this repository printed could not run — 2026-09-15
+
+Every claim here was enforced — figures, dates, derived counts, planted
+behaviour — except **the instructions a human follows by hand**. Two of them
+were wrong, and one was an error message.
+
+**1. `hm.download('ti')` cannot work, in any version.**
+`hm/morpho/languages.py` keeps two mappings: `CODES` maps aliases onto canonical
+codes (`'ti'` → `'t'`), and `ABBREV2LANG` holds only the canonical keys.
+`hm.analyze()` normalises through `CODES`. **`hm.download()` does not** — it
+tests raw membership at `hm/__init__.py:276`. Verified against 5.3.6:
+
+| | |
+| --- | --- |
+| `'ti' in ABBREV2LANG` | **False** |
+| `'t' in ABBREV2LANG` | True |
+| `hm.analyze('ti', 'ሰላም')` | `Word`, 1 analysis |
+| `hm.analyze('t', 'ሰላም')` | `Word`, 1 analysis |
+
+So `'ti'` analysed fine and downloaded nothing. It appeared in **five** places,
+including `_NOT_INSTALLED` and `_NO_LANGUAGE` — **the text shown at the exact
+moment a user's language data is missing**, which is the worst place in the
+repository for a command that fails. Reported upstream as **A-20**.
+
+⚠️ **The right answer was already in this repository.**
+`docs/benchmarks/measurements/README.md` fetches `languages/t.tgz` — the manual
+recipe was verified, the printed command was not, and the two were never
+cross-read. It survived six weeks because the only environment that could have
+run it is blocked from the host that serves the data.
+
+**2. `fetch.py --verify` does not exist.** The Windows migration guide told the
+owner to run it. Both `fetch.py` scripts define only `--write`; **bare
+invocation is the verify mode.** The line was hedged rather than checked, and a
+hedge is not a verified command.
+
+**`LANGUAGE` is now `'t'`** — the canonical form, the one the library uses on
+disk, and the only one that works for **both** `analyze()` and `download()`, so
+the asymmetry is removed rather than documented. ✅ Measured not to move
+anything: over **800 unique TICO-19 anchor words, `'ti'` and `'t'` produce 0
+differing analyses**, and the rendered forms our measurements store are
+identical.
+
+⚠️ `repr()` was the wrong way to compare them and said all 800 differed.
+HornMorpho's `Word.__repr__` embeds a global counter (`W0:`, `W1:`), so
+comparing reprs measures the order calls were made in. **Any determinism check
+built on `repr()` of a `Word` would report constant false non-determinism** —
+ours renders the analysis dicts instead, which is why it does not.
+
+**`scripts/check_commands.py`** now enforces the class: every documented
+`python <script>.py --flag` must name a script that exists and a flag that
+script declares. Flags are read with **`ast`, never by importing** — importing
+`screen_dataset` or an experiment's `run.py` to inspect its parser would execute
+it, and a checker with side effects is worse than the defect it catches.
+
+⚠️ **It deliberately does not run anything.** A check that executed documented
+commands would need the network and a 159 MB download, and would be switched off
+within a week — the failure mode DEC-008 exists to prevent. It checks the two
+things most likely to be wrong and cheapest to verify: a flag name and a path.
+
+⚠️ **The checker failed on its own docstring first**, which is the correct
+behaviour — and the fix was to stop spelling the examples as command lines, not
+to add an "ignore this" marker. Marker vocabularies have silently disabled four
+checks here already. The one exclusion, `scripts/tests/`, follows
+`check_figures.py`'s existing precedent and for its stated reason: the plant
+suite must contain broken commands, and every plant's expected exit status is
+itself asserted.
+
+**Planted in both directions.** Six command plants — two defects restored
+verbatim, four real commands that must still pass. Two pytest checks assert the
+printed abbreviation against **HornMorpho's own `ABBREV2LANG`**, never against a
+literal chosen here; with `'ti'` restored they fail with the user's exact error
+text.
+
+⚠️ **The checker is not in CI yet, so it enforces nothing on a push.** A commit
+touching `.github/workflows/` is rejected here — the GitHub App has no
+`workflows` permission — so the step is written out in **A-21** for the owner to
+paste. Until then it is exactly the state A-15 existed to fix for the other 28
+checks, and saying so is better than implying it is live.
+
+41 planted cases, up from 35. 28 CI checks, unchanged. 178 tests — 174 pass and **4 skip** where 2 did before, because both new abbreviation checks consult HornMorpho's registry and refuse to pretend they ran without it (DEC-028).
+
 ### The plant written to close the encoding class missed the next instance — 2026-09-14
 
 The entry below claims *"the fix is the plant, not the eighteen edits"* and that

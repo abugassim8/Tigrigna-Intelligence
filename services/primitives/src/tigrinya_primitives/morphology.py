@@ -21,7 +21,7 @@ HornMorpho is **not on PyPI**, so there is no name pip can resolve — which is
 also why it could never have been an extra::
 
     pip install git+https://github.com/hltdi/HornMorpho
-    python -c "import hm; hm.download('ti')"
+    python -c "import hm; hm.download('t')"
 
 The second line is not optional and is the failure this module works hardest to
 report clearly: **language data is a separate download**, so `import hm`
@@ -95,9 +95,19 @@ from .types import Analysis, OffsetUnit, Span, Variety
 
 _WS = re.compile(r"(\s+)")
 
-#: HornMorpho's code for Tigrinya. `CODES` in `hm/morpho/languages.py` maps
-#: 'ti' to the canonical 't'; passing 'ti' is the documented form.
-LANGUAGE = "ti"
+#: HornMorpho's code for Tigrinya — the **canonical** one, not the ISO-ish
+#: alias, and the difference is not cosmetic.
+#:
+#: ⚠️ `hm/morpho/languages.py` keeps two mappings. `CODES` maps aliases onto
+#: canonical codes ('ti' -> 't'); `ABBREV2LANG` holds only the canonical keys.
+#: **`hm.analyze()` normalises through `CODES`; `hm.download()` does not** — it
+#: tests raw membership (`hm/__init__.py:276`), so `hm.download('ti')` prints
+#: "HornMorpho doesn't know of any language abbreviated ti" and downloads
+#: nothing. Verified against 5.3.6: `'ti' in ABBREV2LANG` is False.
+#:
+#: 't' is the only form that works for **both** calls, which is why it is used
+#: here and in every instruction this package prints. Reported as **A-20**.
+LANGUAGE = "t"
 
 #: Kept for callers that branched on it while this module was a stub.
 BLOCKER = "A-07"
@@ -120,14 +130,14 @@ _NOT_INSTALLED = (
     "HornMorpho is not installed. It is GPL-3.0 and this package is "
     "Apache-2.0, so it is never bundled (DEC-028) — install it yourself:\n"
     "    pip install git+https://github.com/hltdi/HornMorpho\n"
-    '    python -c "import hm; hm.download(\'ti\')"\n'
+    '    python -c "import hm; hm.download(\'t\')"\n'
     "Both lines are needed: the language data is a separate download."
 )
 
 _NO_LANGUAGE = (
-    "HornMorpho is installed but could not load Tigrinya ('ti'). The language "
+    "HornMorpho is installed but could not load Tigrinya ('t'). The language "
     "data is downloaded separately:\n"
-    "    python -c \"import hm; hm.download('ti')\"\n"
+    "    python -c \"import hm; hm.download('t')\"\n"
     "Reported explicitly because hm.analyze() returns None in this case rather "
     "than raising, which would otherwise look like 'no analysis found'."
 )
@@ -157,8 +167,8 @@ def is_available() -> bool:
     try:
         from hm.morpho import languages  # type: ignore[import-not-found]
 
-        # CODES maps the ISO-ish 'ti' onto the canonical 't'; try both rather
-        # than depending on which one is_downloaded expects.
+        # LANGUAGE is already canonical, but map it anyway and try both, so
+        # this keeps working if upstream renames the canonical code.
         canonical = getattr(languages, "CODES", {}).get(LANGUAGE, LANGUAGE)
         return bool(languages.is_downloaded(canonical)
                     or languages.is_downloaded(LANGUAGE))

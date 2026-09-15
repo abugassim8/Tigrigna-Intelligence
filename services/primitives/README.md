@@ -42,7 +42,7 @@ than a placeholder:
 
 ```bash
 pip install git+https://github.com/hltdi/HornMorpho
-python -c "import hm; hm.download('ti')"     # not optional — separate download
+python -c "import hm; hm.download('t')"     # not optional — separate download
 ```
 
 Both lines are needed, and `is_available()` checks both: `import hm` succeeds on

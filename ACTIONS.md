@@ -63,6 +63,8 @@ itself a research finding.
 | ~~**A-17**~~ | ~~Decide how the record is dated~~ | ✅ **DONE** | Resolved: **the commit date wins**; 71 stamps corrected | **DONE** |
 | **A-18** | Report HornMorpho's unconditional GUI import upstream | 🟢 Low | Nothing for us — we install Tk. But it makes HornMorpho **un-importable headless**, which will bite the next person deploying it | TODO |
 | **A-19** | Report HornMorpho's crash on a bare `#` upstream | 🟡 Medium | Nothing for us — the harness records and reports it. But it is a **crash on valid input**, and the same unparsed comment lines put three bogus entries in the Tigrinya lexicon | TODO |
+| **A-20** | Report HornMorpho's abbreviation asymmetry upstream | 🟡 Medium | Nothing for us now — we pass the canonical `'t'`. But `hm.download()` **rejects an abbreviation `hm.analyze()` accepts**, so the natural code fails on every fresh install and the message blames the user's spelling | TODO |
+| **A-21** | Wire `check_commands.py` into CI | 🟢 Low — one paste | **The checker enforces nothing until this is done.** It cannot be committed from this environment: the GitHub App has no `workflows` permission, so a push touching `.github/workflows/` is rejected outright | TODO |
 
 ---
 
@@ -951,6 +953,116 @@ have the same comment lines — worth checking, since the loader is shared.
 **Worth mentioning:** HornMorpho analysed 32,989 of the anchor's 32,990 unique
 words without incident. The report should read as one malformed data line and a
 missing guard, not as a complaint about the analyser.
+
+---
+
+## 🟡 A-20 — Report HornMorpho's abbreviation asymmetry upstream
+
+**Who:** Michael Gasser (`gasser@iu.edu`), via a GitHub issue on
+`hltdi/HornMorpho`. **A third issue, separate from A-18 and A-19** — same
+maintainer, unrelated defect. ⚠️ **Do not bundle.** A-18 is packaging, A-19 is a
+crash on valid input, and this is an interface inconsistency that makes the
+documented install command fail. Bundling is how two of the three get closed.
+
+📧 **The owner sends this.** Like every other draft in this file.
+
+**Blocks:** nothing for us — we pass the canonical `'t'` everywhere now. But it
+cost this project six weeks of a wrong command sitting in an error message, and
+it will cost every new user their first install.
+
+**What to report:**
+
+`hm/morpho/languages.py` keeps two mappings. `CODES` maps ISO-ish aliases onto
+canonical codes (`'ti'` → `'t'`); `ABBREV2LANG` holds only the canonical keys.
+`hm.analyze()` normalises through `CODES` first. **`hm.download()` does not** —
+it tests raw membership at `hm/__init__.py:276`:
+
+```python
+if lang_abbrev not in morpho.ABBREV2LANG:
+    print("HornMorpho doesn't know of any language abbreviated {}.".format(lang_abbrev))
+    return
+```
+
+So the same abbreviation is accepted by one entry point and rejected by the
+other:
+
+```python
+import hm
+hm.analyze('ti', 'ሰላም')     # works — Word, 1 analysis
+hm.download('ti')            # "HornMorpho doesn't know of any language abbreviated ti."
+hm.download('t')             # works
+```
+
+**Why it matters more than it looks.** A user who has just installed the package
+has no language data, so `analyze()` is unavailable to teach them the spelling.
+Their first call is `download()`, and the message says HornMorpho does not know
+the language — which reads as *"Tigrinya is unsupported"*, not *"use a different
+abbreviation"*. It names neither the accepted form nor where to find it.
+
+**Suggested fix** — one line, and it makes `download()` agree with `analyze()`:
+
+```python
+lang_abbrev = morpho.languages.CODES.get(lang_abbrev, lang_abbrev)
+```
+
+Failing that, listing the accepted abbreviations in the message would be enough
+to unblock people:
+
+```python
+print("HornMorpho doesn't know of any language abbreviated {}. Try one of: {}"
+      .format(lang_abbrev, ', '.join(sorted(morpho.ABBREV2LANG))))
+```
+
+**Version tested:** **5.3.6**, Python 3.12. Verified both directions:
+`'ti' in ABBREV2LANG` is `False`, `'t' in ABBREV2LANG` is `True`, and
+`hm.analyze()` returns an identical analysis for either spelling.
+
+⚠️ **We could not test the download itself** — this environment is blocked from
+`github.com` by policy, which is *why* the wrong command survived here so long.
+The abbreviation behaviour is verified; the transfer that follows it is not, so
+the report should not claim anything about the download succeeding.
+
+**Worth mentioning:** the same asymmetry presumably affects `'om'`/`'orm'` →
+`'o'`, `'som'` → `'so'` and the other aliases in `CODES`, so this is not a
+Tigrinya-specific report.
+
+---
+
+## 🟢 A-21 — Wire `check_commands.py` into CI
+
+**Who:** the owner, in a local clone. **One paste, then commit and push.**
+
+⚠️ **This cannot be done from the assistant's environment.** The GitHub App has
+no `workflows` permission, so any push touching `.github/workflows/` is rejected
+with *"refusing to allow a GitHub App to create or update workflow"*. That is a
+permission boundary and not something to route around.
+
+**Blocks:** nothing else — but until it is done, `scripts/check_commands.py`
+**is a checker that enforces nothing**, which is exactly the state A-15 existed
+to fix for the other 28. It passes locally; it just never runs on a push.
+
+**What to add** to `.github/workflows/verify.yml`, directly after the
+`No retired figure is quoted as current (DEC-024)` step:
+
+```yaml
+      # Two commands this repository printed did not work, and one of them was
+      # the error message shown when HornMorpho's language data is missing:
+      # `hm.download('ti')` is rejected by `download()`, which takes only the
+      # canonical 't' (A-20). A migration guide also documented a `--verify`
+      # flag no script has ever defined. Every other claim here was enforced;
+      # the instructions a human follows by hand were not.
+      - name: Documented commands can actually run
+        run: python scripts/check_commands.py
+```
+
+**Then update the two derived counts**, which `check_figures.py` will demand the
+moment the step exists — it reads them from the workflow file:
+
+- `ACTIONS.md` — "switches on **28** checks" → **29**
+- `docs/roadmap/READINESS_PLAN.md` — "**28 checks** start enforcing" → **29**
+
+✅ Confirm with `python scripts/check_figures.py`, which must print `nothing
+stale`, and `python scripts/check_commands.py`, which must exit 0.
 
 ---
 

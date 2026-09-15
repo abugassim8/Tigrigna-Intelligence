@@ -11,6 +11,8 @@ and tested here only for **how it degrades**, not for what it produces.
 
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from tigrinya_primitives import morphology
@@ -279,3 +281,56 @@ def test_word_object_attributes_also_fall_back_to_a_braced_tag():
 
     result = morphology.analyse("ኣብ", analyser=lambda word: Reading())
     assert result.spans[0].analysis == "{ADP}"
+
+
+# ------------------------------------------------ the install instructions
+
+#: Every `hm.download('X')` this package prints, from the module docstring and
+#: from both error-message constants.
+_PRINTED_ABBREVS = re.findall(
+    r"hm\.download\(['\"]([^'\"]+)['\"]\)",
+    "\n".join([morphology.__doc__ or "",
+               morphology._NOT_INSTALLED,
+               morphology._NO_LANGUAGE]))
+
+
+def test_the_install_command_names_an_abbreviation_that_exists():
+    """The text we print at the moment of failure must be runnable.
+
+    ⚠️ This is the check that was missing. `hm.download('ti')` shipped in five
+    places — two of them the error a user sees when the language data is
+    absent — and it **cannot work in any version**: `hm.download()` tests raw
+    membership in `ABBREV2LANG`, which holds only canonical codes, while
+    `hm.analyze()` normalises through `CODES` first. So 'ti' analysed fine and
+    downloaded nothing, and the one environment that could have caught it was
+    blocked from the host that serves the data (A-20).
+
+    Asserted against **HornMorpho's own registry**, never against a literal
+    chosen here — a check comparing our constant to our constant would pass
+    whatever either said.
+    """
+    assert _PRINTED_ABBREVS, "no install command found to check"
+
+    hm = pytest.importorskip(
+        "hm", reason="HornMorpho absent; ABBREV2LANG cannot be consulted")
+    registry = hm.morpho.ABBREV2LANG
+
+    for abbrev in _PRINTED_ABBREVS:
+        assert abbrev in registry, (
+            f"this package tells users to run hm.download({abbrev!r}), which "
+            f"prints \"HornMorpho doesn't know of any language abbreviated "
+            f"{abbrev}\" and downloads nothing. Accepted: "
+            f"{', '.join(sorted(registry))}")
+
+
+@needs_present
+def test_the_language_constant_is_one_download_would_also_accept():
+    """`LANGUAGE` must work for `hm.download()`, not only `hm.analyze()`.
+
+    Both accept the canonical 't'; only `analyze()` accepts the alias 'ti'.
+    Pinning the constant to the form that works for both is what keeps the
+    printed instructions and the analysis path from drifting apart again.
+    """
+    import hm
+
+    assert morphology.LANGUAGE in hm.morpho.ABBREV2LANG
