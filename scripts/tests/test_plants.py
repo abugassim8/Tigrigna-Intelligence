@@ -407,6 +407,141 @@ def run_morphology_plants() -> list[str]:
 
 
 # --------------------------------------------------------------------------
+# translate_tico19.py — the first measurement that loads a model
+#
+# Three of these cases are silent failures: the pipeline completes, the segment
+# count is right, and chrF computes to a plausible number. Nothing else in this
+# repository would notice, because the output is perfectly well-formed — it is
+# just not a translation of what was asked, or not into Tigrinya.
+#
+# ⚠️ The model itself is never loaded here. `Translator` is injected exactly as
+# `morphology.Analyser` is, which is what makes this testable in an environment
+# that cannot reach huggingface.co — and what makes the argparse wiring in
+# `main()` testable at all. That wiring had a real bug (a positional argument to
+# a keyword-only parameter) that the self-test did not reach.
+# --------------------------------------------------------------------------
+
+TRANSLATE_PLANT = r'''
+import json, pathlib, sys, tempfile
+sys.path.insert(0, "scripts")
+import translate_tico19 as t
+
+GEEZ = "ሰላም ዓለም"      # "selam alem"
+
+def steady(batch):
+    return [GEEZ for _ in batch]
+def drops_one(batch):
+    return [GEEZ for _ in batch][:-1] or [GEEZ]
+def english(batch):
+    return ["Wash your hands often." for _ in batch]
+def empties(batch):
+    return ["" for _ in batch]
+
+CASE = sys.argv[1]
+
+with tempfile.TemporaryDirectory() as tmp:
+    tmp = pathlib.Path(tmp)
+    js, sheet = tmp / "r.json", tmp / "s.csv"
+
+    if CASE == "scores_and_writes_with_a_steady_translator":
+        out = t.measure(steady, out_json=js, out_sheet=sheet, limit=6, quiet=True)
+        ok = (js.exists() and sheet.exists()
+              and len(out["scores"]) == 2
+              and out["output_shape"]["ethiopic"] == 6)
+
+    elif CASE == "the_cli_wiring_reaches_measure":
+        # main() with the model class replaced. Catches argument-passing bugs
+        # that --self-test cannot, because --self-test bypasses main()'s body.
+        import tigrinya_translate.translate as tt
+        tt.MadladTranslator = lambda *a, **k: type(
+            "Stub", (), {"_loaded": (None, None), "__call__":
+                         staticmethod(lambda b: steady(b))})()
+        code = t.main(["--json", str(js), "--sheet", str(sheet), "--limit", "4"])
+        ok = code == 0 and js.exists() and sheet.exists()
+
+    elif CASE == "a_dropped_segment_aborts_and_writes_nothing":
+        # chrF pairs by position: one dropped segment shifts every later pair
+        # and the result reads as poor quality rather than as a bug.
+        try:
+            t.measure(drops_one, out_json=js, out_sheet=sheet, limit=6, quiet=True)
+            ok = False
+        except t.SegmentCountError:
+            ok = not js.exists() and not sheet.exists()
+
+    elif CASE == "output_in_the_wrong_language_aborts_and_writes_nothing":
+        # The failure an unknown language token produces: fluent, right count,
+        # scoreable, and about a language nobody asked for.
+        try:
+            t.measure(english, out_json=js, out_sheet=sheet, limit=6, quiet=True)
+            ok = False
+        except t.WrongLanguageError:
+            ok = not js.exists() and not sheet.exists()
+
+    elif CASE == "empty_output_aborts_rather_than_scoring_nothing":
+        try:
+            t.measure(empties, out_json=js, out_sheet=sheet, limit=6, quiet=True)
+            ok = False
+        except t.WrongLanguageError:
+            ok = not js.exists() and not sheet.exists()
+
+    elif CASE == "the_sheet_never_leaks_the_reference":
+        # Showing the human reference turns "is this usable health information"
+        # into "does it match the other translation" -- the question chrF is
+        # already answering.
+        t.measure(steady, out_json=js, out_sheet=sheet, limit=6, quiet=True)
+        text = sheet.read_text(encoding="utf-8")
+        refs = t._anchor("tir_et")
+        ids = t.sample_indices(len(t._anchor("eng")))[:6]
+        ok = all(refs[i] not in text for i in ids)
+
+    elif CASE == "the_threshold_is_recorded_before_judging":
+        out = t.measure(steady, out_json=js, out_sheet=sheet, limit=6, quiet=True)
+        saved = json.loads(js.read_text(encoding="utf-8"))
+        ok = (saved["pre_committed"]["usable_threshold"] == t.USABLE_THRESHOLD
+              and saved["judgement"].startswith("PENDING"))
+
+    else:
+        raise SystemExit("unknown case")
+
+sys.exit(0 if ok else 1)
+'''
+
+TRANSLATE_PLANTS = [
+    ("scores and writes with a steady translator",
+     "scores_and_writes_with_a_steady_translator", 0),
+    ("the CLI wiring actually reaches measure()",
+     "the_cli_wiring_reaches_measure", 0),
+    ("a dropped segment aborts and writes NOTHING",
+     "a_dropped_segment_aborts_and_writes_nothing", 0),
+    ("output in the wrong language aborts and writes NOTHING",
+     "output_in_the_wrong_language_aborts_and_writes_nothing", 0),
+    ("empty output aborts rather than scoring nothing",
+     "empty_output_aborts_rather_than_scoring_nothing", 0),
+    ("the judgement sheet never leaks the reference",
+     "the_sheet_never_leaks_the_reference", 0),
+    ("the threshold is recorded before judging",
+     "the_threshold_is_recorded_before_judging", 0),
+]
+
+
+def run_translate_plants() -> list[str]:
+    problems = []
+    with tempfile.TemporaryDirectory() as tmp:
+        script = pathlib.Path(tmp) / "translate_plant.py"
+        script.write_text(TRANSLATE_PLANT, encoding="utf-8")
+        for label, case, expect in TRANSLATE_PLANTS:
+            r = subprocess.run([sys.executable, str(script), case],
+                               cwd=REPO, capture_output=True, **CHILD_IO)
+            status = "PASS" if r.returncode == expect else "FAIL"
+            print(f"  [{status}] translate_tico19: {label} "
+                  f"(exit {r.returncode}, expected {expect})")
+            if r.returncode != expect:
+                detail = (r.stderr or r.stdout).strip().splitlines()[-1:] or [""]
+                problems.append(
+                    f"translate_tico19 plant misbehaved: {label} — {detail[0]}")
+    return problems
+
+# --------------------------------------------------------------------------
 # check_commands.py — the instructions a human follows by hand
 #
 # Every other claim in this repository was enforced: figures, dates, derived
@@ -577,7 +712,8 @@ def run_encoding_plants() -> list[str]:
 def main() -> int:
     problems = (run_screen_plants() + run_figure_plants()
                 + run_morphology_plants() + run_harness_plants()
-                + run_command_plants() + run_encoding_plants())
+                + run_translate_plants() + run_command_plants()
+                + run_encoding_plants())
     print()
     for p in problems:
         print(f"::error::{p}")

@@ -1,0 +1,367 @@
+#!/usr/bin/env python3
+"""Translate TICO-19 English into Tigrinya, score it, and produce a judgement sheet.
+
+What this answers
+-----------------
+**Whether the tool is possible at all.** The product is English → Tigrinya
+health information; TICO-19 is COVID/medical prose with an English source and
+three independent Tigrinya references, so the anchor already committed here is
+the right one rather than a convenient one.
+
+⚠️ **No model had ever been loaded in this project before this script.** Eleven
+experiments, a measurement harness and twenty-nine decisions were built around
+scoring a translation system, and none had ever scored one.
+
+Why MADLAD and not NLLB
+-----------------------
+**DEC-011.** Every NLLB variant is CC-BY-NC-4.0 and is quarantined to research
+and comparison use, *never present in a shipped artefact*. NLLB is behind
+essentially every published Tigrinya MT number, which makes it the tempting
+default and the one a tool real people use may not be built on.
+`google/madlad400-3b-mt` is Apache-2.0, covers `ti`, and DEC-011 chose it while
+recording that its **Tigrinya quality is unmeasured**. This measures it.
+
+What the number means, and what it does not
+-------------------------------------------
+chrF is reported per reference and **never averaged across varieties** —
+DEC-010, and `Harness.aggregate()` refuses anyway. `tir_er` and `tir_et` are
+different varieties *and* different translators.
+
+⚠️ **chrF is not the finding.** Experiment 011 measured two professional human
+translators agreeing with each other at **chrF ≈ 24** on this exact data, so the
+scale is not the one intuition suggests. The finding is the **judgement sheet**:
+how many of 100 segments a Tigrinya speaker calls usable. The threshold is
+pre-committed below, before any output exists.
+
+Reproducibility
+---------------
+Greedy decoding (`num_beams=1`, `do_sample=False`) and a seeded sample, so a
+re-run on the same machine reproduces. This is **not** a DEC-016 experiment:
+CI runs every `experiments/*/run.py` and cannot download a 12 GB model. It
+follows `measure_morphology.py` instead — heavy dependency, artefact committed
+under `docs/benchmarks/measurements/`, recipe documented.
+
+Usage:
+    python3 scripts/translate_tico19.py --json PATH     # the real run
+    python3 scripts/translate_tico19.py --self-test     # no model, no network
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import pathlib
+import random
+import sys
+import time
+
+REPO = pathlib.Path(__file__).resolve().parent.parent
+for _pkg in ("evaluation", "primitives", "translation"):
+    sys.path.insert(0, str(REPO / "services" / _pkg / "src"))
+
+from tigrinya_eval.harness import EvalSet, Harness                # noqa: E402
+from tigrinya_eval.primitives import force_utf8_stdio, is_ethiopic  # noqa: E402
+from tigrinya_translate import (MODEL, SegmentCountError,         # noqa: E402
+                                translate_all)
+
+#: Pre-committed, before any translation existed. Recorded in the artefact so
+#: the threshold cannot be chosen after the result is known.
+#:
+#: 40 comes from experiment 011: two professional human translators agree at
+#: chrF ≈ 24 on this data, so demanding near-perfect machine output is not
+#: reasonable. But under half the segments usable is not something prompting
+#: fixes, and the honest response is DEC-017's ladder with a measured reason.
+USABLE_THRESHOLD = 40
+
+#: What "usable" means, fixed before judging rather than after. Health
+#: information specifically: being misled about a dose is a different kind of
+#: failure from being read clumsy prose.
+USABLE_DEFINITION = (
+    "A Tigrinya speaker would come away with the correct instruction, and "
+    "would not be misled about a dose, a symptom, or a risk. Clumsy or "
+    "unidiomatic phrasing is still usable. A wrong number, a negation flipped, "
+    "or an invented instruction is not."
+)
+
+#: `dev`, never `test`. The test split stays held out; experiment 011 already
+#: had to record three figures as `already_seen_on_test` for looking once.
+SPLIT = "dev"
+SAMPLE_SIZE = 100
+SEED = 20260915
+
+#: DEC-010: scored separately, never combined. These differ by translator AND
+#: by variety at once, which A-13 is what would separate.
+REFERENCES = {"tir_er": "eritrean", "tir_et": "ethiopian"}
+
+CHECKPOINT_EVERY = 10
+
+#: Below this share of non-empty output segments containing Ethiopic script,
+#: the model was not emitting Tigrinya and the run is void.
+#:
+#: ⚠️ It **aborts and writes nothing**, exactly as `measure_morphology.py` does
+#: on a non-deterministic analyser. Printing `::error::` and exiting 0 would
+#: leave a scored artefact on disk describing a translation into some other
+#: language — and every downstream check would pass it, because the shape,
+#: the segment count and the chrF are all perfectly well-formed.
+#:
+#: Not 1.0: a handful of TICO-19 segments are bare numerals or URLs, and a
+#: correct translation of those contains no Ethiopic at all.
+ETHIOPIC_ABORT_FRACTION = 0.5
+
+
+class WrongLanguageError(RuntimeError):
+    """The output is not Tigrinya, so nothing about the score means anything."""
+
+
+def _anchor(name: str) -> list[str]:
+    path = REPO / "data" / "anchors" / "tico19" / f"{SPLIT}.{name}.txt"
+    return [ln for ln in path.read_text(encoding="utf-8").split("\n") if ln.strip()]
+
+
+def sample_indices(total: int) -> list[int]:
+    """A seeded sample, recorded in the artefact so the run is reproducible."""
+    rng = random.Random(SEED)
+    return sorted(rng.sample(range(total), min(SAMPLE_SIZE, total)))
+
+
+def write_sheet(path: pathlib.Path, ids: list[int], english: list[str],
+                tigrinya: list[str]) -> None:
+    """The blind judgement sheet — the only part a machine cannot do.
+
+    ⚠️ **The human reference is deliberately absent.** Including it turns "is
+    this usable health information" into "does this match the other
+    translation", which is a different question and the one chrF already
+    answers. The references are used for scoring and are never shown here.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["id", "english", "machine_tigrinya", "usable", "note"])
+        for i, en, ti in zip(ids, english, tigrinya):
+            w.writerow([i, en, ti, "", ""])
+
+
+def measure(translator, *, out_json: pathlib.Path | None,
+            out_sheet: pathlib.Path | None, limit: int | None = None,
+            quiet: bool = False) -> dict:
+    """Translate, score per reference, and emit the artefact.
+
+    `translator` is injected so this whole function is exercised without a
+    model — the same reason `measure_morphology.py` takes an analyser.
+    """
+    english = _anchor("eng")
+    refs = {name: _anchor(name) for name in REFERENCES}
+
+    lengths = {"eng": len(english), **{k: len(v) for k, v in refs.items()}}
+    if len(set(lengths.values())) != 1:
+        print(f"::error::the anchor files disagree on length: {lengths}. "
+              f"Segments are paired by position, so scoring would compare "
+              f"unrelated sentences.")
+        raise SystemExit(2)
+
+    ids = sample_indices(len(english))
+    if limit is not None:
+        ids = ids[:limit]
+    source = [english[i] for i in ids]
+
+    if not quiet:
+        print(f"  {len(ids)} segment(s) sampled from {SPLIT} "
+              f"(seed {SEED}, of {len(english)})")
+        print(f"  model: {MODEL}")
+        print(f"  ⚠️ pre-committed: fewer than {USABLE_THRESHOLD} of "
+              f"{len(ids)} usable retires this approach\n")
+
+    started = time.time()
+
+    def progress(done: int, total: int) -> None:
+        if quiet or done % CHECKPOINT_EVERY:
+            return
+        rate = (time.time() - started) / max(done, 1)
+        print(f"    {done}/{total}  ~{rate * (total - done) / 60:.0f} min left")
+
+    hypotheses = translate_all(source, translator, progress=progress)
+
+    # ------------------------------------------------ did it emit Tigrinya?
+    #
+    # ⚠️ A model given an unrecognised language token emits fluent text in the
+    # wrong language, with the right segment count and a scoreable chrF. The
+    # token check in MadladTranslator is the first line of defence; this is the
+    # second, and it is the one that works for any translator.
+    # `is_ethiopic` is per-CHARACTER — the same spelling `morphology._main`
+    # uses at line 510 to pick Tigrinya lines out of a mixed corpus. There are
+    # five copies of this predicate in the repository and `check_definitions.py`
+    # exists because two of them once disagreed, so it is reused, never
+    # reimplemented here.
+    def has_ethiopic(text: str) -> bool:
+        return any(is_ethiopic(c) for c in text)
+
+    ethiopic = sum(1 for h in hypotheses if has_ethiopic(h))
+    empty = sum(1 for h in hypotheses if not h.strip())
+
+    non_empty = len(hypotheses) - empty
+    if not non_empty:
+        # ⚠️ Caught by a plant, not by review. The fraction test below reads
+        # `ethiopic / non_empty`, so it was guarded with `if non_empty` — which
+        # silently skipped the whole check when the model returned nothing at
+        # all. chrF of empty against a reference is 0.00, and the artefact would
+        # have recorded the strongest possible failure as "terrible quality".
+        raise WrongLanguageError(
+            f"every one of {len(hypotheses)} output segment(s) is empty. The "
+            f"model produced no text, which scores chrF 0.00 and would be "
+            f"recorded as poor translation rather than as no translation. "
+            f"Writing nothing."
+        )
+    if ethiopic / non_empty < ETHIOPIC_ABORT_FRACTION:
+        raise WrongLanguageError(
+            f"only {ethiopic} of {non_empty} non-empty output segment(s) "
+            f"contain Ethiopic script, below the {ETHIOPIC_ABORT_FRACTION:.0%} "
+            f"floor. The model was not emitting Tigrinya — check "
+            f"tigrinya_translate.LANGUAGE_TOKEN. Writing nothing: a scored "
+            f"artefact for the wrong language would pass every check in this "
+            f"repository."
+        )
+
+    harness = Harness()
+    for name, variety in REFERENCES.items():
+        harness.evaluate(
+            system=MODEL,
+            hypotheses=hypotheses,
+            eval_set=EvalSet(name=f"tico19.{SPLIT}.{name}", variety=variety,
+                             references=[refs[name][i] for i in ids],
+                             source="TICO-19", licence="CC0-1.0"),
+            # DEC-011: MADLAD is Apache-2.0, so unlike every NLLB number in the
+            # literature this one describes something that could be shipped.
+            shippable=True,
+            notes=(f"greedy decoding; sample seed {SEED}",),
+        )
+
+    out = {
+        "measurement": "translation-en-ti",
+        "model": MODEL,
+        "licence": "Apache-2.0",
+        "direction": "English -> Tigrinya",
+        "split": SPLIT,
+        "seed": SEED,
+        "segment_ids": ids,
+        "decoding": {"num_beams": 1, "do_sample": False},
+        "pre_committed": {
+            "usable_threshold": USABLE_THRESHOLD,
+            "of": len(ids),
+            "definition": USABLE_DEFINITION,
+            "reference_point": (
+                "Experiment 011: two professional human translators agree with "
+                "each other at chrF 23.84 (dev) on this same data. chrF here is "
+                "not on the scale intuition suggests."
+            ),
+        },
+        "output_shape": {
+            "segments": len(hypotheses),
+            "ethiopic": ethiopic,
+            "not_ethiopic": len(hypotheses) - ethiopic,
+            "empty": empty,
+        },
+        "scores": {r.eval_set: r.to_dict() for r in harness.results},
+        "elapsed_seconds": round(time.time() - started, 1),
+        "judgement": "PENDING — the sheet has not been returned",
+    }
+
+    if not quiet:
+        print()
+        for r in harness.results:
+            print(f"  {r.eval_set:28} chrF {r.scores.chrf.score:6.2f}  "
+                  f"({r.variety})")
+        if ethiopic != len(hypotheses):
+            print(f"\n  ⚠️ {len(hypotheses) - ethiopic} of {len(hypotheses)} "
+                  f"output segment(s) contain no Ethiopic script. Above the "
+                  f"{ETHIOPIC_ABORT_FRACTION:.0%} floor so the run stands, but "
+                  f"look at them before trusting the scores.")
+
+    if out_json:
+        out_json.parent.mkdir(parents=True, exist_ok=True)
+        out_json.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n",
+                            encoding="utf-8")
+        if not quiet:
+            print(f"\n  wrote {out_json}")
+
+    if out_sheet:
+        write_sheet(out_sheet, ids, source, hypotheses)
+        if not quiet:
+            print(f"  wrote {out_sheet}  ← mark `usable` as y/n, then send it back")
+
+    return out
+
+
+def _self_test() -> int:
+    """Run the whole pipeline with a stub translator: no model, no network.
+
+    Exists so the script is exercisable in CI and on this sandbox, where the
+    model cannot be downloaded. It proves the sampling, alignment, scoring and
+    sheet-writing work; it proves nothing about MADLAD.
+    """
+    import tempfile
+
+    def stub(batch: list[str]) -> list[str]:
+        return ["ሰላም ዓለም" for _ in batch]
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = pathlib.Path(tmp)
+        out = measure(stub, out_json=tmp / "r.json", out_sheet=tmp / "s.csv",
+                      limit=6, quiet=True)
+        assert out["output_shape"]["segments"] == 6, out
+        assert out["output_shape"]["ethiopic"] == 6, out
+        assert len(out["scores"]) == 2, out
+        rows = (tmp / "s.csv").read_text(encoding="utf-8").splitlines()
+        assert len(rows) == 7, rows
+        assert "usable" in rows[0]
+
+    print("self-test passed: sampling, alignment, scoring and sheet all work "
+          "with an injected translator")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    force_utf8_stdio()
+
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--json", metavar="PATH",
+                    help="write the measurement artefact here")
+    ap.add_argument("--sheet", metavar="PATH",
+                    help="write the blind judgement sheet here")
+    ap.add_argument("--limit", type=int, metavar="N",
+                    help="translate only the first N sampled segments")
+    ap.add_argument("--self-test", action="store_true",
+                    help="run the pipeline with a stub translator; no model")
+    args = ap.parse_args(argv)
+
+    if args.self_test:
+        return _self_test()
+
+    from tigrinya_translate.translate import MadladTranslator
+
+    print("=" * 72)
+    print("English -> Tigrinya, TICO-19 health information")
+    print("=" * 72)
+
+    try:
+        translator = MadladTranslator()
+        # Force the load now, so the language-token check fires before any
+        # decoding rather than after the first batch.
+        translator._loaded                                # noqa: B018
+    except Exception as exc:                              # noqa: BLE001
+        print(f"\n::error::{type(exc).__name__}: {exc}")
+        return 2
+
+    try:
+        measure(translator,
+                out_json=pathlib.Path(args.json) if args.json else None,
+                out_sheet=pathlib.Path(args.sheet) if args.sheet else None,
+                limit=args.limit)
+    except (SegmentCountError, WrongLanguageError) as exc:
+        print(f"\n::error::{exc}")
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())       # main() calls force_utf8_stdio() itself

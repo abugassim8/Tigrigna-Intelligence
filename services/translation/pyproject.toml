@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tigrinya-translate"
+version = "0.1.0"
+description = "English -> Tigrinya translation, behind an interface you can test without a model"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+keywords = ["tigrinya", "geez", "translation", "madlad", "low-resource"]
+
+# ⚠️ `transformers` and `torch` are NOT dependencies, deliberately.
+#
+# This package is an interface plus a scoring pipeline; the model is one
+# implementation of `Translator` and is injected. Making a 2 GB wheel a hard
+# dependency of a module whose tests never load a model would mean the test
+# suite could not run where the model cannot — which is exactly the position
+# `tigrinya_primitives.morphology` avoids with `Analyser` (DEC-028).
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+# What you install to actually run MADLAD. Unpinned on purpose: this is not a
+# reproducible-experiment surface, and pinning torch to one build breaks every
+# machine with a different accelerator.
+madlad = ["transformers>=4.40", "sentencepiece", "torch"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

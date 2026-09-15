@@ -10,6 +10,45 @@ does not fit that rule, and pretending otherwise would have meant either
 dropping the measurement or putting a number in `metrics.md` that nothing
 re-checks.
 
+## The second thing that does not fit: translation
+
+**`translation-en-ti-*.json`**, produced by `scripts/translate_tico19.py`, is
+here for the same reason and a different dependency: `google/madlad400-3b-mt` is
+**~12 GB to download and 6 GB resident**. CI re-runs every `experiments/*/run.py`
+and byte-compares its artefact; it cannot do that with a model of this size.
+
+⚠️ **The model is Apache-2.0, which is the whole point.** DEC-011 quarantines
+every NLLB variant as CC-BY-NC-4.0 — *"never present in a shipped artefact"* —
+and NLLB is behind essentially every published Tigrinya MT number. A score
+measured on MADLAD describes something that could actually ship; the published
+NLLB numbers do not.
+
+### Reproducing it
+
+```bash
+pip install -e "services/translation[madlad]"
+python3 scripts/translate_tico19.py --self-test
+python3 scripts/translate_tico19.py --json docs/benchmarks/measurements/translation-en-ti-DATE.json --sheet validation/sheets/6_translation_judgement.csv
+```
+
+`--self-test` runs the whole pipeline against an injected stub — no model, no
+network — and is what CI and this sandbox can exercise. Run it first: it proves
+the sampling, alignment, scoring and sheet-writing work, so a failure in the
+real run is the model's and not the plumbing's.
+
+| Guarantee | Held by |
+| --- | --- |
+| Sampling is reproducible | seed `20260915`, and the selected ids are recorded in the artefact |
+| Decoding is reproducible | greedy — `num_beams=1`, `do_sample=False` |
+| Varieties are not conflated | scored against `tir_er` and `tir_et` separately (**DEC-010**) |
+| The output is actually Tigrinya | two independent gates — the language token is checked against the tokenizer's vocabulary, and the output against Ethiopic blocks. Below 50% Ethiopic the run **aborts and writes nothing** |
+
+⚠️ **chrF is not the finding, and reading it as one will mislead you.**
+Experiment 011 measured two professional human translators agreeing with *each
+other* at **chrF ≈ 24** on this same data. The finding is the judgement sheet,
+whose threshold — fewer than 40 of 100 usable retires the approach — is written
+into the artefact before any output exists.
+
 ## Why morphology cannot be an `experiments/` entry
 
 | Constraint | Value, measured 2026-09-07 |

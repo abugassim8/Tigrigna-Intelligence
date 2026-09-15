@@ -22,6 +22,89 @@ first service is deployed.
 
 ## [Unreleased]
 
+### A model can finally be scored — and it is MADLAD, not NLLB — 2026-09-15
+
+**Nothing in this project had ever loaded a model.** Eleven experiments, a
+measurement harness, twenty-nine decisions and a native-speaker instrument, all
+built around scoring a translation system, and not one score had ever been
+produced. That was the audit's central finding and it is now addressable:
+`services/translation/` and `scripts/translate_tico19.py` exist, are tested, and
+need only a machine that can download weights.
+
+The product is now defined — **English → Tigrinya health information** — which
+settles two questions the audit left open. **TICO-19 is the right anchor rather
+than a convenient one**: COVID/medical prose, English source, three independent
+Tigrinya references. And the German-vs-English worry is closed.
+
+⚠️ **The 2026-09-13 report recommended NLLB-200. DEC-011 forbids it**, and I did
+not check before recommending. Every NLLB variant is CC-BY-NC-4.0, quarantined
+as *"never present in a shipped artefact"*. NLLB is behind essentially every
+published Tigrinya MT number, which is exactly what makes it the tempting
+default for a tool real people use. The baseline is
+**`google/madlad400-3b-mt`** (Apache-2.0), chosen by DEC-011 with its *"Tigrinya
+quality unmeasured"* recorded at the time. `test_the_model_is_not_nllb` now
+fails if `MODEL` is ever repointed, because that breach would otherwise be
+invisible — the code would work perfectly.
+
+**The interface is injectable, so the pipeline is tested where the model cannot
+load.** `Translator` mirrors `morphology.Analyser` for the same reason: a suite
+needing a 12 GB download is a suite that stops being run. Everything but the
+model call is covered.
+
+⚠️ **`LANGUAGE_TOKEN` is an unverified guess** — `"<2ti>"`, from the ISO code,
+checked against nothing, because `huggingface.co` is unreachable here. That is
+the exact shape of `hm.download('ti')` one day earlier. **The translation case
+is worse:** an unknown prefix does not fail, it becomes ordinary text, and the
+model emits *some* language — fluently, with the right segment count and a
+perfectly scoreable chrF. Every check in this repository would pass it.
+
+So there are **two independent gates**, and neither is a warning:
+
+| Gate | Behaviour |
+| --- | --- |
+| Token not in the tokenizer's vocabulary | refuses at load, **naming what is accepted** |
+| Under 50% of non-empty output is Ethiopic | **aborts and writes nothing** |
+
+The second is checked against the model's own vocabulary, never a list chosen
+here — the mistake that let `hm.download('ti')` survive six weeks.
+
+**A plant caught a real defect in the second gate.** `ethiopic / non_empty` was
+guarded with `if non_empty`, which silently skipped the entire check when the
+model returned **nothing at all**. chrF of empty against a reference is 0.00, so
+an artefact would have recorded the strongest possible failure as "terrible
+translation quality". Found by planting it, not by reading it.
+
+**A second defect, also found by planting:** `main()` passed `out_json`
+positionally to a keyword-only parameter. `--self-test` bypasses `main()`, so it
+would have surfaced only after a 12 GB download on the owner's machine. There is
+now a plant that drives the CLI wiring end to end.
+
+**The judgement sheet is blind.** The human reference is used for chrF and never
+shown — including it turns *"is this usable health information"* into *"does it
+match the other translation"*, the question chrF already answers. Planted:
+putting the reference into the sheet fails the check.
+
+⚠️ **The threshold is pre-committed, in the artefact, before any output exists.**
+Fewer than **40 of 100** segments judged usable retires this approach in favour
+of DEC-017's ladder with a measured reason. 40 comes from experiment 011: two
+professional human translators agree with *each other* at **chrF ≈ 24** on this
+same data, so chrF here is not on the scale intuition suggests — and demanding
+near-perfect machine output would not be reasonable.
+
+"Usable" is also fixed in advance: *a Tigrinya speaker would come away with the
+correct instruction and would not be misled about a dose, a symptom, or a risk.*
+Clumsy phrasing is usable; a wrong number is not.
+
+**Scored against `tir_er` and `tir_et` separately** (DEC-010), on `dev` with a
+recorded seed, greedy decoding, `shippable=True` — the flag DEC-011 added, used
+for the first time on a model that genuinely could ship.
+
+⚠️ **`MadladTranslator.__call__` has never been executed.** It was written with
+no access to the weights. Its first run on the owner's machine is its first
+test, which is why the token gate is loud and comes first.
+
+48 planted cases, up from 41. 188 tests. 19 documented commands checked.
+
 ### Two of the commands this repository printed could not run — 2026-09-15
 
 Every claim here was enforced — figures, dates, derived counts, planted
