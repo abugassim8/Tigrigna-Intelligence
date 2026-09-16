@@ -184,6 +184,23 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     print(f"  checkpoint  {checkpoint}")
     print(f"  size        {os.path.getsize(checkpoint):,} bytes")
+
+    # ⚠️ Printed unconditionally, including when nothing turns out to be wrong.
+    # This is the one fact that says how many of the four matrices HF's T5
+    # expects are actually in the file, and a run that repairs nothing is
+    # exactly when it is most needed to explain why.
+    from safetensors import safe_open
+    with safe_open(checkpoint, framework="pt") as f:
+        all_keys = list(f.keys())
+        interesting = sorted(k for k in all_keys if "embed_tokens" in k
+                             or k.startswith(("shared", "lm_head")))
+        print(f"  tensors     {len(all_keys)} total, of which "
+              f"{len(interesting)} embedding-shaped:")
+        for k in interesting:
+            sl = f.get_slice(k)
+            print(f"                {k:34} {tuple(sl.get_shape())} "
+                  f"{sl.get_dtype()}")
+
     print(f"  loading {args.model} as {args.dtype} ...", flush=True)
     tokenizer, model = load(args.model, args.dtype)
     print()
