@@ -65,7 +65,7 @@ itself a research finding.
 | **A-19** | Report HornMorpho's crash on a bare `#` upstream | 🟡 Medium | Nothing for us — the harness records and reports it. But it is a **crash on valid input**, and the same unparsed comment lines put three bogus entries in the Tigrinya lexicon | TODO |
 | **A-20** | Report HornMorpho's abbreviation asymmetry upstream | 🟡 Medium | Nothing for us now — we pass the canonical `'t'`. But `hm.download()` **rejects an abbreviation `hm.analyze()` accepts**, so the natural code fails on every fresh install and the message blames the user's spelling | TODO |
 | **A-21** | Wire `check_commands.py` into CI | 🟢 Low — one paste | **The checker enforces nothing until this is done.** It cannot be committed from this environment: the GitHub App has no `workflows` permission, so a push touching `.github/workflows/` is rejected outright | TODO |
-| **A-22** | Report the `lm_head` tying conflict to `huggingface/transformers` | 🟡 Medium | `T5ForConditionalGeneration` declares `lm_head.weight` tied as a **class attribute**, so a checkpoint with `tie_word_embeddings: false` gets a **randomly initialised output projection that loads without a warning**. We work around it; the next person will not know to | TODO |
+| **A-22** | Report to `huggingface/transformers`: `T5Config` forces `tie_word_embeddings = True` | 🟡 Medium | transformers 5.x repurposes the flag as a scaling hint and **ties always**, so a checkpoint carrying its own `lm_head.weight` has it **loaded and then silently discarded**. Breaks every T5-architecture model with an untied head; no warning names the dropped tensor | TODO |
 
 ---
 
@@ -1073,46 +1073,61 @@ stale`, and `python scripts/check_commands.py`, which must exit 0.
 
 ---
 
-## 🟡 A-22 — Report the `lm_head` tying conflict to `huggingface/transformers`
+## 🟡 A-22 — Report to `huggingface/transformers`: `T5Config` forces `tie_word_embeddings = True`
 
 **Who:** the owner, as a GitHub issue. 📧 **No agent sends this.**
 
-**What happens.** `T5ForConditionalGeneration` declares, as a **class
-attribute**:
+⚠️ **This is broader than a MADLAD bug.** It silently breaks **every**
+T5-architecture checkpoint with an untied output projection.
+
+**What happens.** `T5Config.__post_init__` (transformers 5.x):
 
 ```python
-_tied_weights_keys = {"lm_head.weight": "shared.weight",
-                      "encoder.embed_tokens.weight": "shared.weight",
-                      "decoder.embed_tokens.weight": "shared.weight"}
+# Super weird feature of T5 because we support T5 and T51.1 from the same
+# model code. Original T5 always scaled outputs, but the 1.1v does not.
+# The model code was relying on saved configs where `tie_word_embeddings` is
+# set to `False` in 1.1v and using it as indicator of whether to scale or not
+# But in fact we tie weights always and force it to be `True`
+self.scale_decoder_outputs = kwargs.pop("tie_word_embeddings", None) is not False
+self.tie_word_embeddings = True
 ```
 
-That is fixed before any config is read, so it holds even for a checkpoint whose
-config sets `tie_word_embeddings: false` — while `_init_weights` in the same file
-gives `lm_head` a fresh `normal_(0, 1)` *precisely* when that flag is false.
-Because the key is in the tied mapping, a **missing** `lm_head.weight` is
-suppressed from the missing-weights report.
+The flag is **repurposed** as a decoder-output-scaling hint and tying is forced
+on, assuming every T5-family checkpoint ties its embeddings.
 
-**Why it matters more than an ordinary bug.** The model loads, generates,
-returns the right number of segments, and scores. The output is noise. There is
-no warning, no exception, and no missing-key list — the failure is invisible to
-every check a caller is likely to have. `google/madlad400-3b-mt` has 4.6M
-downloads.
+**Reproduction — `google/madlad400-3b-mt`, 4.6M downloads.** Its checkpoint
+stores two distinct embedding-shaped tensors and no `shared.weight`:
 
-**Verified** 2026-09-16 against `modeling_t5.py` at tags v4.35.0, v4.44.0,
-v4.56.0, v4.57.1, v5.0.0, v5.17.0 — a list in the 4.x tags, a dict in 5.x, and
-`lm_head.weight` present and ungated in all six.
+```
+decoder.embed_tokens.weight   (256000, 1024) F32
+lm_head.weight                (256000, 1024) F32
+```
 
-**Suggested fix to propose:** gate the `lm_head.weight` entry on
-`config.tie_word_embeddings`, so an untied checkpoint reports the key as missing
-instead of silently randomising it.
+`config.json` sets `"tie_word_embeddings": false`. On load,
+`model.config.tie_word_embeddings` reads `True`, `model.lm_head.weight is
+model.get_input_embeddings().weight` is `True`, and the trained
+`lm_head.weight` from the file is **discarded**. Translation output degenerates
+to one phrase repeated to `max_new_tokens`, identical for every target language.
+
+**Why it is worse than an ordinary bug.** No exception, no missing-key list, no
+warning that names the discarded tensor. The model loads, generates, returns the
+right number of segments and scores. A caller checking everything a caller
+normally checks sees a healthy run.
+
+**Suggested fix to propose:** keep `scale_decoder_outputs` derived from the saved
+flag — that part is a reasonable compatibility shim — but do **not** overwrite
+`tie_word_embeddings`. Where the loaded checkpoint supplies its own
+`lm_head.weight`, it must win over the tie. Failing that, warn by name when a
+stored tensor is dropped because of tying.
 
 ⚠️ **Do not include an `HF_TOKEN` value, a local path, or anything from
-`validation/`.** The report needs the version list, the config flag and the two
-code excerpts above — nothing from this repository.
+`validation/`.** The report needs the config excerpt, the tensor list and the
+model id — nothing from this repository.
 
 **Blocks:** nothing here. `MadladTranslator` detects and repairs this at load
-(`services/translation/src/tigrinya_translate/head.py`), and records on every
-artefact whether a repair was applied.
+(`services/translation/src/tigrinya_translate/head.py`), deciding from the
+checkpoint rather than the config, and records on every artefact whether a repair
+was applied.
 
 ---
 

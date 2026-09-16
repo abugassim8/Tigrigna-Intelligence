@@ -925,9 +925,16 @@ with tempfile.TemporaryDirectory() as tmp:
               and torch.equal(m.shared.weight.detach(), shared_w))
 
     elif CASE == "a_genuinely_tied_model_is_not_touched":
-        # tie_word_embeddings=True means sharing is correct, not a defect.
-        save_file({"shared.weight": shared_w,
-                   "decoder.embed_tokens.weight": projection}, ckpt)
+        # ⚠️ A genuinely tied checkpoint stores ONE embedding matrix -- there is
+        # no second one to store. The earlier fixture here stored two and still
+        # expected "leave it alone", which encoded the config-based rule that
+        # reported the real model healthy. Two distinct embedding matrices mean
+        # untied, whatever the config says.
+        #
+        # This case and `a_checkpoint_with_no_separate_head_stays_tied` are the
+        # pair: same single-matrix checkpoint, config True here and False there,
+        # and the flag changes nothing either way.
+        save_file({"shared.weight": shared_w}, ckpt)
         m = Stub(shared_w, None, tie=True, alias=True)
         rec = r.repair(m, ckpt, quiet=True)
         ok = (rec["verdict"] == "TRAINED" and not rec["repaired"]
@@ -1052,6 +1059,45 @@ with tempfile.TemporaryDirectory() as tmp:
         except head.RandomHeadError:
             ok = True
 
+    elif CASE == "the_real_shape_a_forced_tie_with_config_saying_tied":
+        # ⚠️ **The regression test for 2026-09-16.** This is the real
+        # checkpoint's exact shape: decoder.embed_tokens.weight AND a separate
+        # trained lm_head.weight, no shared.weight -- with the loaded model
+        # reporting config.tie_word_embeddings=True, because transformers 5.x
+        # overwrites it in T5Config.__post_init__ regardless of the file.
+        #
+        # The first version of this check asked the config, believed it, and
+        # printed "TRAINED -- nothing is wrong here" while the decoder emitted
+        # `Sally Hansen Sally Hansen ...`. It must never do that again.
+        save_file({"decoder.embed_tokens.weight": shared_w,
+                   "lm_head.weight": projection}, ckpt)
+        m = Stub(shared_w, None, tie=True, alias=True)
+        rec = r.repair(m, ckpt, quiet=True)
+        ok = (rec["verdict"] == "TIED_WRONGLY" and rec["repaired"]
+              and rec["source_key"] == "lm_head.weight"
+              and torch.equal(m.lm_head.weight.detach(), projection)
+              and torch.equal(m.shared.weight.detach(), shared_w))
+
+    elif CASE == "a_checkpoint_with_no_separate_head_stays_tied":
+        # The mirror. No stored lm_head.weight means tying is correct, and the
+        # config saying False must not provoke a repair either.
+        save_file({"decoder.embed_tokens.weight": shared_w}, ckpt)
+        m = Stub(shared_w, None, tie=False, alias=True)
+        rec = r.repair(m, ckpt, quiet=True)
+        ok = (rec["verdict"] == "TRAINED" and not rec["repaired"]
+              and torch.equal(m.lm_head.weight.detach(), shared_w))
+
+    elif CASE == "an_explicit_head_equal_to_the_input_does_not_win":
+        # lm_head.weight is present but identical to the input embedding, so
+        # selecting it would no-op; the differing tensor must be chosen.
+        save_file({"shared.weight": shared_w,
+                   "lm_head.weight": shared_w.clone(),
+                   "decoder.embed_tokens.weight": projection}, ckpt)
+        m = Stub(shared_w, noise())
+        rec = r.repair(m, ckpt, quiet=True)
+        ok = (rec["source_key"] == "decoder.embed_tokens.weight"
+              and torch.equal(m.lm_head.weight.detach(), projection))
+
     else:
         raise SystemExit("unknown case")
 
@@ -1081,6 +1127,12 @@ REPAIR_PLANTS = [
      "the_translator_repairs_at_load", 0),
     ("MadladTranslator refuses when it cannot repair",
      "the_translator_refuses_when_it_cannot_repair", 0),
+    ("the real shape: a forced tie while the config claims tied",
+     "the_real_shape_a_forced_tie_with_config_saying_tied", 0),
+    ("a checkpoint with no separate head stays tied",
+     "a_checkpoint_with_no_separate_head_stays_tied", 0),
+    ("an explicit lm_head equal to the input does not win",
+     "an_explicit_head_equal_to_the_input_does_not_win", 0),
 ]
 
 

@@ -143,42 +143,52 @@ load time — see the next section.
 It does not care which `transformers` is installed, so the report is useful even
 when the environment is broken.
 
-## ⚠️ The output projection may not be loaded at all
+## ⚠️ The output projection is loaded, then thrown away
 
-**This is why the decoder emitted one junk token repeated to `max_new_tokens`,
-with the junk differing per input.** The encoder was reading the text; the
-output projection was random.
+**This is why the decoder emitted one phrase repeated to `max_new_tokens`,
+identical in every target language.** `lm_head` is not random. It is trained,
+present in the checkpoint, loaded — and then discarded by a forced tie.
 
-`T5ForConditionalGeneration` declares `lm_head.weight` tied to `shared.weight`
-in **every** `transformers` from 4.35 to 5.17 — as a **class attribute**, fixed
-before any config is read, so it holds even when the config says untied:
+The checkpoint holds two embedding-shaped tensors and no `shared.weight`:
 
-```python
-_tied_weights_keys = {"lm_head.weight": "shared.weight", ...}   # 5.x
+```
+decoder.embed_tokens.weight   (256000, 1024) F32
+lm_head.weight                (256000, 1024) F32
 ```
 
-MADLAD sets `tie_word_embeddings: false`, and the same module gates
-initialisation on exactly that flag, giving `lm_head` a fresh
-`normal_(0, 1)`. Because the key sits in the tied mapping, a **missing**
-`lm_head.weight` is suppressed from the missing-weights report. It loads
-silently, and the result has the right segment count and a perfectly scoreable
-chrF.
+A tied model has no second matrix to store, so this checkpoint is untied **by
+construction**. But `T5Config.__post_init__` in transformers 5.x says:
 
-`MadladTranslator` now checks this at load, in `head.py`, beside the
-`DtypeIgnoredError` check and for the same reason: **verify the loaded outcome,
-never the version or the keyword.**
+```python
+# But in fact we tie weights always and force it to be `True`
+self.scale_decoder_outputs = kwargs.pop("tie_word_embeddings", None) is not False
+self.tie_word_embeddings = True
+```
 
-- it decides *from the weights*, using the row-norm spread — random rows all
-  have nearly the same norm, trained embeddings have rare and unused rows near
-  zero. The bound is **derived from the matrix shape**, not hard-coded: a fixed
-  number is silently calibrated to one `d_model` and misfires on any other;
+It repurposes `tie_word_embeddings` as a decoder-scaling hint and forces tying
+on. The trained projection is loaded and overwritten, and the decoder projects
+through the **input** embedding. (`scale_decoder_outputs` resolves correctly to
+False here, so the scaling is right; only the tie is wrong.)
+
+⚠️ **Do not decide this from `config.tie_word_embeddings`.** A check that did
+reported `TRAINED — nothing is wrong here` on a model emitting noise, because
+the loaded config reads `True` while `config.json` on disk says `false`. That
+was the **twelfth** check found here that could not fail, and the third instance
+of one error: **a declared flag is not an outcome**, after the dtype keyword and
+a `major >= 5` version gate.
+
+`head.py` decides from the checkpoint instead:
+
+- **two or more embedding-shaped matrices in the file ⇒ untied**, whatever any
+  config says. A tied model has nothing to store twice;
+- if the head is also *random* — row norms all within a bound **derived from the
+  matrix shape**, not hard-coded — that is caught too;
 - it repairs **only** when the weights say so. An unconditional overwrite would
   corrupt a correctly-loaded model invisibly;
-- it **refuses** (`RandomHeadError`) when the head is random and the checkpoint
-  holds nothing to recover it from, rather than scoring noise;
+- it **refuses** (`RandomHeadError`) rather than scoring noise when the
+  projection cannot be recovered;
 - it records `head_state`, `head_repaired` and `head_source` in the artefact,
-  because a score from a repaired model is **not the same measurement** as one
-  from an intact model.
+  because a score from a repaired model is **not the same measurement**.
 
 ```bash
 python3 scripts/repair_lm_head.py --dry-run      # verdict only, changes nothing
@@ -187,8 +197,11 @@ python3 scripts/repair_lm_head.py --self-test    # no model, no network
 ```
 
 ⚠️ **Read the controls first.** Fluent Spanish and German mean the repair took.
-Tigrinya being poor after that is a *finding* about coverage, not a bug — and it
-is the finding this service exists to produce.
+Tigrinya being poor *after* that is a **finding** about coverage, not a bug — and
+it is the finding this service exists to produce.
+
+⚠️ Reported upstream as **A-22**. It is not MADLAD-specific: it silently breaks
+every T5-architecture checkpoint with an untied output projection.
 
 ## Running the measurement
 

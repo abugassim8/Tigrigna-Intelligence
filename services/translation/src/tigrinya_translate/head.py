@@ -135,25 +135,50 @@ def spread(norms: Sequence[float]) -> float:
 
 
 def classify_head(head_spread: float, head_equals_input: bool,
-                  tie_word_embeddings: bool, bound: float) -> tuple[str, str]:
+                  checkpoint_has_separate_head: bool, bound: float,
+                  ) -> tuple[str, str]:
     """Say what state `lm_head` is in, and why. Returns (verdict, reason).
 
     Verdicts: ``RANDOM``, ``TIED_WRONGLY``, ``TRAINED``. The first two are
     broken and repairable; the third is left alone.
 
-    ⚠️ The equality case is checked **first and separately**, because a head
-    wrongly tied to the input embedding inherits a perfectly trained-looking
-    spread. Testing only for randomness would pass it.
+    ⚠️ **`config.tie_word_embeddings` is deliberately not a parameter here, and
+    this is the second time that lesson has been paid for.** An earlier version
+    asked the config, and on the real model it answered `True` and returned
+    "TRAINED -- nothing is wrong here" while the decoder was emitting
+    `Sally Hansen Sally Hansen ...`. transformers 5.x overwrites the field:
+
+        # configuration_t5.py, T5Config.__post_init__
+        self.scale_decoder_outputs = kwargs.pop("tie_word_embeddings", None) is not False
+        self.tie_word_embeddings = True
+
+    It repurposes the flag as a decoder-scaling hint and forces tying on,
+    assuming every T5-architecture checkpoint ties its embeddings. MADLAD does
+    not. **A declared flag is not an outcome** -- the same error as trusting the
+    dtype keyword and the `major >= 5` version gate.
+
+    The evidence used instead is `checkpoint_has_separate_head`: whether the
+    file stores its own `lm_head.weight`. A genuinely tied model does not store
+    one, so a separate stored head means untied **by construction**, whatever
+    any config says.
+
+    ⚠️ The equality case is checked first and separately, because a head wrongly
+    tied to the input embedding inherits a perfectly trained-looking row spread.
+    Testing only for randomness would wave it straight through.
     """
-    if head_equals_input and not tie_word_embeddings:
+    if head_equals_input and checkpoint_has_separate_head:
         return ("TIED_WRONGLY",
                 "lm_head holds the same values as the input embedding, but the "
-                "config says tie_word_embeddings=false. The loader tied what "
-                "this model keeps separate, so the output projection is gone.")
+                "checkpoint stores more than one embedding-shaped matrix -- "
+                "which a tied model has no reason to. The loader tied what this "
+                "checkpoint keeps separate, so the trained output projection "
+                "was loaded and then discarded, and the decoder is projecting "
+                "through the INPUT embedding.")
     if head_equals_input:
         return ("TRAINED",
-                "lm_head is tied to the input embedding and the config asks for "
-                "exactly that.")
+                "lm_head is tied to the input embedding, and the checkpoint "
+                "stores a single embedding matrix, so tying is what this model "
+                "wants.")
     if head_spread <= bound:
         return ("RANDOM",
                 f"lm_head row norms are all within {head_spread:.3f}x of each "
@@ -176,9 +201,13 @@ def choose_output_projection(differs_from_input: Mapping[str, bool]) -> str:
     MADLAD is untied, therefore exactly one stored matrix is the input
     embedding and exactly one is the output projection.
     """
-    explicit = [k for k in differs_from_input if k == "lm_head.weight"]
-    if explicit:
-        return explicit[0]
+    # ⚠️ The explicit name wins only when that tensor actually differs from the
+    # loaded input embedding. Taking it unconditionally would, on a loader that
+    # mapped the two the other way round, select a tensor identical to the
+    # current head -- a repair that no-ops and then fails with a message about
+    # aliasing that would send the reader somewhere else entirely.
+    if differs_from_input.get("lm_head.weight"):
+        return "lm_head.weight"
 
     candidates = sorted(k for k, differs in differs_from_input.items() if differs)
     if not candidates:
@@ -230,13 +259,55 @@ def row_norms(weight) -> list[float]:
     return weight.detach().float().norm(dim=1).tolist()
 
 
-def inspect_head(model, *, quiet: bool = False) -> dict:
-    """Measure the loaded model's head and input embedding. Changes nothing."""
+def checkpoint_stores_separate_projection(checkpoint: str,
+                                          shape: tuple[int, int]) -> bool:
+    """Does the file store more than one embedding-shaped matrix?
+
+    ⚠️ **This, not the config, is what says whether the model is tied.** A tied
+    model has one embedding matrix and nothing to store twice; `save_pretrained`
+    drops the tied duplicates. Two or more distinct entries of the embedding
+    shape therefore means the model is untied **by construction**, whatever any
+    config says.
+
+    `config.tie_word_embeddings` cannot be used: on transformers 5.x
+    `T5Config.__post_init__` overwrites it to `True` unconditionally, which is
+    exactly how a broken model came to be reported healthy.
+
+    ⚠️ Counting, rather than looking for the name `lm_head.weight`, because the
+    projection is not always stored under that name — this checkpoint stores
+    `decoder.embed_tokens.weight` and `lm_head.weight` with no `shared.weight`
+    at all, and a converter that wrote `shared.weight` plus a differently-valued
+    `decoder.embed_tokens.weight` is equally untied. The name is the thing that
+    cannot be trusted here.
+
+    A naive converter could in principle store identical copies and be counted
+    untied. That costs nothing: `choose_output_projection` then finds no tensor
+    differing from the input embedding and refuses loudly rather than repairing.
+
+    Reads only the safetensors header — no tensor data, no download.
+    """
+    from safetensors import safe_open
+
+    with safe_open(checkpoint, framework="pt") as f:
+        matching = [k for k in f.keys()
+                    if tuple(f.get_slice(k).get_shape()) == tuple(shape)]
+    return len(matching) >= 2
+
+
+def inspect_head(model, checkpoint: str, *, quiet: bool = False) -> dict:
+    """Measure the loaded model's head against the checkpoint. Changes nothing.
+
+    `checkpoint` is required. Deciding without it means deciding from the
+    config, which is the mistake this function exists to avoid.
+    """
     import torch
 
     head = model.lm_head.weight
     shared = model.get_input_embeddings().weight
+    # Recorded and printed, never consulted. See `classify_head`.
     tie = bool(getattr(model.config, "tie_word_embeddings", False))
+    separate = checkpoint_stores_separate_projection(
+        checkpoint, tuple(model.lm_head.weight.shape))
 
     head_spread = spread(row_norms(head))
     shared_spread = spread(row_norms(shared))
@@ -245,10 +316,13 @@ def inspect_head(model, *, quiet: bool = False) -> dict:
 
     rows, dim = tuple(head.shape)
     bound = noise_spread_bound(rows, dim)
-    verdict, reason = classify_head(head_spread, same_values, tie, bound)
+    verdict, reason = classify_head(head_spread, same_values, separate, bound)
 
     if not quiet:
-        print(f"  config tie_word_embeddings : {tie}")
+        print(f"  checkpoint stores 2+ embed : {separate}   "
+              f"<- this decides it; a tied model stores one")
+        print(f"  config tie_word_embeddings : {tie}   "
+              f"<- recorded, NOT used: transformers 5.x forces it True")
         print(f"  lm_head is the same object : {same_object}")
         print(f"  lm_head == input embedding : {same_values}")
         print(f"  input embedding row spread : {shared_spread:.3f}x")
@@ -258,20 +332,26 @@ def inspect_head(model, *, quiet: bool = False) -> dict:
         print(f"    {reason}")
 
     return {"verdict": verdict, "reason": reason, "tie_word_embeddings": tie,
+            "checkpoint_has_separate_head": separate,
             "head_spread": head_spread, "shared_spread": shared_spread,
             "head_equals_input": same_values, "bound": bound}
 
 
-def repair_head(model, checkpoint: str, *, quiet: bool = False) -> dict:
+def repair_head(model, checkpoint: str, *, quiet: bool = False,
+                found: dict | None = None) -> dict:
     """Bind the checkpoint's output projection to `lm_head`, if it is broken.
 
     Returns a record of what was found and what was done. ⚠️ Repairs nothing
-    when `inspect` says the head is trained — see the module docstring.
+    when the inspection says the head is trained — see the module docstring.
+
+    `found` may be a previous `inspect_head` result, so a caller that already
+    printed the inspection does not print the whole block a second time.
     """
     import torch
     from safetensors import safe_open
 
-    found = inspect_head(model, quiet=quiet)
+    if found is None:
+        found = inspect_head(model, checkpoint, quiet=quiet)
     if found["verdict"] == "TRAINED":
         if not quiet:
             print("  REPAIR                     : SKIPPED — nothing is wrong here")

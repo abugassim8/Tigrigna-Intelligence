@@ -90,6 +90,7 @@ from tigrinya_translate.head import (          # noqa: E402
     locate_checkpoint,
     row_norms,
     spread,
+    checkpoint_stores_separate_projection,
     inspect_head as inspect,
     repair_head as repair,
 )
@@ -205,18 +206,17 @@ def main(argv: list[str] | None = None) -> int:
     tokenizer, model = load(args.model, args.dtype)
     print()
 
+    found = inspect(model, checkpoint)
     if args.dry_run:
-        inspect(model)
         return 0
 
-    found = inspect(model)
     if found["verdict"] != "TRAINED":
         print()
         print("  BEFORE the repair:")
         translate_samples(model, tokenizer)
         print()
 
-    record = repair(model, checkpoint)
+    record = repair(model, checkpoint, found=found)
     print()
     print("  AFTER:" if record["repaired"] else "  Output:")
     produced = translate_samples(model, tokenizer)
@@ -234,8 +234,9 @@ def main(argv: list[str] | None = None) -> int:
         print("  Read the controls first. Fluent Spanish and German mean the")
         print("  repair took; Tigrinya quality is then a finding, not a bug.")
     else:
-        print("  Nothing was repaired: the head was already loaded correctly,")
-        print("  so junk output has some other cause. See the diagnostic report.")
+        print("  Nothing was repaired: the checkpoint stores no separate")
+        print("  lm_head.weight, so tying is what this model wants. Junk output")
+        print("  therefore has some other cause -- the tokenizer is the next thread.")
     return 0
 
 
@@ -313,14 +314,22 @@ def _self_test() -> int:
         f"a trained matrix spread only {trained_spread:.3f}x — the bound "
         f"would repair a matrix that was fine")
 
-    # The verdicts.
+    # The verdicts. Third argument is "the checkpoint stores its own
+    # lm_head.weight" -- NOT config.tie_word_embeddings, which transformers 5.x
+    # overwrites to True and which reported a broken model healthy.
     assert classify_head(noise_spread, False, False, real_bound)[0] == "RANDOM"
     assert classify_head(trained_spread, False, False, real_bound)[0] == "TRAINED"
     # ⚠️ A head wrongly tied to the input inherits a trained-looking spread, so
     # testing only for randomness would wave it through.
-    assert classify_head(trained_spread, True, False, real_bound)[0] == "TIED_WRONGLY"
-    assert classify_head(trained_spread, True, True, real_bound)[0] == "TRAINED", \
-        "a genuinely tied model must not be 'repaired'"
+    assert classify_head(trained_spread, True, True, real_bound)[0] == "TIED_WRONGLY"
+    assert classify_head(trained_spread, True, False, real_bound)[0] == "TRAINED", \
+        "a genuinely tied checkpoint must not be 'repaired'"
+
+    # ⚠️ The explicit key must not win when it matches the input embedding:
+    # choosing it would no-op and then fail with a message about aliasing.
+    assert choose_output_projection(
+        {"lm_head.weight": False,
+         "decoder.embed_tokens.weight": True}) == "decoder.embed_tokens.weight"
 
     # Choosing the projection.
     assert choose_output_projection(

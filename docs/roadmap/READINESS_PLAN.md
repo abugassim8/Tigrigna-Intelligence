@@ -69,7 +69,7 @@ degrading silently.
 GPL-3.0 analyser is absent — DEC-028).
 
 **Also built:** the native-speaker validation instrument (`validation/`, 134
-items), seven enforcement scripts, a **planted-failure suite** (74 cases, CI),
+items), seven enforcement scripts, a **planted-failure suite** (77 cases, CI),
 28 CI checks, and **two evaluation anchors** — **HornMT** (2,030 pairs,
 CC-BY-4.0, news) and **TICO-19** (3,071 segments × 3 references, CC0-1.0,
 COVID/medical, **variety-declared at source**), both screened on every side.
@@ -482,7 +482,7 @@ matters more:
    unblock, the temptation is to build the API surface before **A-02** says who
    it is for, or Tier 1 before **A-09** lets it be measured. That would produce
    more unmeasured artefacts, and this project's own record says what happens
-   next: **eleven** checks have been found that could not fail, every one
+   next: **twelve** checks have been found that could not fail, every one
    written in good faith, none caught by review.
 
    ⚠️ **That sentence used to end "Building blind is how the tenth gets
@@ -552,8 +552,9 @@ variety gate worked. It did not, for a month, on every corpus, in the wrong
 direction.
 
 **The engineering discipline is real and it is not self-congratulation:**
-**eleven** checks have been found that *could not fail*, every one caught by
-deliberately planting a failure rather than by reading the code. **Seven were in
+**twelve** checks have been found that *could not fail*, every one caught by
+deliberately planting a failure rather than by reading the code — or, for the
+twelfth, by the output still being wrong after the check said it was fine. **Seven were in
 the audit tooling itself.** The seventh: the derived-counts check matched no
 phrasing used in *this document*, so the plan of record was the one file whose
 headline numbers nothing verified — and it was wrong when checked. The eighth:
@@ -577,8 +578,8 @@ run on a check you just wrote is not evidence. *(The same collision was then
 spotted in the open-action count before that check was ever registered, so it is
 **not** counted as an eleventh — no unfailable check ever existed.)*
 
-⚠️ **The eleventh (2026-09-12) had been shipped for some time, and it is the
-worst-placed of the eleven.** A markdown table is **one paragraph**, so the
+⚠️ **The eleventh (2026-09-12) had been shipped for some time, and it was the
+worst-placed of the first eleven.** A markdown table is **one paragraph**, so the
 `⚠️` in the plan's `| **Live handoff** |` row exempted every other row of that
 table — including `| **Basis** |`, the headline counts this entire check exists
 to verify. Measured: the Basis line could claim **99 decisions and 77
@@ -597,8 +598,42 @@ generous, forwards stops at the end of the row.** Scoping strictly to the row
 was tried first and broke every retraction *table* in the repository, whose
 markers legitimately sit in a header row or the prose above. Planted.
 
+⚠️ **The twelfth (2026-09-16) is the only one not caught by planting**, and
+that is what makes it worth recording. It ran on the real model, reported
+`VERDICT : TRAINED — nothing is wrong here`, and skipped its repair while the
+decoder was emitting `Sally Hansen Sally Hansen …` in all four languages. Every
+plant behind it passed, because every plant supplied the fixture the check
+asked for.
+
+**It asked the wrong source.** `classify_head` decided whether the model was
+tied by reading `model.config.tie_word_embeddings` — the one field transformers
+5.x overwrites:
+
+```python
+# configuration_t5.py, T5Config.__post_init__
+self.scale_decoder_outputs = kwargs.pop("tie_word_embeddings", None) is not False
+self.tie_word_embeddings = True
+```
+
+MADLAD's `config.json` says `false`; the loaded config says `True`. The check
+believed the config and waved through a model whose trained output projection
+had been loaded and then discarded.
+
+**It is the same error as the dtype keyword and the `major >= 5` version gate,
+for the third time: a declared flag is not an outcome.** Fixed by deciding from
+the checkpoint instead — a tied model stores one embedding matrix, so two or
+more means untied *by construction*, whatever any config says. The regression
+test reproduces the real checkpoint's exact shape and fails if the config is
+ever consulted again.
+
+⚠️ **What this says about planting as a method.** Planting proves a check fires
+on the failure you imagined. It cannot prove you imagined the right failure, and
+it cannot prove the check is reading a trustworthy input. Nothing here would
+have caught this except running the real thing — which is the argument for the
+controls in `--diagnose` and for reading them before the result.
+
 **Planting is now a committed test rather than a habit** (`scripts/tests/
-test_plants.py`, 74 cases, in CI). That is the response to a discipline that
+test_plants.py`, 77 cases, in CI). That is the response to a discipline that
 depended on remembering to do it.
 
 ⚠️ **One failure in phase E could not have been caught by planting, and it is

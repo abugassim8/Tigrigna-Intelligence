@@ -222,19 +222,25 @@ class MadladTranslator:
         # outcome**, never the version or the keyword.
         from .head import RandomHeadError, inspect_head, repair_head
 
-        found = inspect_head(model, quiet=True)
+        # ⚠️ The checkpoint comes first, because the verdict depends on it.
+        # Whether this model is tied is decided by whether the file stores its
+        # own `lm_head.weight` -- never by `config.tie_word_embeddings`, which
+        # transformers 5.x overwrites to True.
+        try:
+            checkpoint = locate_checkpoint(self.model_name)
+        except FileNotFoundError as exc:
+            raise RandomHeadError(
+                f"the checkpoint for {self.model_name} could not be found "
+                f"({exc}), so whether its output projection loaded correctly "
+                f"cannot be established. Refusing to translate: a wrong head "
+                f"produces output with the right segment count and a scoreable "
+                f"chrF, and it is noise."
+            ) from exc
+
+        found = inspect_head(model, checkpoint, quiet=True)
         self.head_state = found["verdict"]
         if found["verdict"] != "TRAINED":
-            try:
-                checkpoint = locate_checkpoint(self.model_name)
-            except FileNotFoundError as exc:
-                raise RandomHeadError(
-                    f"{found['reason']}\n  ...and the checkpoint could not be "
-                    f"found to repair it from ({exc}). Refusing to translate: "
-                    f"the output would have the right segment count and a "
-                    f"scoreable chrF, and would be noise."
-                ) from exc
-            record = repair_head(model, checkpoint, quiet=True)
+            record = repair_head(model, checkpoint, quiet=True, found=found)
             self.head_repaired = record["repaired"]
             self.head_source = record["source_key"]
 

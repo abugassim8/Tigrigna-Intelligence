@@ -73,7 +73,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
 | DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted — **caveat added by Amendment 1** |
 | DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted — **evidence corrected by Amendment 1** |
-| DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted — **sizes corrected by Amendment 1; load defect recorded by Amendment 2** |
+| DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted — **sizes corrected by Amendment 1; load defect recorded by Amendment 2, mechanism corrected by Amendment 3** |
 | DEC-012 | 2026-08-10 | Library-first; services are thin wrappers over libraries | Accepted |
 | DEC-013 | 2026-08-10 | Tier by resource profile; never co-locate tiers in one process | Accepted |
 | DEC-014 | 2026-08-10 | CTranslate2 is the single model runtime | Accepted |
@@ -1082,14 +1082,20 @@ con. The first real run produced not poor Tigrinya but **a single junk token
 repeated to `max_new_tokens`, differing per input** — a working encoder in front
 of a random output projection.
 
-**Cause** [verified 2026-09-16 against `modeling_t5.py`, tags v4.35.0, v4.44.0,
-v4.56.0, v4.57.1, v5.0.0, v5.17.0]: `T5ForConditionalGeneration` declares
-`lm_head.weight` tied to `shared.weight` as a **class attribute** — fixed before
-any config is read — in every one of those versions. This checkpoint sets
-`tie_word_embeddings: false`, and the same module gives `lm_head` a fresh
-`normal_(0, 1)` precisely when that flag is false. A key in the tied mapping is
-**suppressed from the missing-weights report**, so the randomised head loads with
-no warning at all.
+⚠️ **The cause stated below is superseded by Amendment 3.** It is kept, not
+deleted (P-13): the head is **not** randomly initialised. It is trained, loaded,
+and then discarded by a forced tie. The reasoning below was plausible, consistent
+with the observed junk, and wrong — which is the reason a hypothesis gets run
+rather than believed.
+
+**Cause (superseded)** [verified 2026-09-16 against `modeling_t5.py`, tags
+v4.35.0, v4.44.0, v4.56.0, v4.57.1, v5.0.0, v5.17.0]:
+`T5ForConditionalGeneration` declares `lm_head.weight` tied to `shared.weight`
+as a **class attribute** — fixed before any config is read — in every one of
+those versions. This checkpoint sets `tie_word_embeddings: false`, and the same
+module gives `lm_head` a fresh `normal_(0, 1)` precisely when that flag is false.
+A key in the tied mapping is **suppressed from the missing-weights report**, so a
+randomised head would load with no warning at all.
 
 ⚠️ **The alternative checkpoint never existed.** `jbochi/madlad400-3b-mt` is
 byte-identical to `google/` — all 13 files the same size, `config.json` the same
@@ -1121,6 +1127,61 @@ version check. Reported upstream as **A-22**.
 ⚠️ **`tir_er` and `tir_et` remain scored separately (DEC-010).** Nothing here
 changes that, and no repaired-model score may be compared against a
 pre-repair one.
+
+### Amendment 3 — 2026-09-16: the projection is loaded, then discarded by a forced tie
+
+**Amendment 2 named the wrong mechanism. This is what the model actually does.**
+
+**What the checkpoint holds** [measured on the owner's machine, from the
+safetensors header]:
+
+```
+tensors  742 total, of which 2 embedding-shaped:
+           decoder.embed_tokens.weight   (256000, 1024) F32
+           lm_head.weight                (256000, 1024) F32
+```
+
+⚠️ **No `shared.weight` at all, and a separate trained `lm_head.weight`.** A tied
+model has no second matrix to store. This checkpoint is untied **by
+construction**. (Amendment 2's arithmetic — exactly two of the four matrices HF
+expects — was right; which two was left open, correctly.)
+
+**Cause** [verified, `configuration_t5.py` v5.17.0, `T5Config.__post_init__`]:
+
+```python
+# Super weird feature of T5 because we support T5 and T51.1 from the same
+# model code. Original T5 always scaled outputs, but the 1.1v does not.
+# The model code was relying on saved configs where `tie_word_embeddings` is
+# set to `False` in 1.1v and using it as indicator of whether to scale or not
+# But in fact we tie weights always and force it to be `True`
+self.scale_decoder_outputs = kwargs.pop("tie_word_embeddings", None) is not False
+self.tie_word_embeddings = True
+```
+
+transformers 5.x **repurposes `tie_word_embeddings` as a decoder-scaling hint and
+forces tying on**, on the assumption that every T5-architecture checkpoint ties
+its embeddings. MADLAD does not. The trained output projection is loaded and then
+overwritten by the tie, and the decoder projects through the **input** embedding
+— giving `Sally Hansen Sally Hansen …`, identical across `<2es>`, `<2de>`,
+`<2am>` and `<2ti>`.
+
+⚠️ `scale_decoder_outputs` resolves **correctly** to False here, so the
+×`d_model**-0.5` scaling is right. Only the tie is wrong.
+
+⚠️ **This cost a twelfth check that could not fail.** The detection written for
+Amendment 2 asked `model.config.tie_word_embeddings` — the exact field
+transformers overwrites — and reported `TRAINED — nothing is wrong here` on a
+model emitting noise. **A declared flag is not an outcome**, for the third time
+after the dtype keyword and the `major >= 5` version gate. Detection now decides
+from the checkpoint: two or more embedding-shaped matrices means untied,
+whatever any config says.
+
+**Consequence for measurement, unchanged from Amendment 2:** a score from a
+repaired model is **not the same measurement** as one from an intact model, and
+`head_state` / `head_repaired` / `head_source` are recorded on every artefact.
+**A-22** is rewritten around this mechanism, which is broader than the one it
+described: it affects **every** T5-architecture checkpoint with an untied output
+projection, not only this one.
 
 ## DEC-012 — Library-first: services are thin wrappers over libraries
 

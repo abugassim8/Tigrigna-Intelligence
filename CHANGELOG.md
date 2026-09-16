@@ -22,6 +22,57 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The projection was loaded, then thrown away by a forced tie — 2026-09-16
+
+**The model ran, and the answer was not the one recorded earlier the same day.**
+`lm_head` is **not** randomly initialised. It is trained, present in the
+checkpoint, loaded — and then discarded, because transformers 5.x ties it to the
+input embedding regardless of what the checkpoint says.
+
+**What the file holds** [measured from the safetensors header]:
+
+```
+decoder.embed_tokens.weight   (256000, 1024) F32
+lm_head.weight                (256000, 1024) F32
+```
+
+No `shared.weight`, and a separate trained `lm_head.weight`. A tied model has no
+second matrix to store, so this checkpoint is untied **by construction**.
+
+⚠️ **Cause** [verified, `configuration_t5.py` v5.17.0]: `T5Config.__post_init__`
+repurposes `tie_word_embeddings` as a decoder-scaling hint and then sets
+`self.tie_word_embeddings = True` unconditionally, assuming every T5-family
+checkpoint ties. The decoder ends up projecting through the *input* embedding —
+`Sally Hansen Sally Hansen …`, identical for Spanish, German, Amharic and
+Tigrinya.
+
+### ⚠️ A twelfth check that could not fail — the first not caught by planting
+
+The detection shipped hours earlier asked `model.config.tie_word_embeddings`,
+**the exact field transformers overwrites**. It ran on the real model, printed
+`VERDICT : TRAINED — nothing is wrong here`, and skipped its own repair. Every
+plant behind it passed, because every plant supplied the fixture the check asked
+for.
+
+**Planting proves a check fires on the failure you imagined. It cannot prove you
+imagined the right failure, or that the check is reading a trustworthy input.**
+Only running the real thing found this — which is the argument for the control
+languages, and for reading them before the result.
+
+**Third instance of the same error**, after the dtype keyword and the
+`major >= 5` version gate: **a declared flag is not an outcome.**
+
+**Fixed** by deciding from the checkpoint — two or more embedding-shaped
+matrices means untied, whatever any config says. `config.tie_word_embeddings` is
+still printed, labelled `NOT used`, with the reason. The regression plant
+reproduces the real checkpoint's exact shape and fails if the config is consulted
+again — verified by reverting it.
+
+**DEC-011 Amendment 3** records the mechanism and marks Amendment 2's cause
+superseded rather than deleting it (P-13). **A-22** is rewritten: the defect is
+not MADLAD-specific, it silently breaks every T5-architecture checkpoint with an
+untied output projection. 77 planted cases, up from 74. 187 tests pass, 4 skip.
+
 ### The decoder was emitting noise: `lm_head` was never loaded — 2026-09-16
 
 **The junk output has a mechanism, and it is not a mistranslation.** The decoder
