@@ -437,6 +437,42 @@ def english(batch):
 def empties(batch):
     return ["" for _ in batch]
 
+class _Probe:
+    """A translator that records how often it loaded and which tokens it used."""
+
+    def __init__(self, known=("<2ti>", "<2am>", "<2es>")):
+        from tigrinya_translate.translate import (MadladTranslator,
+                                                  UnknownLanguageTokenError)
+        self._known = set(known)
+        self._err = UnknownLanguageTokenError
+        self._assert = MadladTranslator._assert_language_token
+        self.language_token = "<2ti>"
+        self.loads = 0
+        self.tokens_used = []
+
+    class _Tok:
+        name_or_path = "probe"
+        def __init__(self, known): self._k = known
+        def get_vocab(self): return {t: i for i, t in enumerate(sorted(self._k))}
+        def tokenize(self, s): return ["\u2581", "<2ti>", "\u2581Wash"]
+
+    @property
+    def _loaded(self):
+        self.loads += 1
+        return self._Tok(self._known), None
+
+    def use_language(self, token):
+        tok, _ = self._loaded
+        self.loads -= 1                 # this access is bookkeeping, not a load
+        self._assert(tok, token)
+        self.language_token = token
+
+    def __call__(self, segments):
+        self.tokens_used.append(self.language_token)
+        return ["\u12a2\u12f5\u12ab \u1270\u1213\u1338\u1265\u1362"
+                for _ in segments]
+
+
 CASE = sys.argv[1]
 
 with tempfile.TemporaryDirectory() as tmp:
@@ -572,6 +608,46 @@ with tempfile.TemporaryDirectory() as tmp:
         finally:
             builtins.open, pathlib.Path.write_text = real_open, real_write
 
+    elif CASE == "diagnose_loads_the_model_once_for_every_language":
+        # ⚠️ Reloading 11.8 GB per control language would take longer than the
+        # failure being diagnosed.
+        probe = _Probe()
+        t.diagnose(probe, 2)
+        ok = probe.loads == 1 and len(probe.tokens_used) == 3
+
+    elif CASE == "diagnose_actually_changes_the_language":
+        # ⚠️ THE one that matters. `_loaded` is a cached_property; if the token
+        # were captured at load time instead of read per call, every control
+        # language would emit identical output and the diagnostic would report
+        # "Tigrinya and Spanish both fail" -- a false pipeline diagnosis from a
+        # check that ran perfectly.
+        probe = _Probe()
+        t.diagnose(probe, 2)
+        ok = probe.tokens_used == ["<2ti>", "<2am>", "<2es>"]
+
+    elif CASE == "diagnose_writes_nothing_at_all":
+        import builtins
+        real_open, real_write = builtins.open, pathlib.Path.write_text
+        def no_open(f, mode="r", *a, **k):
+            if any(c in mode for c in "wxa+"):
+                raise AssertionError(f"diagnose() opened {f} for writing")
+            return real_open(f, mode, *a, **k)
+        def no_write(self, *a, **k):
+            raise AssertionError(f"diagnose() wrote {self}")
+        builtins.open, pathlib.Path.write_text = no_open, no_write
+        try:
+            t.diagnose(_Probe(), 2)
+            ok = True
+        finally:
+            builtins.open, pathlib.Path.write_text = real_open, real_write
+
+    elif CASE == "diagnose_survives_a_refused_language":
+        # A control language the model does not know must be reported and
+        # skipped, never abort the whole diagnostic.
+        probe = _Probe(known=("<2ti>", "<2es>"))
+        res = t.diagnose(probe, 2)
+        ok = res["<2am>"] is None and res["<2ti>"] == 2
+
     elif CASE == "the_threshold_is_recorded_before_judging":
         out = t.measure(steady, out_json=js, out_sheet=sheet, limit=6, quiet=True)
         saved = json.loads(js.read_text(encoding="utf-8"))
@@ -607,6 +683,14 @@ TRANSLATE_PLANTS = [
      "a_resume_refuses_a_different_run", 0),
     ("--smoke writes nothing at all",
      "smoke_writes_nothing_at_all", 0),
+    ("--diagnose loads the model once for every language",
+     "diagnose_loads_the_model_once_for_every_language", 0),
+    ("--diagnose actually changes the language between runs",
+     "diagnose_actually_changes_the_language", 0),
+    ("--diagnose writes nothing at all",
+     "diagnose_writes_nothing_at_all", 0),
+    ("--diagnose survives a refused control language",
+     "diagnose_survives_a_refused_language", 0),
 ]
 
 

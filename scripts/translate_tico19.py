@@ -46,9 +46,10 @@ no scoring and no files. The first real run spent 46 minutes to discover the
 output was not Tigrinya; a minute would have shown the same thing.
 
 Usage:
+    python3 scripts/translate_tico19.py --self-test     # no model, no network
+    python3 scripts/translate_tico19.py --diagnose      # Tigrinya + controls
     python3 scripts/translate_tico19.py --smoke         # 3 segments, printed
     python3 scripts/translate_tico19.py --json PATH     # the real run
-    python3 scripts/translate_tico19.py --self-test     # no model, no network
 
 A long run **checkpoints** to `PATH.partial.json` after every batch and resumes
 from it; `--no-resume` starts over. A rejected run's output is preserved to
@@ -439,7 +440,12 @@ def smoke(translator, n: int = 3, quiet: bool = False) -> list[str]:
     It routes through the same `translate_all` and the same translator as the
     real run. A smoke test that built its own prompt would stop testing the
     thing it is supposed to de-risk.
+
+    ⚠️ Forces UTF-8 stdio itself. It prints Ge'ez, and it is reachable by
+    import, so the `main()` guard does not cover it — the same rule that put
+    `force_utf8_stdio()` inside entry FUNCTIONS rather than `__main__` blocks.
     """
+    force_utf8_stdio()
     english = _anchor("eng")
     ids = sample_indices(len(english))[:n]
     source = [english[i] for i in ids]
@@ -447,7 +453,8 @@ def smoke(translator, n: int = 3, quiet: bool = False) -> list[str]:
     out = translate_all(source, translator)
 
     if not quiet:
-        print(f"  {MODEL}  {LANGUAGE_TOKEN}\n")
+        token = getattr(translator, "language_token", LANGUAGE_TOKEN)
+        print(f"  {MODEL}  {token}\n")
         for i, en, ti in zip(ids, source, out):
             geez = sum(1 for c in ti if is_ethiopic(c))
             print(f"  [{i}] en: {en}")
@@ -456,6 +463,84 @@ def smoke(translator, n: int = 3, quiet: bool = False) -> list[str]:
         print("  ⚠️ Nothing was scored and nothing was written. Look at the "
               "output above before running the full measurement.")
     return out
+
+
+#: The control languages, and why each one is here.
+#:
+#: ⚠️ A diagnostic with no control cannot tell "my pipeline is broken" from
+#: "this model's Tigrinya is poor", and those need opposite responses.
+#:
+#:   - `<2am>` Amharic — **the sharp one.** Same Ge'ez script, far more
+#:     training data. Ge'ez for Amharic but not Tigrinya isolates the problem
+#:     to Tigrinya *coverage* rather than to generating the script at all.
+#:   - `<2es>` Spanish — high-resource, Latin script. If this fails too, the
+#:     fault is the pipeline: precision, tokenizer, or weight loading.
+CONTROL_LANGUAGES = ("<2ti>", "<2am>", "<2es>")
+
+
+def diagnose(translator, n: int = 3, languages=CONTROL_LANGUAGES) -> dict:
+    """Translate the same segments into several languages, and show the prompts.
+
+    ⚠️ **One model load.** Reloading 11.8 GB per language to compare three of
+    them would take longer than the failure it is diagnosing.
+
+    Writes nothing, scores nothing, never aborts — same contract as `--smoke`.
+    A diagnostic that hides the symptom is worthless.
+
+    ⚠️ Forces UTF-8 stdio for the same reason `smoke()` does: it prints Ge'ez
+    and the metaspace marker `\u2581`, and on Windows a child writing to a pipe
+    encodes with cp1252 whatever the console is.
+    """
+    force_utf8_stdio()
+    print("=" * 72)
+    print("DIAGNOSTIC — not a measurement, nothing is written or scored")
+    print("=" * 72)
+
+    tok = None
+    try:
+        tok, _ = translator._loaded
+    except Exception as exc:                              # noqa: BLE001
+        print(f"  could not reach the tokenizer: {type(exc).__name__}: {exc}")
+
+    if tok is not None:
+        probe = f"{LANGUAGE_TOKEN} Wash your hands often."
+        print(f"\n  prompt: {probe!r}")
+        try:
+            pieces = tok.tokenize(probe)
+            print(f"  fast tokenizer: {pieces}")
+            # ⚠️ The model card uses the SLOW T5Tokenizer. If the two disagree
+            # about `<2ti>`, that difference is the whole bug.
+            from transformers import T5Tokenizer
+            slow = T5Tokenizer.from_pretrained(MODEL)
+            print(f"  slow tokenizer: {slow.tokenize(probe)}")
+        except Exception as exc:                          # noqa: BLE001
+            print(f"  tokenizer comparison unavailable: "
+                  f"{type(exc).__name__}: {exc}")
+
+    results = {}
+    for token in languages:
+        print(f"\n{'-' * 72}\n  {token}\n{'-' * 72}")
+        try:
+            translator.use_language(token)
+        except Exception as exc:                          # noqa: BLE001
+            print(f"  REFUSED: {type(exc).__name__}: {exc}")
+            results[token] = None
+            continue
+        out = smoke(translator, n)
+        results[token] = sum(
+            1 for h in out if any(is_ethiopic(c) for c in h))
+
+    print(f"\n{'=' * 72}\n  Ethiopic segments, of {n}:")
+    for token, got in results.items():
+        print(f"    {token:8} {'refused' if got is None else got}")
+    print("""
+  How to read this:
+    Spanish works, Tigrinya does not   -> the pipeline is fine; this is a
+                                          finding about MADLAD's Tigrinya
+    Amharic gives Ge'ez, Tigrinya not  -> Tigrinya coverage, not the script
+    Spanish fails too                  -> precision, tokenizer or weights
+    fast and slow tokens differ        -> the tokenizer is the cause""")
+    return results
 
 
 def _self_test() -> int:
@@ -499,6 +584,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--smoke", type=int, nargs="?", const=3, metavar="N",
                     help="translate N segments (default 3) and print them; "
                          "no scoring, no files — run this FIRST")
+    ap.add_argument("--diagnose", action="store_true",
+                    help="translate a few segments into Tigrinya AND control "
+                         "languages, with one model load; writes nothing")
+    ap.add_argument("--dtype", default="bfloat16", metavar="NAME",
+                    help="torch dtype for the model (default bfloat16; "
+                         "float32 is ~12 GB resident and will thrash 16 GB)")
     ap.add_argument("--no-resume", action="store_true",
                     help="ignore any partial run and start over")
     ap.add_argument("--self-test", action="store_true",
@@ -515,13 +606,17 @@ def main(argv: list[str] | None = None) -> int:
     print("=" * 72)
 
     try:
-        translator = MadladTranslator()
+        translator = MadladTranslator(dtype=args.dtype)
         # Force the load now, so the language-token check fires before any
         # decoding rather than after the first batch.
         translator._loaded                                # noqa: B018
     except Exception as exc:                              # noqa: BLE001
         print(f"\n::error::{type(exc).__name__}: {exc}")
         return 2
+
+    if args.diagnose:
+        diagnose(translator, args.smoke or 3)
+        return 0
 
     if args.smoke:
         smoke(translator, args.smoke)

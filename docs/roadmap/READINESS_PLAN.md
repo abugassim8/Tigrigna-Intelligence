@@ -69,7 +69,7 @@ degrading silently.
 GPL-3.0 analyser is absent — DEC-028).
 
 **Also built:** the native-speaker validation instrument (`validation/`, 134
-items), six enforcement scripts, a **planted-failure suite** (52 cases, CI),
+items), six enforcement scripts, a **planted-failure suite** (56 cases, CI),
 28 CI checks, and **two evaluation anchors** — **HornMT** (2,030 pairs,
 CC-BY-4.0, news) and **TICO-19** (3,071 segments × 3 references, CC0-1.0,
 COVID/medical, **variety-declared at source**), both screened on every side.
@@ -598,7 +598,7 @@ was tried first and broke every retraction *table* in the repository, whose
 markers legitimately sit in a header row or the prose above. Planted.
 
 **Planting is now a committed test rather than a habit** (`scripts/tests/
-test_plants.py`, 52 cases, in CI). That is the response to a discipline that
+test_plants.py`, 56 cases, in CI). That is the response to a discipline that
 depended on remembering to do it.
 
 ⚠️ **One failure in phase E could not have been caught by planting, and it is

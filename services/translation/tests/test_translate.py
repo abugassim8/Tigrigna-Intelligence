@@ -137,3 +137,54 @@ def test_progress_reports_against_the_true_total():
     translate_all(["a", "b", "c"], lambda b: list(b), batch_size=2,
                   progress=lambda done, total: seen.append((done, total)))
     assert seen == [(2, 3), (3, 3)]
+
+
+# ------------------------------------------------ switching target language
+
+class LoadedStub(MadladTranslator):
+    """A translator whose model is already 'loaded', for the switch tests."""
+
+    def __init__(self, tokens):
+        super().__init__()
+        self._fake = FakeTokenizer(tokens)
+
+    @property
+    def _loaded(self):
+        return self._fake, None
+
+
+def test_use_language_switches_without_reloading():
+    t = LoadedStub(["<2ti>", "<2am>", "<2es>"])
+    t.use_language("<2am>")
+    assert t.language_token == "<2am>"
+
+
+def test_use_language_still_validates():
+    """⚠️ The gate lives in a cached_property, so a plain assignment skips it.
+
+    That is the whole reason `use_language` exists rather than letting callers
+    set the attribute: a typo'd control language would otherwise translate
+    fluently into something else and be scored.
+    """
+    t = LoadedStub(["<2ti>", "<2am>"])
+    with pytest.raises(UnknownLanguageTokenError):
+        t.use_language("<2zz>")
+    assert t.language_token == "<2ti>", "must not change on a rejected token"
+
+
+def test_the_prompt_uses_the_current_token_not_the_one_loaded_with():
+    """If the token were captured at load time, every control language would
+    produce identical output and a diagnostic would report a false pipeline
+    failure."""
+    seen = []
+
+    class Probe(LoadedStub):
+        def __call__(self, segments):
+            seen.append([f"{self.language_token} {s}" for s in segments])
+            return list(segments)
+
+    t = Probe(["<2ti>", "<2am>"])
+    t(["hello"])
+    t.use_language("<2am>")
+    t(["hello"])
+    assert seen == [["<2ti> hello"], ["<2am> hello"]]

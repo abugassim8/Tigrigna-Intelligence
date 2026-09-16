@@ -22,6 +22,87 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The diagnostic is a command now, not a paste from a chat window — 2026-09-16
+
+The wrong-language run needs diagnosing, and **this environment cannot do it**:
+`huggingface.co` returns `CONNECT tunnel failed, response 403` under the org
+egress policy — which must not be retried or routed around — and neither `torch`
+nor `transformers` is installed here. The 11.8 GB model exists on exactly one
+machine, and it is not this one.
+
+So the diagnostic runs on the owner's machine either way. The only choice was
+whether it arrives as a **paste from chat** or as a **committed command**, and
+this week has already answered that: `hm.download('ti')`, `fetch.py --verify`,
+and the missing `HF_TOKEN` were all instructions living outside the repository —
+unversioned, unchecked by `check_commands.py`, and wrong.
+
+**`--diagnose`** translates the same segments into Tigrinya **and controls**
+(`<2am>`, `<2es>`) on **one model load**, and prints the fast and slow
+tokenizations of the prompt.
+
+⚠️ **The control is the entire point.** "The output is not Tigrinya" and "this
+model's Tigrinya is poor" demand opposite responses, and no amount of staring at
+Tigrinya output distinguishes them. Amharic is the sharp control: same Ge'ez
+script, far more training data, so Ge'ez for Amharic but not Tigrinya isolates
+the problem to Tigrinya *coverage* rather than to generating the script.
+
+#### A gap found while building it
+
+`_assert_language_token` runs inside `_loaded`, which is a `cached_property`. So
+`translator.language_token = "<2xx>"` after loading would **skip the gate
+entirely** — the one check standing between a typo'd control language and a
+fluent, scoreable translation into something else.
+
+`use_language()` re-validates against the loaded tokenizer and refuses without
+changing anything. Swapping tokens is worth supporting — comparing against a
+control is how a pipeline defect is told from a finding — but reloading 11.8 GB
+per language to do it is absurd, so the switch is a method, not an attribute.
+
+#### The plant that matters
+
+⚠️ **If the token were captured at load time rather than read per call, every
+control language would emit identical output** and `--diagnose` would report
+"Tigrinya and Spanish both fail" — a false *pipeline* diagnosis produced by a
+check that ran perfectly. `diagnose_actually_changes_the_language` asserts the
+prompts actually differ. Verified by reverting: with the switch removed, it
+fails, and so does the refused-language plant.
+
+Three more: the model is loaded **once** for N languages; `--diagnose` writes
+nothing (the same `builtins.open` / `Path.write_text` interception that caught
+the `--smoke` ornament); and a refused control language is reported and skipped
+rather than aborting the run.
+
+#### Two mistakes of my own, both caught by running things
+
+`_Probe` was inserted into `HARNESS_PLANT` instead of `TRANSLATE_PLANT` —
+anchored on `cached_call`, which belongs to the morphology plant. All four new
+plants failed with `NameError` on the first run. Caught immediately because the
+plants were executed rather than reviewed.
+
+And the earlier claim that `translate_tico19.py`'s docstring promised
+checkpointing was **wrong** — that sentence was in the plan document, not the
+file. Corrected in the entry below rather than dropped.
+
+#### The ASCII-locale plant caught a regression in today's code
+
+⚠️ All four new plants **passed normally and failed under an ASCII locale.**
+`diagnose()` prints Ge'ez and the metaspace marker `\u2581`, and — reachable by
+import, like `smoke()` — the `main()` guard never covered it. On Windows a child
+writing to a pipe encodes with cp1252 whatever the console is, so this is the
+same defect as two days ago, reintroduced in code written today, and caught by
+the whole-suite ASCII pass written for exactly that.
+
+Both now call `force_utf8_stdio()` themselves, which is the rule already
+recorded: entry **functions** force their own stdio, because a `__main__` guard
+does not run for a caller that imports them.
+
+56 planted cases, up from 52. 191 tests. 23 documented commands checked.
+
+⚠️ **Nothing here is proven against the model.** Every path is exercised with
+injected stubs; `--diagnose` reaches real weights for the first time on the
+owner's machine. Saying so is not modesty — `MadladTranslator.__call__` has
+still never executed in this environment.
+
 ### The language gate caught a wrong-language run — and everything around it failed — 2026-09-16
 
 **The first real translation run produced 0 Ethiopic characters in 100

@@ -88,10 +88,29 @@ trade.
 
 ## Running the measurement
 
+In this order. Each one costs more than the last, and each rules out a class of
+failure the next would otherwise waste time on:
+
 ```bash
-python3 scripts/translate_tico19.py --self-test
+python3 scripts/translate_tico19.py --self-test    # no model, no network
+python3 scripts/translate_tico19.py --diagnose     # Tigrinya + controls
+python3 scripts/translate_tico19.py --smoke        # 3 segments, printed
 python3 scripts/translate_tico19.py --json PATH --sheet PATH
 ```
+
+⚠️ **`--diagnose` is the one to reach for when output looks wrong.** It
+translates the same segments into Tigrinya **and control languages** — `<2am>`
+Amharic and `<2es>` Spanish — on a single model load, and prints the fast and
+slow tokenizations of the prompt.
+
+Without a control, "the output is not Tigrinya" cannot be told apart from "this
+model's Tigrinya is poor", and those need opposite responses. Amharic is the
+sharp control: same Ge'ez script, far more training data, so Ge'ez for Amharic
+but not Tigrinya isolates the problem to Tigrinya *coverage* rather than to
+generating the script at all.
+
+`--dtype float32` retries in full precision. ⚠️ ~12 GB resident; it will thrash
+a 16 GB machine.
 
 The first needs no model and no network. The second downloads **11.76 GB**
 (`model.safetensors`, 11,761,587,872 bytes) plus ~21 MB of tokenizer, and takes

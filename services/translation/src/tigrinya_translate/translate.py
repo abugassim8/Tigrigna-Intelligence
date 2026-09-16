@@ -216,6 +216,24 @@ class MadladTranslator:
             f"then set tigrinya_translate.LANGUAGE_TOKEN to the correct one."
         )
 
+    def use_language(self, token: str) -> None:
+        """Switch target language on an already-loaded model, keeping the gate.
+
+        ⚠️ The gate lives in `_loaded`, which is a `cached_property`. Assigning
+        `self.language_token = "<2xx>"` directly would therefore **bypass the
+        validation entirely** — the one check standing between a typo and a
+        fluent, scoreable translation into the wrong language.
+
+        Swapping the token is worth supporting: comparing `<2ti>` against a
+        control language is how a pipeline defect is told apart from a finding
+        about Tigrinya, and reloading 11.8 GB per language to do it is absurd.
+        So the switch is a method that re-validates, not an attribute anyone
+        should set.
+        """
+        tokenizer, _ = self._loaded
+        self._assert_language_token(tokenizer, token)
+        self.language_token = token
+
     def __call__(self, segments: list[str]) -> list[str]:
         import torch
 
