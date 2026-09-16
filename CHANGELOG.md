@@ -22,6 +22,59 @@ first service is deployed.
 
 ## [Unreleased]
 
+### One command, one report — after six round trips that should have been one — 2026-09-16
+
+⚠️ **This entry records a process failure, not a code one.** Diagnosing the
+wrong-language output took **six round trips and two ninety-minute runs** to
+produce one line of usable evidence, because each attempt answered one question
+and then asked for another command. The owner's terminal was being used as a
+REPL, and the environment ended up **worse** than it started: a `transformers`
+downgrade broke the `tokenizers==0.23.1` pin, moved `huggingface_hub` from 1.31
+to 0.36, and left the model unable to load at all — header, deprecation warning,
+then a **silent exit**. No traceback, no progress bar, nothing.
+
+**A silent exit is a native crash or an OOM kill**, and in a single process it
+destroys the whole diagnostic. That is why each attempt cost a round trip.
+
+**`scripts/diagnose_environment.py`** answers everything at once:
+
+| Stage | Question |
+| --- | --- |
+| 1 | versions, platform, **total RAM** |
+| 2 | **do `shared.weight` and `decoder.embed_tokens.weight` actually differ?** |
+| 3 | `<2ti>` in vocab; fast vs slow tokenization |
+| 4 | does it load, and **in the dtype that was asked for?** |
+| 5 | generation into `<2es>`, `<2de>`, `<2am>`, `<2ti>` |
+
+⚠️ **Every stage runs in its own subprocess**, so a crash is a recorded line and
+the later stages still run. ⚠️ **The report is written even when every stage
+fails** — that is the case it exists for. Both are planted, and both plants fail
+when reverted.
+
+⚠️ **Stage 2 is decisive and nearly free.** `safetensors.safe_open` reads
+individual tensors without materialising 11.8 GB, so the tied-weights hypothesis
+is settled in seconds instead of inferred from garbage output. It does not care
+which `transformers` is installed, so the report is useful even when the
+environment is broken — which it currently is.
+
+#### Two bugs from guessing a keyword, replaced by checking the outcome
+
+`torch_dtype` → `dtype` was handled first with `try/except TypeError` — **which
+never fires**, because `from_pretrained` forwards unknown keywords to the config.
+Then with a version gate on `major >= 5` — **also wrong**, because the rename
+landed in **4.56**, not 5.0. Either would have loaded float32 silently: 11.8 GB
+resident instead of 6, thrashing the 16 GB machine and looking like a slow run.
+
+`DtypeIgnoredError` now raises when the **loaded** model's dtype differs from the
+requested one. Asking the model what it actually is cannot be wrong; guessing
+which keyword a library wants produced two bugs in two days.
+
+63 planted cases, up from 60. 191 tests. 24 documented commands checked.
+
+⚠️ **Still no diagnosis.** This is scaffolding, and the two previous attempts
+were too. The difference is that this one costs about two minutes and produces
+the whole picture, rather than ninety minutes and one line.
+
 ### The model is broken, not the language selection — 2026-09-16
 
 The preserved rejected output finally showed what MADLAD produced. It is not a

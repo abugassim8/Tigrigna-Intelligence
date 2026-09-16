@@ -608,6 +608,38 @@ with tempfile.TemporaryDirectory() as tmp:
         finally:
             builtins.open, pathlib.Path.write_text = real_open, real_write
 
+    elif CASE == "the_diagnostic_survives_a_hard_crash":
+        # ⚠️ The property the last real attempt lacked. A stage that segfaults
+        # or is OOM-killed emits no Python traceback; in one process it takes
+        # the whole report with it, which is exactly what happened.
+        import diagnose_environment as dg
+        text = dg.collect((
+            ("ok", "print('first')"),
+            ("hard crash", "import os; os._exit(3)"),
+            ("after", "print('still ran')"),
+        ))
+        ok = ("first" in text and "still ran" in text
+              and "NO output at all" in text and "exit 3" in text)
+
+    elif CASE == "the_diagnostic_records_a_timeout_as_a_finding":
+        import diagnose_environment as dg
+        real = dg.TIMEOUT_SECONDS
+        dg.TIMEOUT_SECONDS = 1
+        try:
+            text = dg.collect((("hangs", "import time; time.sleep(30)"),
+                               ("after", "print('still ran')")))
+        finally:
+            dg.TIMEOUT_SECONDS = real
+        ok = "TIMED OUT" in text and "still ran" in text
+
+    elif CASE == "the_report_is_written_even_when_everything_fails":
+        # A diagnostic that produces nothing when everything is broken is
+        # worthless -- and that is the case it exists for.
+        import diagnose_environment as dg
+        text = dg.collect((("a", "import os; os._exit(1)"),
+                           ("b", "raise SystemExit(9)")))
+        ok = len(text) > 200 and "TRANSLATION DIAGNOSTIC" in text
+
     elif CASE == "a_rejected_run_blocks_an_identical_rerun":
         # The second wrong-language run cost ninety minutes to learn nothing,
         # because the rejected file recorded the failure and nothing read it.
@@ -759,6 +791,12 @@ TRANSLATE_PLANTS = [
      "force_overrides_the_block", 0),
     ("both artefacts record which transformers ran",
      "both_artefacts_record_the_environment", 0),
+    ("the diagnostic survives a hard crash in one stage",
+     "the_diagnostic_survives_a_hard_crash", 0),
+    ("the diagnostic records a timeout as a finding",
+     "the_diagnostic_records_a_timeout_as_a_finding", 0),
+    ("the report is written even when every stage fails",
+     "the_report_is_written_even_when_everything_fails", 0),
 ]
 
 

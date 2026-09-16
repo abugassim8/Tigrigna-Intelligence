@@ -109,6 +109,27 @@ run and would be switched off within a week — the failure DEC-008 exists to
 prevent, and the reason these are measurements rather than `experiments/`
 entries.
 
+## When something is wrong: one command, one report
+
+```bash
+python3 scripts/diagnose_environment.py
+```
+
+Writes `diagnostic-report.txt`. **Every stage runs in its own subprocess**, so a
+native crash or an out-of-memory kill becomes a recorded line rather than ending
+the run — the property the six-round-trip debugging session lacked, where a
+silent exit destroyed the evidence each time.
+
+⚠️ **Stage 2 is the decisive one and costs seconds.** It opens the checkpoint
+with `safetensors.safe_open` and compares `shared.weight` against
+`encoder.embed_tokens.weight` and `decoder.embed_tokens.weight` — the tensors the
+loader warns about — **without materialising 11.8 GB**. The MADLAD paper says the
+vocabulary is *"shared on both the encoder and decoder side"*, so if they differ
+the checkpoint is wrong and no `transformers` version will fix it.
+
+It does not care which `transformers` is installed, so the report is useful even
+when the environment is broken.
+
 ## Running the measurement
 
 In this order. Each one costs more than the last, and each rules out a class of

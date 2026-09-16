@@ -34,6 +34,7 @@ from __future__ import annotations
 
 from .translate import (
     LANGUAGE_TOKEN,
+    DtypeIgnoredError,
     MODEL,
     SegmentCountError,
     Translator,
@@ -42,6 +43,7 @@ from .translate import (
 )
 
 __all__ = [
+    "DtypeIgnoredError",
     "LANGUAGE_TOKEN",
     "MODEL",
     "SegmentCountError",

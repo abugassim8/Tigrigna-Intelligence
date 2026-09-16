@@ -323,3 +323,6 @@ temp/
 *.pid.lock
 .scratch/
 scratch/
+
+# Machine-specific diagnostic output; paste it, never commit it.
+diagnostic-report.txt

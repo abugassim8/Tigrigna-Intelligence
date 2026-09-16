@@ -65,6 +65,17 @@ class UnknownLanguageTokenError(RuntimeError):
     """
 
 
+class DtypeIgnoredError(RuntimeError):
+    """The model did not load in the precision that was asked for.
+
+    ⚠️ Silent, and expensive. `from_pretrained` forwards unrecognised keywords
+    to the config instead of raising, so a renamed dtype argument is *accepted
+    and ignored* -- and the model loads in float32. On the 16 GB machine this
+    targets that is 11.8 GB resident instead of 6, which presents as a very
+    slow run rather than as a bug.
+    """
+
+
 class SegmentCountError(RuntimeError):
     """A translator returned a different number of segments than it was given.
 
@@ -155,26 +166,36 @@ class MadladTranslator:
         tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self._assert_language_token(tokenizer, self.language_token)
 
-        # ⚠️ The keyword was renamed: `transformers` 5.x takes `dtype=` and
-        # warns loudly on `torch_dtype=`; 4.x takes only `torch_dtype=`. The
-        # pyproject floor is `>=4.40`, so both spellings are live.
+        # ⚠️ **Verify the outcome; never guess the keyword.**
         #
-        # ⚠️ **Chosen by version, never by try/except.** An earlier version here
-        # tried `dtype=` and caught `TypeError` — which does not fire:
-        # `from_pretrained` forwards unknown keywords to the *config* rather
-        # than raising, so on 4.x the dtype would be **silently ignored** and
-        # the model would load in float32. That is 11.8 GB resident instead of
-        # 6, enough to thrash the 16 GB machine this runs on, and it would look
-        # like a slow run rather than a bug.
-        import transformers
-        major = int(transformers.__version__.split(".")[0])
-        precision_key = "dtype" if major >= 5 else "torch_dtype"
+        # Two bugs came from guessing. First `try: dtype= except TypeError:` --
+        # the TypeError never fires, because `from_pretrained` forwards unknown
+        # keywords to the *config* rather than raising. Then a version gate on
+        # `major >= 5` -- also wrong, because the rename landed in 4.56, not
+        # 5.0. Both would have loaded float32 silently: 11.8 GB resident
+        # instead of 6, enough to thrash a 16 GB machine, and looking like a
+        # slow run rather than a bug.
+        #
+        # Asking the loaded model what dtype it actually is cannot be wrong.
+        precision = getattr(torch, self.dtype)
+        try:
+            model = AutoModelForSeq2SeqLM.from_pretrained(
+                self.model_name, low_cpu_mem_usage=True, dtype=precision)
+        except TypeError:
+            model = AutoModelForSeq2SeqLM.from_pretrained(
+                self.model_name, low_cpu_mem_usage=True, torch_dtype=precision)
 
-        model = AutoModelForSeq2SeqLM.from_pretrained(
-            self.model_name,
-            low_cpu_mem_usage=True,
-            **{precision_key: getattr(torch, self.dtype)},
-        )
+        actual = next(model.parameters()).dtype
+        if actual != precision:
+            raise DtypeIgnoredError(
+                f"asked for {precision} but the model loaded as {actual}. The "
+                f"dtype keyword was accepted and ignored, which silently "
+                f"multiplies memory by {actual.itemsize // precision.itemsize}x "
+                f"-- about {3.0 * actual.itemsize:.0f} GB for this model. "
+                f"transformers {__import__('transformers').__version__} may use "
+                f"a different keyword than either tried here."
+            )
+
         model.eval()
         return tokenizer, model
 
