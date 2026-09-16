@@ -494,6 +494,84 @@ with tempfile.TemporaryDirectory() as tmp:
         ids = t.sample_indices(len(t._anchor("eng")))[:6]
         ok = all(refs[i] not in text for i in ids)
 
+    elif CASE == "a_rejected_run_preserves_its_output":
+        # A 46-minute run was correctly rejected and then discarded the only
+        # evidence that could explain why. Refusing to record a MEASUREMENT was
+        # right; throwing away the OUTPUT was not.
+        try:
+            t.measure(english, out_json=js, out_sheet=sheet, limit=6, quiet=True)
+            ok = False
+        except t.WrongLanguageError:
+            rej = js.with_name(js.stem + "-REJECTED.json")
+            ok = rej.exists() and not js.exists() and not sheet.exists()
+            if ok:
+                d = json.loads(rej.read_text(encoding="utf-8"))
+                ok = (d["is_a_measurement"] is False
+                      and len(d["pairs"]) == 6
+                      and "chrf" not in json.dumps(d)
+                      and d["pairs"][0]["output"] == "Wash your hands often.")
+
+    elif CASE == "a_resumed_run_matches_an_uninterrupted_one":
+        # The whole point of checkpointing: the same hypotheses, and an honest
+        # record that the run was stitched from two sessions.
+        # ⚠️ 12, not 6. translate_all batches by 8, so a 6-segment run is a
+        # SINGLE batch that dies before any batch completes — and a batch that
+        # failed must never reach disk. Testing resume needs two batches, and
+        # the first version of this plant did not have them.
+        clean = t.measure(steady, out_json=js, out_sheet=None, limit=12, quiet=True)
+
+        calls = [0]
+        def dies_after_first_batch(batch):
+            calls[0] += len(batch)
+            if calls[0] > 8:
+                raise RuntimeError("simulated interruption")
+            return steady(batch)
+
+        js2 = tmp / "r2.json"
+        try:
+            t.measure(dies_after_first_batch, out_json=js2, out_sheet=None,
+                      limit=12, quiet=True)
+        except RuntimeError:
+            pass
+        partial = t._partial_path(js2)
+        held = json.loads(partial.read_text(encoding="utf-8"))["hypotheses"]
+        resumed = t.measure(steady, out_json=js2, out_sheet=None, limit=12,
+                            quiet=True)
+        ok = (len(held) == 8                                 # one batch survived
+              and partial.exists() is False                  # spent on success
+              and resumed["scores"] == clean["scores"]       # same result
+              and resumed["resumed_from_partial"] == 8)      # and says so
+
+    elif CASE == "a_resume_refuses_a_different_run":
+        # ⚠️ Grafting old hypotheses onto a new sample would be well-formed and
+        # completely wrong. The fingerprint is what stops it.
+        t.measure(steady, out_json=js, out_sheet=None, limit=6, quiet=True)
+        t._save_partial(t._partial_path(js), "not-this-run", ["x", "y"])
+        got = t._load_partial(t._partial_path(js), t._fingerprint(["a"], t.MODEL))
+        ok = got == []
+
+    elif CASE == "smoke_writes_nothing_at_all":
+        # ⚠️ The first version of this plant listed the temp directory before
+        # and after. smoke() has no reason to write THERE, so it passed even
+        # when smoke() was made to write into the repository root -- a check
+        # that could not fail, found by reverting it rather than by reading it.
+        #
+        # Writing is now forbidden outright, wherever it is aimed.
+        import builtins
+        real_open, real_write = builtins.open, pathlib.Path.write_text
+        def no_open(f, mode="r", *a, **k):
+            if any(c in mode for c in "wxa+"):
+                raise AssertionError(f"smoke() opened {f} for writing")
+            return real_open(f, mode, *a, **k)
+        def no_write(self, *a, **k):
+            raise AssertionError(f"smoke() wrote {self}")
+        builtins.open, pathlib.Path.write_text = no_open, no_write
+        try:
+            out = t.smoke(steady, 3, quiet=True)
+            ok = len(out) == 3
+        finally:
+            builtins.open, pathlib.Path.write_text = real_open, real_write
+
     elif CASE == "the_threshold_is_recorded_before_judging":
         out = t.measure(steady, out_json=js, out_sheet=sheet, limit=6, quiet=True)
         saved = json.loads(js.read_text(encoding="utf-8"))
@@ -521,6 +599,14 @@ TRANSLATE_PLANTS = [
      "the_sheet_never_leaks_the_reference", 0),
     ("the threshold is recorded before judging",
      "the_threshold_is_recorded_before_judging", 0),
+    ("a rejected run preserves its output for diagnosis",
+     "a_rejected_run_preserves_its_output", 0),
+    ("a resumed run matches an uninterrupted one, and says it resumed",
+     "a_resumed_run_matches_an_uninterrupted_one", 0),
+    ("a resume refuses a partial from a different run",
+     "a_resume_refuses_a_different_run", 0),
+    ("--smoke writes nothing at all",
+     "smoke_writes_nothing_at_all", 0),
 ]
 
 

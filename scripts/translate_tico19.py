@@ -41,15 +41,26 @@ CI runs every `experiments/*/run.py` and cannot download a 12 GB model. It
 follows `measure_morphology.py` instead — heavy dependency, artefact committed
 under `docs/benchmarks/measurements/`, recipe documented.
 
+⚠️ **Run `--smoke` first.** It translates three segments and prints them, with
+no scoring and no files. The first real run spent 46 minutes to discover the
+output was not Tigrinya; a minute would have shown the same thing.
+
 Usage:
+    python3 scripts/translate_tico19.py --smoke         # 3 segments, printed
     python3 scripts/translate_tico19.py --json PATH     # the real run
     python3 scripts/translate_tico19.py --self-test     # no model, no network
+
+A long run **checkpoints** to `PATH.partial.json` after every batch and resumes
+from it; `--no-resume` starts over. A rejected run's output is preserved to
+`PATH-REJECTED.json`, which carries no score and is never read by the scoring
+path.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import pathlib
 import random
@@ -62,8 +73,8 @@ for _pkg in ("evaluation", "primitives", "translation"):
 
 from tigrinya_eval.harness import EvalSet, Harness                # noqa: E402
 from tigrinya_eval.primitives import force_utf8_stdio, is_ethiopic  # noqa: E402
-from tigrinya_translate import (MODEL, SegmentCountError,         # noqa: E402
-                                translate_all)
+from tigrinya_translate import (LANGUAGE_TOKEN, MODEL,            # noqa: E402
+                                SegmentCountError, translate_all)
 
 #: Pre-committed, before any translation existed. Recorded in the artefact so
 #: the threshold cannot be chosen after the result is known.
@@ -142,9 +153,89 @@ def write_sheet(path: pathlib.Path, ids: list[int], english: list[str],
             w.writerow([i, en, ti, "", ""])
 
 
+def _fingerprint(source: list[str], model: str) -> str:
+    """Identify *this* run, so a resume cannot stitch two different ones.
+
+    ⚠️ Without it, changing SEED, SAMPLE_SIZE or the model and re-running would
+    silently graft old hypotheses onto a new sample. The result would be
+    perfectly well-formed and completely wrong — the same failure shape as the
+    language gate, one layer up.
+    """
+    h = hashlib.sha256(model.encode("utf-8"))
+    for line in source:
+        h.update(b"\x00")
+        h.update(line.encode("utf-8"))
+    return h.hexdigest()[:16]
+
+
+def _partial_path(out_json: pathlib.Path | None) -> pathlib.Path | None:
+    return None if out_json is None else out_json.with_suffix(".partial.json")
+
+
+def _load_partial(path: pathlib.Path | None, fingerprint: str) -> list[str]:
+    """Hypotheses already translated for *this exact* run, or nothing."""
+    if path is None or not path.is_file():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    if data.get("fingerprint") != fingerprint:
+        return []
+    got = data.get("hypotheses")
+    return got if isinstance(got, list) else []
+
+
+def _save_partial(path: pathlib.Path | None, fingerprint: str,
+                  hypotheses: list[str]) -> None:
+    """Write-then-replace, so an interruption mid-write cannot corrupt it."""
+    if path is None:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(
+        {"fingerprint": fingerprint, "hypotheses": hypotheses,
+         "warning": "partial run, not a measurement"},
+        ensure_ascii=False), encoding="utf-8")
+    tmp.replace(path)
+
+
+def _write_rejected(out_json: pathlib.Path | None, reason: str,
+                    source: list[str], hypotheses: list[str],
+                    ids: list[int]) -> pathlib.Path | None:
+    """Preserve a rejected run's output so it can be diagnosed.
+
+    ⚠️ **Never at the `--json` path, and never scored.** The first real run
+    produced 100 translations in 46 minutes, was correctly rejected for being
+    in the wrong language, and then discarded the only evidence that could
+    explain why. Refusing to record a *measurement* was right; throwing away the
+    *output* was not.
+
+    The name and the `is_a_measurement: false` field are both deliberate: this
+    file must be impossible to mistake for a result, and nothing in the scoring
+    path reads it.
+    """
+    if out_json is None:
+        return None
+    path = out_json.with_name(f"{out_json.stem}-REJECTED.json")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({
+        "is_a_measurement": False,
+        "warning": ("REJECTED RUN. Kept only so the failure can be diagnosed. "
+                    "It carries no score and must never be presented as one."),
+        "reason": reason,
+        "model": MODEL,
+        "language_token": LANGUAGE_TOKEN,
+        "segment_ids": ids,
+        "pairs": [{"id": i, "english": e, "output": h}
+                  for i, e, h in zip(ids, source, hypotheses)],
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
 def measure(translator, *, out_json: pathlib.Path | None,
             out_sheet: pathlib.Path | None, limit: int | None = None,
-            quiet: bool = False) -> dict:
+            quiet: bool = False, resume: bool = True) -> dict:
     """Translate, score per reference, and emit the artefact.
 
     `translator` is injected so this whole function is exercised without a
@@ -174,13 +265,40 @@ def measure(translator, *, out_json: pathlib.Path | None,
 
     started = time.time()
 
+    # ---------------------------------------------------------- checkpointing
+    #
+    # ⚠️ Added after a 46-minute run was thrown away. The run was correctly
+    # rejected — the output was not Tigrinya — but there was nothing on disk
+    # afterwards, so the failure could not be diagnosed without paying the 46
+    # minutes again. Neither the partial file nor the rejected file is a
+    # measurement; both exist so a failure costs minutes instead of an hour.
+    fingerprint = _fingerprint(source, MODEL)
+    partial = _partial_path(out_json)
+    done_already = _load_partial(partial, fingerprint) if resume else []
+    done_already = done_already[:len(source)]
+    remaining = source[len(done_already):]
+
+    if done_already and not quiet:
+        print(f"  resuming: {len(done_already)} of {len(source)} already "
+              f"translated, from {partial.name}\n")
+
     def progress(done: int, total: int) -> None:
-        if quiet or done % CHECKPOINT_EVERY:
+        if quiet or (done + len(done_already)) % CHECKPOINT_EVERY:
             return
         rate = (time.time() - started) / max(done, 1)
-        print(f"    {done}/{total}  ~{rate * (total - done) / 60:.0f} min left")
+        print(f"    {done + len(done_already)}/{len(source)}  "
+              f"~{rate * (total - done) / 60:.0f} min left")
 
-    hypotheses = translate_all(source, translator, progress=progress)
+    def checkpoint(so_far: list[str]) -> None:
+        _save_partial(partial, fingerprint, done_already + so_far)
+
+    try:
+        hypotheses = done_already + translate_all(
+            remaining, translator, progress=progress, checkpoint=checkpoint)
+    except SegmentCountError as exc:
+        _write_rejected(out_json, str(exc), source[:len(done_already)],
+                        done_already, ids[:len(done_already)])
+        raise
 
     # ------------------------------------------------ did it emit Tigrinya?
     #
@@ -200,26 +318,34 @@ def measure(translator, *, out_json: pathlib.Path | None,
     empty = sum(1 for h in hypotheses if not h.strip())
 
     non_empty = len(hypotheses) - empty
+
+    def reject(reason: str) -> None:
+        where = _write_rejected(out_json, reason, source, hypotheses, ids)
+        if where and not quiet:
+            print(f"\n  output preserved for diagnosis: {where}")
+            print(f"  ⚠️ that file carries NO score and is not a measurement.")
+        raise WrongLanguageError(reason)
+
     if not non_empty:
         # ⚠️ Caught by a plant, not by review. The fraction test below reads
         # `ethiopic / non_empty`, so it was guarded with `if non_empty` — which
         # silently skipped the whole check when the model returned nothing at
         # all. chrF of empty against a reference is 0.00, and the artefact would
         # have recorded the strongest possible failure as "terrible quality".
-        raise WrongLanguageError(
+        reject(
             f"every one of {len(hypotheses)} output segment(s) is empty. The "
             f"model produced no text, which scores chrF 0.00 and would be "
             f"recorded as poor translation rather than as no translation. "
-            f"Writing nothing."
+            f"Writing no measurement."
         )
     if ethiopic / non_empty < ETHIOPIC_ABORT_FRACTION:
-        raise WrongLanguageError(
+        reject(
             f"only {ethiopic} of {non_empty} non-empty output segment(s) "
             f"contain Ethiopic script, below the {ETHIOPIC_ABORT_FRACTION:.0%} "
             f"floor. The model was not emitting Tigrinya — check "
-            f"tigrinya_translate.LANGUAGE_TOKEN. Writing nothing: a scored "
-            f"artefact for the wrong language would pass every check in this "
-            f"repository."
+            f"tigrinya_translate.LANGUAGE_TOKEN. Writing no measurement: a "
+            f"scored artefact for the wrong language would pass every check in "
+            f"this repository."
         )
 
     harness = Harness()
@@ -263,6 +389,9 @@ def measure(translator, *, out_json: pathlib.Path | None,
         },
         "scores": {r.eval_set: r.to_dict() for r in harness.results},
         "elapsed_seconds": round(time.time() - started, 1),
+        # ⚠️ A measurement stitched from two sessions is not the same
+        # evidence as one clean pass, so it says so.
+        "resumed_from_partial": len(done_already) or False,
         "judgement": "PENDING — the sheet has not been returned",
     }
 
@@ -284,11 +413,48 @@ def measure(translator, *, out_json: pathlib.Path | None,
         if not quiet:
             print(f"\n  wrote {out_json}")
 
+    if partial is not None and partial.is_file():
+        partial.unlink()          # the run completed; the crutch is spent
+
     if out_sheet:
         write_sheet(out_sheet, ids, source, hypotheses)
         if not quiet:
             print(f"  wrote {out_sheet}  ← mark `usable` as y/n, then send it back")
 
+    return out
+
+
+def smoke(translator, n: int = 3, quiet: bool = False) -> list[str]:
+    """Translate `n` segments and print them. No scoring, no files, no gates.
+
+    ⚠️ **This is the thing that should have existed before the first full run.**
+    The only path from "model loaded" to "see output" was a 100-segment,
+    46-minute measurement. It failed, and the failure cost an hour to observe
+    something a minute would have shown.
+
+    ⚠️ It deliberately does **not** check the output or abort. Its entire job is
+    to show what the model actually said, *including* when that is wrong — a
+    diagnostic that hides the symptom is worthless.
+
+    It routes through the same `translate_all` and the same translator as the
+    real run. A smoke test that built its own prompt would stop testing the
+    thing it is supposed to de-risk.
+    """
+    english = _anchor("eng")
+    ids = sample_indices(len(english))[:n]
+    source = [english[i] for i in ids]
+
+    out = translate_all(source, translator)
+
+    if not quiet:
+        print(f"  {MODEL}  {LANGUAGE_TOKEN}\n")
+        for i, en, ti in zip(ids, source, out):
+            geez = sum(1 for c in ti if is_ethiopic(c))
+            print(f"  [{i}] en: {en}")
+            print(f"       ti: {ti}")
+            print(f"           {geez} Ethiopic char(s) of {len(ti)}\n")
+        print("  ⚠️ Nothing was scored and nothing was written. Look at the "
+              "output above before running the full measurement.")
     return out
 
 
@@ -330,6 +496,11 @@ def main(argv: list[str] | None = None) -> int:
                     help="write the blind judgement sheet here")
     ap.add_argument("--limit", type=int, metavar="N",
                     help="translate only the first N sampled segments")
+    ap.add_argument("--smoke", type=int, nargs="?", const=3, metavar="N",
+                    help="translate N segments (default 3) and print them; "
+                         "no scoring, no files — run this FIRST")
+    ap.add_argument("--no-resume", action="store_true",
+                    help="ignore any partial run and start over")
     ap.add_argument("--self-test", action="store_true",
                     help="run the pipeline with a stub translator; no model")
     args = ap.parse_args(argv)
@@ -352,11 +523,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\n::error::{type(exc).__name__}: {exc}")
         return 2
 
+    if args.smoke:
+        smoke(translator, args.smoke)
+        return 0
+
     try:
         measure(translator,
                 out_json=pathlib.Path(args.json) if args.json else None,
                 out_sheet=pathlib.Path(args.sheet) if args.sheet else None,
-                limit=args.limit)
+                limit=args.limit,
+                resume=not args.no_resume)
     except (SegmentCountError, WrongLanguageError) as exc:
         print(f"\n::error::{exc}")
         return 1

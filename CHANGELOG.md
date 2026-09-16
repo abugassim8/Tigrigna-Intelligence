@@ -22,6 +22,89 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The language gate caught a wrong-language run — and everything around it failed — 2026-09-16
+
+**The first real translation run produced 0 Ethiopic characters in 100
+segments.** `WrongLanguageError` fired and refused to write a scored artefact.
+
+✅ **That gate did exactly its job**, and it is the first check in this project
+to catch a real failure in production rather than a planted one. Without it this
+repository would now hold `translation-en-ti-2026-09-15.json` carrying a chrF
+number for a language nobody asked for, and **every other check would have
+passed it** — the shape, the segment count and the score are all well-formed.
+
+⚠️ **Everything around the gate failed the owner**, and all of it was mine.
+
+**1. The abort destroyed the evidence.** 46 minutes of CPU produced the one
+artefact that could explain the failure, and `measure()` raised before writing
+anything. Refusing to record a *measurement* was right; discarding the *output*
+was not. A rejected run now writes `PATH-REJECTED.json` carrying
+`"is_a_measurement": false`, never at the `--json` path and never read by the
+scoring path.
+
+**2. There was no cheap way to look.** The only route from "model loaded" to
+"see output" was the full 100-segment run. **`--smoke`** now translates three
+segments and prints them — no scoring, no files, no gates. It deliberately does
+**not** check or abort: a diagnostic that hides the symptom is worthless. This
+should have existed before the first run, and its absence is why a one-minute
+observation cost an hour.
+
+**3. There was no checkpointing.** Now there is: hypotheses are written to
+`PATH.partial.json` after every validated batch and resumed automatically.
+
+⚠️ **A fingerprint guards the resume.** Without it, changing the seed, the sample
+size or the model and re-running would graft old hypotheses onto a new sample —
+well-formed and completely wrong, the same failure shape as the language gate
+one layer up. A resumed run also records `resumed_from_partial`, because a
+measurement stitched from two sessions is not the same evidence as one clean
+pass.
+
+⚠️ **The checkpoint fires only after the count check.** A batch that failed
+alignment must never reach disk, or a resumed run rebuilds itself from corrupt
+state.
+
+#### ⚠️ A correction: the false claim was in the plan, not the code
+
+This was announced as *"a false claim in my own docstring — it says the script
+checkpoints and it does not."* **That was wrong.** `grep` finds no occurrence of
+"checkpoint" in `scripts/translate_tico19.py` at all; the sentence lived in the
+*plan document*, and the shipped docstring never claimed it.
+
+The substance held — there was no checkpointing, and the 46 minutes were
+unrecoverable — but the specific accusation was made **by quoting a file from
+memory instead of reading it**, one day after shipping a checker built for
+exactly that failure. Recorded rather than quietly dropped, because the whole
+point of `check_commands.py` is that unverified claims about this repository are
+the recurring defect, and this one was mine about my own file.
+
+#### The twelfth ornament, caught by reverting
+
+⚠️ **The plant asserting `--smoke` writes nothing could not fail.** It listed the
+temp directory before and after — and `smoke()` has no reason to write *there*,
+so it passed happily when `smoke()` was modified to write into the repository
+root. Found by reverting it, never by reading it.
+
+It now forbids writing outright: `builtins.open` in any write mode and
+`Path.write_text` both raise for the duration of the call, so a leak anywhere is
+caught. **Not counted among the checks that could not fail** — it was caught
+during the mandatory both-directions pass before anything relied on it, the same
+convention applied to the `open_actions` and `LC_ALL` near-misses. The count
+stands at **eleven**.
+
+#### A plant that caught a flaw in itself
+
+The resume plant first used a 6-segment run. `translate_all` batches by 8, so
+that is a **single** batch which died before completing — and a failed batch
+must not checkpoint. Nothing was written, the plant failed, and the fix was to
+the plant: twelve segments, two batches, interrupt after the first.
+
+52 planted cases, up from 48. 188 tests. 20 documented commands checked.
+
+**The cause of the wrong-language output is still unknown** and is not guessed at
+here. A control-language diagnostic — the same sentence into Tigrinya, Amharic
+and Spanish — will separate a pipeline defect from a finding about MADLAD's
+Tigrinya.
+
 ### `<2ti>` verified, DEC-011's size corrected, and a token my guide never mentioned — 2026-09-15
 
 Three corrections, all from reading the Hub listing while the owner's first

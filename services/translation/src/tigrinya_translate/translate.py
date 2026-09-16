@@ -78,12 +78,18 @@ class SegmentCountError(RuntimeError):
 def translate_all(segments: Sequence[str], translator: Translator,
                   batch_size: int = 8,
                   progress: Callable[[int, int], None] | None = None,
+                  checkpoint: Callable[[list[str]], None] | None = None,
                   ) -> list[str]:
     """Translate `segments` in batches, checking alignment as it goes.
 
     The count is checked **per batch, not once at the end**, so a translator
     that drops a segment is caught at the batch that dropped it rather than
     after an hour of CPU decoding.
+
+    `checkpoint` receives everything translated so far, after each batch is
+    validated. ⚠️ It is called **after** the count check, never before: a batch
+    that failed alignment must not reach disk, or a resumed run would rebuild
+    itself from corrupt state.
     """
     segments = list(segments)
     out: list[str] = []
@@ -100,6 +106,8 @@ def translate_all(segments: Sequence[str], translator: Translator,
                 f"translation quality rather than as a bug."
             )
         out.extend(got)
+        if checkpoint is not None:
+            checkpoint(out)
         if progress is not None:
             progress(len(out), len(segments))
 
