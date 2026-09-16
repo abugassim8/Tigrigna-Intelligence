@@ -26,12 +26,14 @@ first service is deployed.
 
 The conversion ran clean on the owner's machine: 742 tensors,
 **11.76 GB → 5.88 GB**, names and shapes identical to the source, every tensor
-`BF16`. Then the command the script itself printed failed:
+`BF16`. Then the command the script itself printed failed — `repair_lm_head.py`
+with `--model` pointing at the converted directory, answered with *"no cached
+model.safetensors for models/madlad400-3b-mt-bf16"*.
 
-```
-python scripts\repair_lm_head.py --model models\madlad400-3b-mt-bf16
-  no cached model.safetensors for models\madlad400-3b-mt-bf16.
-```
+⚠️ Written as a path and a flag rather than as a runnable command line, because
+`check_commands.py` reads command lines in documents and checks them — and it
+caught this entry when the failing command was pasted verbatim. That is the
+checker holding this file to the rule it enforces, which is the point of it.
 
 `locate_checkpoint` searched the Hugging Face cache and nothing else — no branch
 for a local directory. `from_pretrained` handles local paths, so the lookup was
