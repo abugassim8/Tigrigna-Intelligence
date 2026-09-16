@@ -315,6 +315,17 @@ quantitatively that they are one translation lineage, not independent references
 instruction, 2026-09-04). Drafts in `ACTIONS.md` are written *for the owner to
 send*; an assistant may compose and refine, never send.
 
+⚠️ **And including every command that loads a model.** `huggingface.co` is
+blocked by org egress policy in the assistant's environment —
+`CONNECT tunnel failed, response 403` — so `scripts/translate_tico19.py` cannot
+load MADLAD there under any flag except `--self-test`. Installing
+`transformers` does not help: the weights are behind the same 403.
+
+The table in [`../../services/translation/README.md`](../../services/translation/README.md)
+says which command needs what. An assistant asked to "run the diagnostic" should
+say it cannot and hand over the command, not improvise a substitute — the
+measurement is worthless if its provenance is unclear.
+
 **Fifteen open actions.** All but **A-14** need a person, and A-14 is blocked
 on A-09 anyway. Full detail and ready-to-send drafts are in
 [`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:

@@ -86,6 +86,29 @@ thrash. Decoding is greedy so a re-run reproduces — beam search would score
 better and make the artefact non-reproducible, which DEC-016 treats as the worse
 trade.
 
+## ⚠️ Where these commands can run
+
+| Command | Needs the model | Needs network | Sandbox / CI |
+| --- | --- | --- | --- |
+| `--self-test` | no | no | ✅ |
+| `--smoke` | **yes** | first run only | ❌ |
+| `--diagnose` | **yes** | first run only | ❌ |
+| `--json … --sheet …` | **yes** | first run only | ❌ |
+
+**`huggingface.co` is blocked by org egress policy in the assistant's
+environment** — `CONNECT tunnel failed, response 403`. That is a standing policy,
+not an outage to wait out, and installing `transformers` there does not help
+because the weights themselves are behind the same 403.
+
+So **every command in the bottom three rows runs on the owner's machine.** This
+is written down because it was asked and answered three times in chat, which is
+what a fact belonging in the repository looks like.
+
+⚠️ **Do not add a CI job that runs them.** It would need an 11.8 GB download per
+run and would be switched off within a week — the failure DEC-008 exists to
+prevent, and the reason these are measurements rather than `experiments/`
+entries.
+
 ## Running the measurement
 
 In this order. Each one costs more than the last, and each rules out a class of
