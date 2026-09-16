@@ -155,19 +155,26 @@ class MadladTranslator:
         tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self._assert_language_token(tokenizer, self.language_token)
 
-        # ⚠️ The keyword was renamed. `transformers` 5.x takes `dtype=` and
+        # ⚠️ The keyword was renamed: `transformers` 5.x takes `dtype=` and
         # warns loudly on `torch_dtype=`; 4.x takes only `torch_dtype=`. The
-        # pyproject floor is `>=4.40`, so both are live and neither spelling is
-        # safe on its own — try the new one and fall back rather than pinning
-        # the floor upward for a keyword rename.
-        kwargs = {"low_cpu_mem_usage": True}
-        precision = getattr(torch, self.dtype)
-        try:
-            model = AutoModelForSeq2SeqLM.from_pretrained(
-                self.model_name, dtype=precision, **kwargs)
-        except TypeError:
-            model = AutoModelForSeq2SeqLM.from_pretrained(
-                self.model_name, torch_dtype=precision, **kwargs)
+        # pyproject floor is `>=4.40`, so both spellings are live.
+        #
+        # ⚠️ **Chosen by version, never by try/except.** An earlier version here
+        # tried `dtype=` and caught `TypeError` — which does not fire:
+        # `from_pretrained` forwards unknown keywords to the *config* rather
+        # than raising, so on 4.x the dtype would be **silently ignored** and
+        # the model would load in float32. That is 11.8 GB resident instead of
+        # 6, enough to thrash the 16 GB machine this runs on, and it would look
+        # like a slow run rather than a bug.
+        import transformers
+        major = int(transformers.__version__.split(".")[0])
+        precision_key = "dtype" if major >= 5 else "torch_dtype"
+
+        model = AutoModelForSeq2SeqLM.from_pretrained(
+            self.model_name,
+            low_cpu_mem_usage=True,
+            **{precision_key: getattr(torch, self.dtype)},
+        )
         model.eval()
         return tokenizer, model
 

@@ -22,6 +22,49 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The model is broken, not the language selection — 2026-09-16
+
+The preserved rejected output finally showed what MADLAD produced. It is not a
+mistranslation:
+
+| English | Output |
+| --- | --- |
+| but if you have the cough | `៍៍ ៍៍ ៍៍ ៍៍ ៍៍ …` (Khmer marks, to the token limit) |
+| do your relatives have the same symptoms | `ەەەەەەەەەە…` (Arabic ae) |
+| i had a short sharp pain in my chest | `ėėėėėėėėėė…` |
+| i will send you an image on your screen | `2019-01-19T00:00:00Z` repeated |
+| my sister has similar symptoms | `te te te te te…` |
+| Reports from China and Italy … | `ะะะะ…ตตตต` (Thai) |
+| Case report forms were submitted … | `1000000000000000♠0.00000…` |
+
+**Single junk tokens repeated to `max_new_tokens`.** A working MADLAD emits
+fluent text in *some* language; this is noise. The language token was never the
+problem, and neither is MADLAD's Tigrinya coverage — **nothing about this output
+is a translation.**
+
+⚠️ **The junk differs per input**, so the encoder is responding to the text
+while the decoder emits noise. That is precisely what the load-time warning
+describes: `shared.weight` and `decoder.embed_tokens.weight` *"present in the
+checkpoints with different values"*, and `transformers` **5.17.0** declining to
+tie them on a checkpoint written for **4.23.1**.
+
+**The hypothesis recorded yesterday now has evidence.** It is still a hypothesis
+— the test is downgrading `transformers` below 5, which needs no re-download
+because the weights are cached.
+
+#### A trap in the way of that test, removed first
+
+`_loaded` chose the dtype keyword with `try: dtype=… except TypeError:
+torch_dtype=…`. **The `TypeError` never fires.** `from_pretrained` forwards
+unknown keywords to the *config* rather than raising, so on `transformers` 4.x
+the dtype would have been **silently ignored** and the model loaded in float32 —
+11.8 GB resident instead of 6, enough to thrash the 16 GB machine it runs on,
+and it would have looked like a slow run rather than a bug.
+
+Now selected by `transformers.__version__`, explicitly. ⚠️ A fallback that
+cannot fire is the same defect as a check that cannot fail, and it was written
+one day after the entry above about exactly that.
+
 ### The same failed run was repeated, because nothing read the rejected file — 2026-09-16
 
 The wrong-language run was launched a second time, unchanged. **Same seed
