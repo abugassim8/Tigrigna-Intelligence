@@ -22,6 +22,53 @@ first service is deployed.
 
 ## [Unreleased]
 
+### 16 GB could not load the float32 checkpoint; convert it once instead — 2026-09-16
+
+```
+OSError: The paging file is too small for this operation to complete. (os error 1455)
+```
+
+The Windows **commit limit** — RAM plus pagefile — exhausted inside
+`transformers`' own loader while memory-mapping the 11.76 GB float32 checkpoint.
+Not a regression: the identical pre-load step ran in the load that succeeded an
+hour earlier. The machine was always within a few hundred MB of its ceiling, and
+nothing in the plan had accounted for that despite both numbers — 16 GB of RAM,
+an 11.76 GB file — being recorded here from the start.
+
+**Added `scripts/shrink_checkpoint.py`** — rewrites the checkpoint as bfloat16,
+**11.76 GB → 5.9 GB**, so the loader no longer converts dtype while mapping.
+
+⚠️ **Peak memory is one tensor, not one model** (~1 GB).
+`safetensors.torch.save_file` wants every tensor at once, which is the same
+problem in a new place, so the container is assembled by hand: an 8-byte length,
+the JSON header, then each tensor appended in source-offset order, with the
+source read at the offsets its own header gives rather than mapped. Measured:
+**zero peak-RSS growth** converting a 384 MB file.
+
+A plant measures peak RSS and **fails if the streaming write is replaced with
+`save_file`** — verified by doing exactly that. Every other check passes on that
+rewrite, which is what makes the plant worth having.
+
+The conversion is verified against the source before use: identical names and
+shapes, every output `BF16`, largest tensors re-read from both files and compared
+within bfloat16 rounding, and the result reopened with the real `safetensors`
+library — a hand-written container is worth nothing if the library cannot read it.
+
+**Added `read_safetensors_header`** — names, dtypes and shapes from two `read()`
+calls. A safetensors header is **92 KB** in front of this 11.76 GB file, and two
+callers were mapping the whole thing to learn what was in it. `repair_head` still
+opens the file properly, because it genuinely needs values.
+
+**`repair_head`'s own peak trimmed**: proving the repair did not touch the input
+embedding used a full clone (~0.5 GB at bfloat16); it now compares row norms
+(~1 MB). Verified still to catch a write-through by reverting the fix it guards.
+
+⚠️ **None of this changes the forced tie**, which is a loader behaviour rather
+than a file property. The converted model still needs the in-memory repair.
+
+83 planted cases, up from 77. 187 tests pass, 4 skip. 33 documented commands
+checked.
+
 ### The projection was loaded, then thrown away by a forced tie — 2026-09-16
 
 **The model ran, and the answer was not the one recorded earlier the same day.**

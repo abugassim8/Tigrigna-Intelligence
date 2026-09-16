@@ -91,6 +91,7 @@ from tigrinya_translate.head import (          # noqa: E402
     row_norms,
     spread,
     checkpoint_stores_separate_projection,
+    read_safetensors_header,
     inspect_head as inspect,
     repair_head as repair,
 )
@@ -190,17 +191,17 @@ def main(argv: list[str] | None = None) -> int:
     # This is the one fact that says how many of the four matrices HF's T5
     # expects are actually in the file, and a run that repairs nothing is
     # exactly when it is most needed to explain why.
-    from safetensors import safe_open
-    with safe_open(checkpoint, framework="pt") as f:
-        all_keys = list(f.keys())
-        interesting = sorted(k for k in all_keys if "embed_tokens" in k
-                             or k.startswith(("shared", "lm_head")))
-        print(f"  tensors     {len(all_keys)} total, of which "
-              f"{len(interesting)} embedding-shaped:")
-        for k in interesting:
-            sl = f.get_slice(k)
-            print(f"                {k:34} {tuple(sl.get_shape())} "
-                  f"{sl.get_dtype()}")
+    # ⚠️ The header, not the file. `safe_open` here mapped all 11.76 GB to
+    # print 92 KB of names — headroom a 16 GB Windows box does not have, and a
+    # run died on the commit limit with `os error 1455`.
+    header = read_safetensors_header(checkpoint)
+    interesting = sorted(k for k in header if "embed_tokens" in k
+                         or k.startswith(("shared", "lm_head")))
+    print(f"  tensors     {len(header)} total, of which "
+          f"{len(interesting)} embedding-shaped:")
+    for k in interesting:
+        print(f"                {k:34} {tuple(header[k]['shape'])} "
+              f"{header[k]['dtype']}")
 
     print(f"  loading {args.model} as {args.dtype} ...", flush=True)
     tokenizer, model = load(args.model, args.dtype)

@@ -1169,6 +1169,147 @@ def run_repair_plants() -> list[str]:
     return problems
 
 
+
+# --------------------------------------------------------------------------
+# shrink_checkpoint.py — the container it writes by hand
+#
+# The converter assembles a safetensors file itself, because
+# `safetensors.torch.save_file` wants every tensor in memory at once and that
+# is the problem it exists to solve. A hand-written container is worth nothing
+# if the real library cannot read it, so that is the first plant.
+#
+# ⚠️ `peak_memory_stays_bounded` is the one that guards the *reason* for the
+# script. Replacing the streaming write with `save_file` would pass every other
+# check here and reintroduce the out-of-memory crash on the owner's machine.
+# --------------------------------------------------------------------------
+
+SHRINK_PLANT = r"""
+import os, pathlib, resource, sys, tempfile
+import torch
+from safetensors.torch import save_file
+sys.path.insert(0, "scripts")
+sys.path.insert(0, "services/translation/src")
+import shrink_checkpoint as sc
+
+CASE = sys.argv[1]
+torch.manual_seed(20260916)
+
+with tempfile.TemporaryDirectory() as tmp:
+    tmp = pathlib.Path(tmp)
+    src, dst = str(tmp / "s.safetensors"), str(tmp / "d.safetensors")
+
+    if CASE == "the_real_library_can_read_what_we_wrote":
+        tensors = {"shared.weight": torch.randn(64, 8),
+                   "lm_head.weight": torch.randn(64, 8) * 7.5}
+        save_file(tensors, src)
+        sc.convert(src, dst)
+        from safetensors import safe_open
+        with safe_open(dst, framework="pt") as f:
+            ok = sorted(f.keys()) == sorted(tensors)
+            for name, original in tensors.items():
+                got = f.get_tensor(name)
+                ok = ok and got.dtype is torch.bfloat16
+                ok = ok and torch.equal(got, original.to(torch.bfloat16))
+
+    elif CASE == "the_output_is_half_the_size":
+        save_file({"w": torch.randn(1000, 64)}, src)
+        stats = sc.convert(src, dst)
+        # float32 -> bfloat16 halves the data; headers differ slightly.
+        ok = 0.45 < stats["file_bytes"] / os.path.getsize(src) < 0.55
+
+    elif CASE == "a_corrupted_conversion_is_rejected":
+        save_file({"w": torch.randn(200, 8)}, src)
+        sc.convert(src, dst)
+        raw = bytearray(pathlib.Path(dst).read_bytes())
+        raw[-2:] = b"\xff\xff"
+        pathlib.Path(dst).write_bytes(raw)
+        try:
+            sc.verify(src, dst, samples=1)
+            ok = False
+        except OSError:
+            ok = True
+
+    elif CASE == "an_unknown_dtype_is_refused":
+        try:
+            sc.plan_output(
+                {"x": {"dtype": "I64", "shape": [2], "data_offsets": [0, 16]}})
+            ok = False
+        except sc.UnreadableDtypeError:
+            ok = True
+
+    elif CASE == "tensors_are_planned_in_source_offset_order":
+        # Read the source front to back rather than seeking over 11.76 GB.
+        header = {"z": {"dtype": "F32", "shape": [4], "data_offsets": [64, 80]},
+                  "a": {"dtype": "F32", "shape": [16], "data_offsets": [0, 64]}}
+        names, _new, _total = sc.plan_output(header)
+        ok = names == ["a", "z"]
+
+    elif CASE == "peak_memory_stays_bounded":
+        # ⚠️ The reason the script exists. Six 32 MB tensors: a converter that
+        # materialised the whole model would grow by ~192 MB, a streaming one
+        # by at most one tensor. The ceiling is deliberately loose so this
+        # fails on a rewrite, not on allocator noise.
+        tensors = {f"t{i}.weight": torch.randn(2_000_000, 4) for i in range(6)}
+        save_file(tensors, src)
+        del tensors
+        before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        sc.convert(src, dst)
+        after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        growth = (after - before) * 1024
+        total = os.path.getsize(src)
+        ok = growth < total // 2
+        if not ok:
+            print(f"peak grew {growth} bytes converting {total}", file=sys.stderr)
+
+    else:
+        raise SystemExit("unknown case")
+
+sys.exit(0 if ok else 1)
+"""
+
+SHRINK_PLANTS = [
+    ("the real safetensors library reads what we wrote by hand",
+     "the_real_library_can_read_what_we_wrote", 0),
+    ("the output is about half the size",
+     "the_output_is_half_the_size", 0),
+    ("a corrupted conversion is rejected",
+     "a_corrupted_conversion_is_rejected", 0),
+    ("an unknown dtype is refused rather than guessed",
+     "an_unknown_dtype_is_refused", 0),
+    ("tensors are planned in source-offset order",
+     "tensors_are_planned_in_source_offset_order", 0),
+    ("peak memory stays bounded by one tensor",
+     "peak_memory_stays_bounded", 0),
+]
+
+
+def run_shrink_plants() -> list[str]:
+    try:
+        import torch                                       # noqa: F401
+        import safetensors                                 # noqa: F401
+    except ImportError as exc:
+        skipped.append(f"shrink_checkpoint ({exc.name or exc} — torch and "
+                       f"safetensors needed)")
+        for label, _case, _expect in SHRINK_PLANTS:
+            print(f"  [SKIP] shrink_checkpoint: {label}")
+        return []
+
+    problems = []
+    with tempfile.TemporaryDirectory() as tmp:
+        script = pathlib.Path(tmp) / "shrink_plant.py"
+        script.write_text(SHRINK_PLANT, encoding="utf-8")
+        for label, case, expect in SHRINK_PLANTS:
+            r = subprocess.run([sys.executable, str(script), case],
+                               cwd=REPO, capture_output=True, **CHILD_IO)
+            status = "PASS" if r.returncode == expect else "FAIL"
+            print(f"  [{status}] shrink_checkpoint: {label} "
+                  f"(exit {r.returncode}, expected {expect})")
+            if r.returncode != expect:
+                detail = (r.stderr or r.stdout).strip().splitlines()[-1:] or [""]
+                problems.append(
+                    f"shrink_checkpoint plant misbehaved: {label} — {detail[0]}")
+    return problems
+
 # --------------------------------------------------------------------------
 # check_commands.py — the instructions a human follows by hand
 #
@@ -1341,6 +1482,7 @@ def main() -> int:
     problems = (run_screen_plants() + run_figure_plants()
                 + run_morphology_plants() + run_harness_plants()
                 + run_translate_plants() + run_repair_plants()
+                + run_shrink_plants()
                 + run_command_plants() + run_encoding_plants())
     print()
     for p in problems:

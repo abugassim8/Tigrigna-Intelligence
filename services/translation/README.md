@@ -203,6 +203,57 @@ it is the finding this service exists to produce.
 ⚠️ Reported upstream as **A-22**. It is not MADLAD-specific: it silently breaks
 every T5-architecture checkpoint with an untied output projection.
 
+## ⚠️ 16 GB is not enough for the float32 checkpoint — convert it first
+
+A load on a 16 GB Windows machine died with:
+
+```
+OSError: The paging file is too small for this operation to complete. (os error 1455)
+```
+
+That is the Windows **commit limit** — physical RAM plus pagefile — exhausted
+while `transformers` memory-maps the 11.76 GB float32 file and converts it to
+bfloat16 on the way in. The same machine had loaded it successfully an hour
+earlier: it fits, with nothing to spare.
+
+**Two fixes, and the second is the durable one.**
+
+**Raise the pagefile** (two minutes, no download): `sysdm.cpl` → Advanced →
+Performance Settings → Advanced → Virtual memory Change → untick *Automatically
+manage*, select C:, Custom size, Initial `16384` / Maximum `49152` → Set → OK →
+restart.
+
+**Or convert the checkpoint once and stop fighting it:**
+
+```bash
+python3 scripts/shrink_checkpoint.py
+python3 scripts/repair_lm_head.py --model models/madlad400-3b-mt-bf16
+```
+
+**11.76 GB → 5.9 GB on disk**, and the loader no longer converts dtype while
+mapping.
+
+⚠️ **Peak memory during the conversion is one tensor, not one model** — about
+1 GB. `safetensors.torch.save_file` takes every tensor at once, which is the
+same problem in a new place, so the container is assembled by hand: an 8-byte
+length, the JSON header, then each tensor appended in order, with the source
+read at the offsets its own header gives rather than mapped. A plant measures
+peak RSS and **fails if anyone replaces the streaming write with `save_file`**,
+because every other check would pass on that rewrite.
+
+The conversion is verified against the source before it is used: identical
+tensor names and shapes, every output `BF16`, and the largest tensors re-read
+from both files and compared within bfloat16 rounding.
+
+⚠️ **This does not fix the forced tie.** That is a loader behaviour, not a file
+property, so the converted model still needs the in-memory repair above. This
+only makes it small enough to load.
+
+⚠️ **Reading a header does not need the file.** A safetensors file opens with an
+8-byte length and that many bytes of JSON — **92 KB** in front of 11.76 GB here.
+`read_safetensors_header` uses two `read()` calls; `safe_open` would map the
+whole file, which on a machine this close to its ceiling is not free.
+
 ## Running the measurement
 
 In this order. Each one costs more than the last, and each rules out a class of

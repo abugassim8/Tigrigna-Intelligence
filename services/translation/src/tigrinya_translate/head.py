@@ -259,6 +259,49 @@ def row_norms(weight) -> list[float]:
     return weight.detach().float().norm(dim=1).tolist()
 
 
+def read_safetensors_header(path: str) -> dict:
+    """Tensor names, dtypes and shapes — without mapping the file.
+
+    ⚠️ **Why this is not `safe_open`.** A safetensors file starts with an 8-byte
+    little-endian length followed by that many bytes of UTF-8 JSON describing
+    every tensor. For MADLAD that header is about **92 KB** in front of an
+    **11.76 GB** file. `safe_open` maps the whole thing; two callers here wanted
+    only names and shapes and paid 11.76 GB of address space for them.
+
+    On a 16 GB Windows machine that is not free: the commit limit is RAM plus
+    pagefile, and `transformers` needs nearly all of it to load this checkpoint.
+    A run died with ``OSError: The paging file is too small for this operation
+    to complete. (os error 1455)``. The dominant cost was the loader's own map,
+    not this one — but reading 92 KB to learn what is in a file should never
+    have cost 11.8 GB of headroom.
+
+    Returns ``{name: {"dtype": str, "shape": list[int], "data_offsets": [a, b]}}``
+    with the ``__metadata__`` entry removed, so every key is a real tensor.
+    """
+    import json
+
+    with open(path, "rb") as fh:
+        raw = fh.read(8)
+        if len(raw) != 8:
+            raise ValueError(f"{path} is too short to be a safetensors file")
+        length = int.from_bytes(raw, "little")
+        # A sane header is kilobytes. Refuse an absurd length rather than
+        # attempt a multi-gigabyte read on a file that is not what we think.
+        if not 0 < length <= 100_000_000:
+            raise ValueError(
+                f"{path} declares a {length}-byte header, which is not a "
+                f"safetensors file this can read")
+        blob = fh.read(length)
+        if len(blob) != length:
+            raise ValueError(
+                f"{path} declares a {length}-byte header but holds "
+                f"{len(blob)}; the file is truncated")
+
+    header = json.loads(blob.decode("utf-8"))
+    header.pop("__metadata__", None)
+    return header
+
+
 def checkpoint_stores_separate_projection(checkpoint: str,
                                           shape: tuple[int, int]) -> bool:
     """Does the file store more than one embedding-shaped matrix?
@@ -284,13 +327,12 @@ def checkpoint_stores_separate_projection(checkpoint: str,
     untied. That costs nothing: `choose_output_projection` then finds no tensor
     differing from the input embedding and refuses loudly rather than repairing.
 
-    Reads only the safetensors header — no tensor data, no download.
+    Reads only the safetensors header — no tensor data, no memory mapping,
+    no download. See `read_safetensors_header`.
     """
-    from safetensors import safe_open
-
-    with safe_open(checkpoint, framework="pt") as f:
-        matching = [k for k in f.keys()
-                    if tuple(f.get_slice(k).get_shape()) == tuple(shape)]
+    header = read_safetensors_header(checkpoint)
+    matching = [k for k, spec in header.items()
+                if tuple(spec["shape"]) == tuple(shape)]
     return len(matching) >= 2
 
 
@@ -387,7 +429,11 @@ def repair_head(model, checkpoint: str, *, quiet: bool = False,
         projection = f.get_tensor(source_key)
 
     before = model.lm_head.weight.detach().clone()
-    input_before = shared.clone()
+    # ⚠️ A fingerprint, not a clone. Cloning the input embedding cost
+    # ~0.5 GB at bfloat16 on a machine already at its commit limit; its
+    # row norms are 256,000 floats, about 1 MB, and any write through to
+    # this matrix moves them.
+    input_before = row_norms(shared)
     aliased = model.lm_head.weight is model.get_input_embeddings().weight
 
     if aliased:
@@ -416,7 +462,7 @@ def repair_head(model, checkpoint: str, *, quiet: bool = False,
     # ⚠️ And prove it landed *only* there. Costs one clone of the embedding
     # (~0.5 GB at bfloat16) and is worth it: a repair that quietly rewrote the
     # input embedding would present as a model that got worse for no reason.
-    if not torch.equal(model.get_input_embeddings().weight.detach(), input_before):
+    if row_norms(model.get_input_embeddings().weight.detach()) != input_before:
         raise RepairFailedError(
             "the repair altered the INPUT embedding as well as lm_head. They "
             "share storage, so the write went through both. Refusing to report "
