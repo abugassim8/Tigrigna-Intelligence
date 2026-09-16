@@ -61,6 +61,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import datetime
 import hashlib
 import json
 import pathlib
@@ -122,6 +123,10 @@ CHECKPOINT_EVERY = 10
 ETHIOPIC_ABORT_FRACTION = 0.5
 
 
+class AlreadyRejectedError(RuntimeError):
+    """This exact run has already been rejected, so re-running learns nothing."""
+
+
 class WrongLanguageError(RuntimeError):
     """The output is not Tigrinya, so nothing about the score means anything."""
 
@@ -152,6 +157,55 @@ def write_sheet(path: pathlib.Path, ids: list[int], english: list[str],
         w.writerow(["id", "english", "machine_tigrinya", "usable", "note"])
         for i, en, ti in zip(ids, english, tigrinya):
             w.writerow([i, en, ti, "", ""])
+
+
+def _environment(translator=None) -> dict:
+    """What actually ran, read from the imported modules.
+
+    ⚠️ **Never from `pyproject.toml`.** The pinned range and the installed build
+    are different facts, and the gap between them is a live suspect: the first
+    wrong-language run was `transformers` 5.17.0 loading a checkpoint written
+    for 4.23.1, which printed a tied-weights warning about `shared.weight` and
+    `decoder.embed_tokens.weight` holding different values.
+
+    Recorded on the measurement *and* on the rejected file, because a rejected
+    run whose environment is unknown cannot be diagnosed — which is exactly the
+    position the second run left us in.
+    """
+    env = {"python": sys.version.split()[0], "platform": sys.platform}
+    for name in ("transformers", "torch"):
+        try:
+            env[name] = __import__(name).__version__
+        except Exception:                                 # noqa: BLE001
+            env[name] = None
+    if translator is not None:
+        env["dtype"] = getattr(translator, "dtype", None)
+        env["language_token"] = getattr(translator, "language_token", None)
+    return env
+
+
+def _rejected_path(out_json: pathlib.Path | None) -> pathlib.Path | None:
+    return (None if out_json is None
+            else out_json.with_name(f"{out_json.stem}-REJECTED.json"))
+
+
+def _previously_rejected(out_json: pathlib.Path | None,
+                         fingerprint: str) -> dict | None:
+    """The record of this exact run having already been rejected, if any.
+
+    ⚠️ Matched on the **fingerprint**, never the filename. A changed seed,
+    sample size or model is a different run and must not be blocked — a check
+    that fires on everything gets deleted within a week, which is the failure
+    DEC-008 exists to prevent.
+    """
+    path = _rejected_path(out_json)
+    if path is None or not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return data if data.get("fingerprint") == fingerprint else None
 
 
 def _fingerprint(source: list[str], model: str) -> str:
@@ -203,7 +257,8 @@ def _save_partial(path: pathlib.Path | None, fingerprint: str,
 
 def _write_rejected(out_json: pathlib.Path | None, reason: str,
                     source: list[str], hypotheses: list[str],
-                    ids: list[int]) -> pathlib.Path | None:
+                    ids: list[int], fingerprint: str = "",
+                    translator=None) -> pathlib.Path | None:
     """Preserve a rejected run's output so it can be diagnosed.
 
     ⚠️ **Never at the `--json` path, and never scored.** The first real run
@@ -216,15 +271,19 @@ def _write_rejected(out_json: pathlib.Path | None, reason: str,
     file must be impossible to mistake for a result, and nothing in the scoring
     path reads it.
     """
-    if out_json is None:
+    path = _rejected_path(out_json)
+    if path is None:
         return None
-    path = out_json.with_name(f"{out_json.stem}-REJECTED.json")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({
         "is_a_measurement": False,
         "warning": ("REJECTED RUN. Kept only so the failure can be diagnosed. "
                     "It carries no score and must never be presented as one."),
         "reason": reason,
+        "rejected_on": datetime.date.today().isoformat(),
+        # Re-running this exact sample is blocked on the strength of this field.
+        "fingerprint": fingerprint,
+        "environment": _environment(translator),
         "model": MODEL,
         "language_token": LANGUAGE_TOKEN,
         "segment_ids": ids,
@@ -236,7 +295,8 @@ def _write_rejected(out_json: pathlib.Path | None, reason: str,
 
 def measure(translator, *, out_json: pathlib.Path | None,
             out_sheet: pathlib.Path | None, limit: int | None = None,
-            quiet: bool = False, resume: bool = True) -> dict:
+            quiet: bool = False, resume: bool = True,
+            force: bool = False) -> dict:
     """Translate, score per reference, and emit the artefact.
 
     `translator` is injected so this whole function is exercised without a
@@ -257,10 +317,41 @@ def measure(translator, *, out_json: pathlib.Path | None,
         ids = ids[:limit]
     source = [english[i] for i in ids]
 
+    fingerprint = _fingerprint(source, MODEL)
+
+    # ------------------------------------------- already rejected once?
+    #
+    # ⚠️ Decoding here is greedy and the sample is seeded, so re-running an
+    # identical fingerprint reproduces an identical failure. The second
+    # wrong-language run cost ninety minutes to learn nothing, because the
+    # rejected file recorded the failure and nothing read it.
+    if not force:
+        prior = _previously_rejected(out_json, fingerprint)
+        if prior is not None:
+            raise AlreadyRejectedError(
+                f"this exact run was rejected on {prior.get('rejected_on', '?')}:\n"
+                f"    {prior.get('reason', 'no reason recorded')}\n"
+                f"  Same seed, same segments, same model, greedy decoding — it "
+                f"will reproduce that failure exactly.\n"
+                f"  Run `--diagnose` instead: it translates into Tigrinya AND "
+                f"control languages on one model load, in about four minutes.\n"
+                f"  Pass `--force` if the cause has actually been fixed.\n"
+                f"  The previous output is in {_rejected_path(out_json).name}; "
+                f"it ran under {prior.get('environment', {})}."
+            )
+
     if not quiet:
         print(f"  {len(ids)} segment(s) sampled from {SPLIT} "
               f"(seed {SEED}, of {len(english)})")
         print(f"  model: {MODEL}")
+        env = _environment(translator)
+        print(f"  transformers {env.get('transformers')}, torch "
+              f"{env.get('torch')}, dtype {env.get('dtype')}")
+        # ⚠️ State the cost BEFORE spending it. The first two runs each cost
+        # most of an hour to reach a conclusion a one-minute command reaches.
+        print(f"\n  ⚠️ this is the expensive path: roughly "
+              f"{len(ids) * 30 // 60}-{len(ids) * 55 // 60} minutes on CPU.")
+        print(f"     --smoke is about a minute, --diagnose about four.")
         print(f"  ⚠️ pre-committed: fewer than {USABLE_THRESHOLD} of "
               f"{len(ids)} usable retires this approach\n")
 
@@ -273,7 +364,6 @@ def measure(translator, *, out_json: pathlib.Path | None,
     # afterwards, so the failure could not be diagnosed without paying the 46
     # minutes again. Neither the partial file nor the rejected file is a
     # measurement; both exist so a failure costs minutes instead of an hour.
-    fingerprint = _fingerprint(source, MODEL)
     partial = _partial_path(out_json)
     done_already = _load_partial(partial, fingerprint) if resume else []
     done_already = done_already[:len(source)]
@@ -298,7 +388,8 @@ def measure(translator, *, out_json: pathlib.Path | None,
             remaining, translator, progress=progress, checkpoint=checkpoint)
     except SegmentCountError as exc:
         _write_rejected(out_json, str(exc), source[:len(done_already)],
-                        done_already, ids[:len(done_already)])
+                        done_already, ids[:len(done_already)], fingerprint,
+                        translator)
         raise
 
     # ------------------------------------------------ did it emit Tigrinya?
@@ -321,7 +412,8 @@ def measure(translator, *, out_json: pathlib.Path | None,
     non_empty = len(hypotheses) - empty
 
     def reject(reason: str) -> None:
-        where = _write_rejected(out_json, reason, source, hypotheses, ids)
+        where = _write_rejected(out_json, reason, source, hypotheses, ids,
+                                fingerprint, translator)
         if where and not quiet:
             print(f"\n  output preserved for diagnosis: {where}")
             print(f"  ⚠️ that file carries NO score and is not a measurement.")
@@ -343,10 +435,16 @@ def measure(translator, *, out_json: pathlib.Path | None,
         reject(
             f"only {ethiopic} of {non_empty} non-empty output segment(s) "
             f"contain Ethiopic script, below the {ETHIOPIC_ABORT_FRACTION:.0%} "
-            f"floor. The model was not emitting Tigrinya — check "
-            f"tigrinya_translate.LANGUAGE_TOKEN. Writing no measurement: a "
-            f"scored artefact for the wrong language would pass every check in "
-            f"this repository."
+            f"floor. The model was not emitting Tigrinya.\n"
+            f"  ⚠️ Do NOT re-run this command — it is deterministic and will "
+            f"fail identically. Run `--diagnose`: it translates the same "
+            f"segments into Tigrinya AND control languages on one model load, "
+            f"which is what separates a broken pipeline from a finding about "
+            f"this model's Tigrinya.\n"
+            f"  (LANGUAGE_TOKEN is not the suspect: '{LANGUAGE_TOKEN}' was "
+            f"verified against the model's own tokenizer.json on 2026-09-15.)\n"
+            f"  Writing no measurement: a scored artefact for the wrong "
+            f"language would pass every check in this repository."
         )
 
     harness = Harness()
@@ -393,6 +491,7 @@ def measure(translator, *, out_json: pathlib.Path | None,
         # ⚠️ A measurement stitched from two sessions is not the same
         # evidence as one clean pass, so it says so.
         "resumed_from_partial": len(done_already) or False,
+        "environment": _environment(translator),
         "judgement": "PENDING — the sheet has not been returned",
     }
 
@@ -590,6 +689,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dtype", default="bfloat16", metavar="NAME",
                     help="torch dtype for the model (default bfloat16; "
                          "float32 is ~12 GB resident and will thrash 16 GB)")
+    ap.add_argument("--force", action="store_true",
+                    help="run even if this exact sample was rejected before")
     ap.add_argument("--no-resume", action="store_true",
                     help="ignore any partial run and start over")
     ap.add_argument("--self-test", action="store_true",
@@ -627,8 +728,9 @@ def main(argv: list[str] | None = None) -> int:
                 out_json=pathlib.Path(args.json) if args.json else None,
                 out_sheet=pathlib.Path(args.sheet) if args.sheet else None,
                 limit=args.limit,
-                resume=not args.no_resume)
-    except (SegmentCountError, WrongLanguageError) as exc:
+                resume=not args.no_resume,
+                force=args.force)
+    except (SegmentCountError, WrongLanguageError, AlreadyRejectedError) as exc:
         print(f"\n::error::{exc}")
         return 1
     return 0

@@ -608,6 +608,66 @@ with tempfile.TemporaryDirectory() as tmp:
         finally:
             builtins.open, pathlib.Path.write_text = real_open, real_write
 
+    elif CASE == "a_rejected_run_blocks_an_identical_rerun":
+        # The second wrong-language run cost ninety minutes to learn nothing,
+        # because the rejected file recorded the failure and nothing read it.
+        try:
+            t.measure(english, out_json=js, out_sheet=sheet, limit=6, quiet=True)
+        except t.WrongLanguageError:
+            pass
+        try:
+            t.measure(english, out_json=js, out_sheet=sheet, limit=6, quiet=True)
+            ok = False
+        except t.AlreadyRejectedError as exc:
+            ok = "--diagnose" in str(exc) and "--force" in str(exc)
+
+    elif CASE == "a_different_run_is_not_blocked":
+        # ⚠️ The negative case, and the one that keeps this check alive. A
+        # block that fired on everything would be switched off within a week.
+        try:
+            t.measure(english, out_json=js, out_sheet=sheet, limit=6, quiet=True)
+        except t.WrongLanguageError:
+            pass
+        # Same output path, DIFFERENT sample -> different fingerprint.
+        try:
+            t.measure(english, out_json=js, out_sheet=sheet, limit=8, quiet=True)
+            ok = False
+        except t.AlreadyRejectedError:
+            ok = False                      # blocked a run it has never seen
+        except t.WrongLanguageError:
+            ok = True                       # ran, and failed on its own merits
+
+    elif CASE == "force_overrides_the_block":
+        try:
+            t.measure(english, out_json=js, out_sheet=sheet, limit=6, quiet=True)
+        except t.WrongLanguageError:
+            pass
+        try:
+            t.measure(english, out_json=js, out_sheet=sheet, limit=6, quiet=True,
+                      force=True)
+            ok = False
+        except t.AlreadyRejectedError:
+            ok = False                      # --force did not override
+        except t.WrongLanguageError:
+            ok = True
+
+    elif CASE == "both_artefacts_record_the_environment":
+        # ⚠️ A rejected run whose environment is unknown cannot be diagnosed --
+        # exactly the position the second run left us in. transformers 5.17
+        # loading a 4.23-era checkpoint is the live suspect, and nothing
+        # recorded which transformers ran.
+        good = t.measure(steady, out_json=js, out_sheet=None, limit=6, quiet=True)
+        js2 = tmp / "bad.json"
+        try:
+            t.measure(english, out_json=js2, out_sheet=None, limit=6, quiet=True)
+        except t.WrongLanguageError:
+            pass
+        rej = json.loads(
+            js2.with_name(js2.stem + "-REJECTED.json").read_text(encoding="utf-8"))
+        ok = ("transformers" in good["environment"]
+              and "transformers" in rej["environment"]
+              and rej["fingerprint"])
+
     elif CASE == "diagnose_loads_the_model_once_for_every_language":
         # ⚠️ Reloading 11.8 GB per control language would take longer than the
         # failure being diagnosed.
@@ -691,6 +751,14 @@ TRANSLATE_PLANTS = [
      "diagnose_writes_nothing_at_all", 0),
     ("--diagnose survives a refused control language",
      "diagnose_survives_a_refused_language", 0),
+    ("a rejected run blocks an identical re-run",
+     "a_rejected_run_blocks_an_identical_rerun", 0),
+    ("a DIFFERENT run is not blocked",
+     "a_different_run_is_not_blocked", 0),
+    ("--force overrides the block",
+     "force_overrides_the_block", 0),
+    ("both artefacts record which transformers ran",
+     "both_artefacts_record_the_environment", 0),
 ]
 
 

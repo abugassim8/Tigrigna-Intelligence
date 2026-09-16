@@ -112,6 +112,18 @@ generating the script at all.
 `--dtype float32` retries in full precision. ⚠️ ~12 GB resident; it will thrash
 a 16 GB machine.
 
+⚠️ **A rejected run blocks an identical re-run.** Decoding is greedy and the
+sample is seeded, so the same command reproduces the same failure exactly — the
+second wrong-language run cost ninety minutes to learn nothing. The block is
+matched on a fingerprint of the sample and model, never on a filename, so a
+changed seed or model is not affected. `--force` overrides it once the cause is
+genuinely fixed.
+
+Both the measurement and the rejected file record **which `transformers` and
+`torch` actually ran**, read from the imported modules rather than from
+`pyproject.toml`. A rejected run whose environment is unknown cannot be
+diagnosed.
+
 The first needs no model and no network. The second downloads **11.76 GB**
 (`model.safetensors`, 11,761,587,872 bytes) plus ~21 MB of tokenizer, and takes
 tens of minutes on CPU for 100 segments.

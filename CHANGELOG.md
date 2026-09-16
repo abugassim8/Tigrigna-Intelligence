@@ -22,6 +22,74 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The same failed run was repeated, because nothing read the rejected file — 2026-09-16
+
+The wrong-language run was launched a second time, unchanged. **Same seed
+(`20260915`), same 100 segments, same model, `num_beams=1`, `do_sample=False`.**
+It is deterministic. It reproduced the same failure for roughly ninety minutes
+to learn what `--diagnose` answers in four.
+
+⚠️ **The rejected file existed and nothing read it.** The mechanism added
+yesterday to preserve evidence recorded the failure faithfully and then let the
+identical command run again. Preserving a finding is not the same as acting on
+one.
+
+**A run whose fingerprint matches a rejected one is now refused**, naming the
+date, the reason, the previous environment, and `--diagnose` as the next step.
+`--force` overrides it once a cause is fixed.
+
+⚠️ **Matched on the fingerprint, never on the filename** — a changed seed,
+sample size or model is a different run and must not be blocked. The
+`a_different_run_is_not_blocked` plant is the one keeping this honest: a block
+that fired on everything would be switched off within a week, which is the
+failure DEC-008 exists to prevent.
+
+#### The advice in the rejection message had gone stale
+
+It said *"check `tigrinya_translate.LANGUAGE_TOKEN`"*. That was right when
+written and **wrong by the next morning**: `<2ti>` was verified against the
+model's own `tokenizer.json` on 2026-09-15. An error message that names the
+wrong suspect sends the reader in the wrong direction at the one moment they are
+certain to follow it. It now names `--diagnose`, and says explicitly that the
+token is not the suspect.
+
+#### Neither artefact recorded what actually ran
+
+⚠️ **A rejected file was on disk and could not say which `transformers`
+produced it** — and that is the prime suspect. The run printed:
+
+```
+The tied weights mapping and config for this model specifies to tie
+shared.weight to decoder.embed_tokens.weight, but both are present in the
+checkpoints with different values, so we will NOT tie them.
+```
+
+`config.json` already declares `"tie_word_embeddings": false`, so the config and
+the loader disagree about what the config says. In HF's T5, `shared`,
+`encoder.embed_tokens` and `decoder.embed_tokens` are **the same `nn.Embedding`
+object**; two differing tensors for them means one overwrites the other. The
+MADLAD paper states the vocabulary is *"shared on both the encoder and decoder
+side"*, so they should be identical — their differing is itself the anomaly.
+`transformers` **5.17.0** loading a checkpoint written for **4.23.1** is the
+combination most likely to produce it.
+
+⚠️ **That is a hypothesis and is recorded as one.** It has not been tested. Both
+artefacts now carry the `transformers` and `torch` versions, the dtype and the
+platform, **read from the imported modules rather than `pyproject.toml`** — the
+pinned range and the installed build are different facts, and the gap between
+them may be this whole failure.
+
+#### The cost is now stated before it is spent
+
+`measure()` printed the sample size and not the ninety minutes. It now prints
+the estimate and the cheaper alternatives before the first batch.
+
+60 planted cases, up from 56. 191 tests. 23 documented commands checked.
+
+⚠️ **The cause is still unknown.** Nothing here diagnoses it; all of it makes the
+next attempt cheaper and the evidence legible. `--diagnose` remains the thing
+that has not yet been run.
+
 ### The diagnostic is a command now, not a paste from a chat window — 2026-09-16
 
 The wrong-language run needs diagnosing, and **this environment cannot do it**:
