@@ -303,6 +303,26 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  copied      {len(copied)} config/tokenizer file(s): "
           f"{', '.join(copied)}")
 
+    # ⚠️ **Prove the next command before printing it.** The first version of
+    # this script printed `--model <out_dir>` and that command failed:
+    # `locate_checkpoint` searched only the Hugging Face cache and had no
+    # branch for a local directory. `check_commands.py` passed it, because it
+    # reads flags statically and cannot know an argument *value* is
+    # unsupported. Resolving the path here is the runtime half of that checker.
+    try:
+        resolved = locate_checkpoint(str(out_dir))
+    except FileNotFoundError as exc:
+        print(f"  ⚠️ the converted model was written, but {out_dir} does not "
+              f"resolve as a checkpoint: {exc}")
+        print("  Not printing a command that would fail. This is a bug here, "
+              "not something you did.")
+        return 1
+    if os.path.realpath(resolved) != os.path.realpath(dst):
+        print(f"  ⚠️ {out_dir} resolves to {resolved}, not the file just "
+              f"written ({dst}). Refusing to print a command that would "
+              f"inspect a different model than it loads.")
+        return 1
+
     print()
     print("-" * 74)
     print("  Now run the repair against the converted model:")

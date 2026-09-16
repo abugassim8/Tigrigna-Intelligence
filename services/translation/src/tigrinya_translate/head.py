@@ -33,6 +33,7 @@ from __future__ import annotations
 import glob
 import math
 import os
+import pathlib
 from typing import Mapping, Sequence
 
 #: How far past the *expected* noise spread a matrix must sit before it counts
@@ -228,13 +229,51 @@ def choose_output_projection(differs_from_input: Mapping[str, bool]) -> str:
 
 
 def locate_checkpoint(model_name: str) -> str:
-    """Find the cached `model.safetensors` without downloading anything.
+    """Resolve a local directory, a local file, or a Hub id to a weights file.
 
     ⚠️ `model_name` is required, with no default. Defaulting it to the
     package's `MODEL` would make this module import `translate`, which
     imports this one — and a caller that forgot the argument would silently
     inspect a different checkpoint than the one it loaded.
+
+    ⚠️ **Local paths are checked first, and used to be not checked at all.**
+    `scripts/shrink_checkpoint.py` writes a converted model into a directory and
+    then prints the command to run against it — and that command failed, because
+    this function only ever searched the Hugging Face cache. `from_pretrained`
+    accepts local paths, so the lookup was the only thing that did not.
+
+    That is the defect `scripts/check_commands.py` exists to prevent: a command
+    printed at the moment it is needed that does not work. The checker reads
+    flags statically, so `--model` being declared was enough for it to pass; it
+    cannot know an argument *value* is unsupported. `shrink_checkpoint.py` now
+    resolves the path itself before printing the instruction.
     """
+    candidate = pathlib.Path(os.path.expanduser(model_name))
+
+    if candidate.is_dir():
+        weights = candidate / "model.safetensors"
+        if weights.is_file():
+            return str(weights)
+        raise FileNotFoundError(
+            f"{candidate} is a directory but holds no model.safetensors. "
+            f"Sharded checkpoints are not supported here; point at a directory "
+            f"written by scripts/shrink_checkpoint.py, or at a Hub model id.")
+
+    if candidate.suffix == ".safetensors":
+        if candidate.is_file():
+            return str(candidate)
+        raise FileNotFoundError(f"{candidate} does not exist.")
+
+    # ⚠️ A path-looking argument must not fall through to the cache search.
+    # `--model models/typo-here` would otherwise resolve to whatever MADLAD
+    # copy the glob found first, and report success against a different model.
+    looks_local = (os.sep in model_name or (os.altsep or "") in model_name
+                   or candidate.is_absolute())
+    if looks_local and not candidate.exists():
+        raise FileNotFoundError(
+            f"{model_name} looks like a path and does not exist. Nothing here "
+            f"downloads; check the spelling, or pass a Hub model id instead.")
+
     try:
         from huggingface_hub import try_to_load_from_cache
         path = try_to_load_from_cache(model_name, "model.safetensors")

@@ -22,6 +22,47 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The converter worked; the command it printed did not — 2026-09-16
+
+The conversion ran clean on the owner's machine: 742 tensors,
+**11.76 GB → 5.88 GB**, names and shapes identical to the source, every tensor
+`BF16`. Then the command the script itself printed failed:
+
+```
+python scripts\repair_lm_head.py --model models\madlad400-3b-mt-bf16
+  no cached model.safetensors for models\madlad400-3b-mt-bf16.
+```
+
+`locate_checkpoint` searched the Hugging Face cache and nothing else — no branch
+for a local directory. `from_pretrained` handles local paths, so the lookup was
+the only thing that did not.
+
+⚠️ **This is the defect `check_commands.py` was built to stop**, recurring
+against the checker. It verifies that a script exists and a flag is declared;
+`--model` is declared, so it passed. It cannot know an argument *value* is
+unsupported. Not a check that could not fail — it catches real things, and the
+count stays at **twelve** — but a documented scope limit with a second instance
+against it.
+
+**Fixed both halves.** `locate_checkpoint` now resolves a local directory or a
+`.safetensors` file before the cache. ⚠️ And a path-shaped argument that does
+not exist is **refused rather than falling through to the cache glob**, which
+would have silently resolved a typo to whatever MADLAD copy it found first and
+reported success against a different model than the one loaded.
+
+**`shrink_checkpoint.py` now proves the command it prints** — it resolves the
+directory it just wrote, and checks the result is the file it wrote, before
+telling anyone to run anything. That is the runtime half of `check_commands.py`,
+and it would have caught this before the owner saw it.
+
+**Added `CLAUDE.md`** so the work can move to a local editor: the check
+commands, the revert-to-verify rule, the three times a declared flag was trusted
+over a loaded outcome, the append-only decision log, and the never-do list
+(HornMorpho bytes, NLLB, `HF_TOKEN` values, `validation/key.json`, email).
+
+89 planted cases, up from 83; the new ones verified by reverting each guard. 187
+tests pass, 4 skip. 34 documented commands checked.
+
 ### 16 GB could not load the float32 checkpoint; convert it once instead — 2026-09-16
 
 ```

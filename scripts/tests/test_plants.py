@@ -1098,6 +1098,66 @@ with tempfile.TemporaryDirectory() as tmp:
         ok = (rec["source_key"] == "decoder.embed_tokens.weight"
               and torch.equal(m.lm_head.weight.detach(), projection))
 
+    elif CASE == "a_local_directory_resolves":
+        # ⚠️ shrink_checkpoint.py writes a directory and prints a command using
+        # it. That command failed, because the lookup only searched the HF cache.
+        d = pathlib.Path(tmp) / "conv"
+        d.mkdir()
+        save_file({"w": torch.randn(4, 4)}, str(d / "model.safetensors"))
+        ok = r.locate_checkpoint(str(d)) == str(d / "model.safetensors")
+
+    elif CASE == "a_local_safetensors_file_resolves":
+        f = pathlib.Path(tmp) / "explicit.safetensors"
+        save_file({"w": torch.randn(4, 4)}, str(f))
+        ok = r.locate_checkpoint(str(f)) == str(f)
+
+    elif CASE == "a_mistyped_local_path_is_refused_not_globbed":
+        # ⚠️ The dangerous one. A path-shaped argument that does not exist must
+        # NOT fall through to the cache glob -- that would silently resolve to
+        # whatever model was found first and report success against a different
+        # checkpoint than the one loaded.
+        try:
+            r.locate_checkpoint(str(pathlib.Path(tmp) / "no" / "such" / "dir"))
+            ok = False
+        except FileNotFoundError as exc:
+            ok = "looks like a path" in str(exc)
+
+    elif CASE == "a_directory_without_weights_names_itself":
+        try:
+            r.locate_checkpoint(str(tmp))
+            ok = False
+        except FileNotFoundError as exc:
+            ok = "no model.safetensors" in str(exc) and str(tmp) in str(exc)
+
+    elif CASE == "the_translator_accepts_a_local_directory":
+        import types
+        import tigrinya_translate.translate as tt
+
+        d = pathlib.Path(tmp) / "local"
+        d.mkdir()
+        save_file({"decoder.embed_tokens.weight": shared_w,
+                   "lm_head.weight": projection}, str(d / "model.safetensors"))
+
+        class Tok:
+            name_or_path = "stub"
+            def get_vocab(self):
+                return {"<2ti>": 0}
+
+        stub = Stub(shared_w, None, tie=True, alias=True).to(torch.bfloat16)
+        fake = types.ModuleType("transformers")
+        fake.AutoTokenizer = type("A", (), {
+            "from_pretrained": staticmethod(lambda *a, **k: Tok())})
+        fake.AutoModelForSeq2SeqLM = type("B", (), {
+            "from_pretrained": staticmethod(lambda *a, **k: stub)})
+        fake.__version__ = "0"
+        sys.modules["transformers"] = fake
+
+        tr = tt.MadladTranslator(model_name=str(d))
+        tr._loaded
+        ok = (tr.head_state == "TIED_WRONGLY" and tr.head_repaired
+              and torch.equal(stub.lm_head.weight.detach(),
+                              projection.to(torch.bfloat16)))
+
     else:
         raise SystemExit("unknown case")
 
@@ -1133,6 +1193,16 @@ REPAIR_PLANTS = [
      "a_checkpoint_with_no_separate_head_stays_tied", 0),
     ("an explicit lm_head equal to the input does not win",
      "an_explicit_head_equal_to_the_input_does_not_win", 0),
+    ("a local model directory resolves",
+     "a_local_directory_resolves", 0),
+    ("a local .safetensors file resolves",
+     "a_local_safetensors_file_resolves", 0),
+    ("a mistyped local path is refused, never globbed to another model",
+     "a_mistyped_local_path_is_refused_not_globbed", 0),
+    ("a directory without weights names itself in the error",
+     "a_directory_without_weights_names_itself", 0),
+    ("MadladTranslator accepts a local model directory",
+     "the_translator_accepts_a_local_directory", 0),
 ]
 
 
@@ -1261,6 +1331,23 @@ with tempfile.TemporaryDirectory() as tmp:
         if not ok:
             print(f"peak grew {growth} bytes converting {total}", file=sys.stderr)
 
+    elif CASE == "an_unprintable_command_is_not_printed":
+        # ⚠️ The runtime half of check_commands.py. If the directory just
+        # written does not resolve as a checkpoint, the script must fail rather
+        # than print an instruction it never tried -- which is exactly what it
+        # did before, and the owner ran the failing command.
+        save_file({"w": torch.randn(64, 8)}, src)
+        out = tmp / "out"
+        def refuse(name):
+            # main() resolves the source through this too, so answer for it and
+            # refuse only the freshly written output directory.
+            if name == src:
+                return src
+            raise FileNotFoundError("deliberately unresolvable")
+        sc.locate_checkpoint = refuse
+        code = sc.main(["--model", src, "--out", str(out)])
+        ok = code == 1 and (out / "model.safetensors").exists()
+
     else:
         raise SystemExit("unknown case")
 
@@ -1280,6 +1367,8 @@ SHRINK_PLANTS = [
      "tensors_are_planned_in_source_offset_order", 0),
     ("peak memory stays bounded by one tensor",
      "peak_memory_stays_bounded", 0),
+    ("a next command that would fail is not printed",
+     "an_unprintable_command_is_not_printed", 0),
 ]
 
 
