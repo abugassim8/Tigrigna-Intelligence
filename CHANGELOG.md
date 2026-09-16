@@ -22,6 +22,50 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The decoder was emitting noise: `lm_head` was never loaded — 2026-09-16
+
+**The junk output has a mechanism, and it is not a mistranslation.** The decoder
+emitted a single token repeated to `max_new_tokens`, differing per input — a
+working encoder in front of a **randomly initialised output projection**.
+
+⚠️ **Cause** [verified against `modeling_t5.py` at v4.35.0, v4.44.0, v4.56.0,
+v4.57.1, v5.0.0, v5.17.0]: `T5ForConditionalGeneration` declares
+`lm_head.weight` tied to `shared.weight` as a **class attribute**, fixed before
+any config is read, in every one of those versions. MADLAD sets
+`tie_word_embeddings: false`, and the same module gives `lm_head` a fresh
+`normal_(0, 1)` precisely when that flag is false. A key in the tied mapping is
+**suppressed from the missing-weights report**, so it loads with no warning.
+
+**Two branches investigated and closed as negative results (P-13):**
+
+- **`jbochi/madlad400-3b-mt` is byte-identical to `google/`** — all 13 files the
+  same size, `config.json` the same 749 bytes. Switching repositories would have
+  cost a second 11.8 GB download and changed nothing.
+- ⚠️ **"the tensors differ ⇒ bad checkpoint" was backwards.** With
+  `tie_word_embeddings: false` the second stored matrix **is** the untied output
+  projection, so differing is correct. That check would have fired on a healthy
+  file — the DEC-008 failure mode, caught before anything relied on it, so the
+  **count of checks that could not fail stays at eleven**.
+
+**Added:** `tigrinya_translate.head` — detection and repair in the package, not
+in a script, because the measurement runs through `MadladTranslator`. It decides
+**from the weights** (row-norm spread, with the bound **derived from the matrix
+shape** rather than hard-coded), repairs **only** when they say so, refuses with
+`RandomHeadError` rather than scoring noise, and records `head_state`,
+`head_repaired` and `head_source` on every artefact — because a score from a
+repaired model is **not the same measurement**. Plus `scripts/repair_lm_head.py`
+as a CLI over it.
+
+**Two bugs caught by exercising the real path rather than reasoning about it:**
+`copy_` into a head aliased to the input embedding destroys the input embedding
+too (now rebinds); and comparing a float32 checkpoint against a bfloat16 model in
+float32 makes every candidate "differ" by rounding, which would have raised
+`AmbiguousProjectionError` on a healthy checkpoint.
+
+**DEC-011 Amendment 2** records all of it. **A-22** reports the tying conflict
+upstream. 74 planted cases, up from 63 — each verified by reverting it. 187
+tests pass, 4 skip. 28 documented commands checked.
+
 ### One command, one report — after six round trips that should have been one — 2026-09-16
 
 ⚠️ **This entry records a process failure, not a code one.** Diagnosing the

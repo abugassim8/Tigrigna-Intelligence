@@ -181,6 +181,13 @@ def _environment(translator=None) -> dict:
     if translator is not None:
         env["dtype"] = getattr(translator, "dtype", None)
         env["language_token"] = getattr(translator, "language_token", None)
+        # ⚠️ Whether the output projection had to be repaired at load time.
+        # A score from a repaired model and a score from an intact one are not
+        # the same measurement, and an artefact that does not say which it is
+        # cannot be compared with another one.
+        env["head_state"] = getattr(translator, "head_state", None)
+        env["head_repaired"] = getattr(translator, "head_repaired", None)
+        env["head_source"] = getattr(translator, "head_source", None)
     return env
 
 

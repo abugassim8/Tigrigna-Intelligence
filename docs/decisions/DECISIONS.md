@@ -73,7 +73,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
 | DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted — **caveat added by Amendment 1** |
 | DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted — **evidence corrected by Amendment 1** |
-| DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted — **sizes corrected by Amendment 1** |
+| DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted — **sizes corrected by Amendment 1; load defect recorded by Amendment 2** |
 | DEC-012 | 2026-08-10 | Library-first; services are thin wrappers over libraries | Accepted |
 | DEC-013 | 2026-08-10 | Tier by resource profile; never co-locate tiers in one process | Accepted |
 | DEC-014 | 2026-08-10 | CTranslate2 is the single model runtime | Accepted |
@@ -1073,6 +1073,54 @@ in a silent edit to eight-week-old prose. The unrelated "~1.4 GB peak" for LoRA
 elsewhere in this file is a different quantity and is untouched.
 
 ---
+
+### Amendment 2 — 2026-09-16: the model ran, and its output projection was not loaded
+
+**The decision stands. What follows is the first time it was actually executed.**
+DEC-011 chose this model recording *"Tigrinya quality unmeasured"* as its one
+con. The first real run produced not poor Tigrinya but **a single junk token
+repeated to `max_new_tokens`, differing per input** — a working encoder in front
+of a random output projection.
+
+**Cause** [verified 2026-09-16 against `modeling_t5.py`, tags v4.35.0, v4.44.0,
+v4.56.0, v4.57.1, v5.0.0, v5.17.0]: `T5ForConditionalGeneration` declares
+`lm_head.weight` tied to `shared.weight` as a **class attribute** — fixed before
+any config is read — in every one of those versions. This checkpoint sets
+`tie_word_embeddings: false`, and the same module gives `lm_head` a fresh
+`normal_(0, 1)` precisely when that flag is false. A key in the tied mapping is
+**suppressed from the missing-weights report**, so the randomised head loads with
+no warning at all.
+
+⚠️ **The alternative checkpoint never existed.** `jbochi/madlad400-3b-mt` is
+byte-identical to `google/` — all 13 files the same size, `config.json` the same
+749 bytes, `model.safetensors` 11,761,587,872 in both (Hub listing, 2026-09-16).
+jbochi converted the original weights; Google's repo re-hosts that artefact. An
+earlier reading of the failure pointed at switching repositories and would have
+cost a second 11.8 GB download for nothing. **Recorded as a negative result
+(P-13) rather than deleted.**
+
+⚠️ **And "the tensors differ" was read backwards.** With
+`tie_word_embeddings: false` the second stored matrix **is** the untied output
+projection, so differing is the *correct* state. That check would have fired on a
+healthy checkpoint — the DEC-008 failure mode, caught before anything relied on
+it.
+
+**What the checkpoint actually holds:** the Hub reports **2940.4M** parameters.
+Non-embedding parameters for this config are 2,416,086,016 and one 256000×1024
+matrix is 262,144,000, so 2940.4M fits exactly **two** such matrices and no other
+count (three would be 3202.5M, four 3464.7M). HF's T5 wants four.
+
+**Consequence for measurement, which is why this is an amendment and not a bug
+report:** a chrF score from a repaired model and one from an intact model are
+**not the same measurement**. `MadladTranslator` now records `head_state`,
+`head_repaired` and `head_source` on every artefact, refuses
+(`RandomHeadError`) rather than scoring noise when the projection cannot be
+recovered, and repairs **only** when the loaded weights say so — never on a
+version check. Reported upstream as **A-22**.
+
+⚠️ **`tir_er` and `tir_et` remain scored separately (DEC-010).** Nothing here
+changes that, and no repaired-model score may be compared against a
+pre-repair one.
 
 ## DEC-012 — Library-first: services are thin wrappers over libraries
 

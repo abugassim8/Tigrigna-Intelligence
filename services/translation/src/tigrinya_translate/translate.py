@@ -157,11 +157,19 @@ class MadladTranslator:
         self.language_token = language_token
         self.max_new_tokens = max_new_tokens
         self.dtype = dtype
+        #: Filled in by `_loaded`. Recorded in the artefact, because a score
+        #: from a repaired model and a score from an intact one are not the
+        #: same measurement and must not be compared as if they were.
+        self.head_state: str | None = None
+        self.head_repaired = False
+        self.head_source: str | None = None
 
     @functools.cached_property
     def _loaded(self):
         import torch
         from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
+        from .head import locate_checkpoint
 
         tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self._assert_language_token(tokenizer, self.language_token)
@@ -195,6 +203,40 @@ class MadladTranslator:
                 f"transformers {__import__('transformers').__version__} may use "
                 f"a different keyword than either tried here."
             )
+
+        # ⚠️ **Is the output projection actually loaded?**
+        #
+        # `lm_head.weight` is declared tied to `shared.weight` in every
+        # transformers from 4.35 to 5.17, as a class attribute fixed before any
+        # config is read — while this model's config sets
+        # `tie_word_embeddings: false`. A key in that mapping is suppressed
+        # from the missing-weights report, so a missing `lm_head.weight` is
+        # randomly initialised and **loads without a warning**.
+        #
+        # Over a working encoder that gives one arbitrary token repeated to
+        # `max_new_tokens`, shifting with the input. It has the right segment
+        # count and a perfectly scoreable chrF, so every other check here
+        # passes it. This project measured exactly that before finding it.
+        #
+        # Same discipline as the dtype check above: **verify the loaded
+        # outcome**, never the version or the keyword.
+        from .head import RandomHeadError, inspect_head, repair_head
+
+        found = inspect_head(model, quiet=True)
+        self.head_state = found["verdict"]
+        if found["verdict"] != "TRAINED":
+            try:
+                checkpoint = locate_checkpoint(self.model_name)
+            except FileNotFoundError as exc:
+                raise RandomHeadError(
+                    f"{found['reason']}\n  ...and the checkpoint could not be "
+                    f"found to repair it from ({exc}). Refusing to translate: "
+                    f"the output would have the right segment count and a "
+                    f"scoreable chrF, and would be noise."
+                ) from exc
+            record = repair_head(model, checkpoint, quiet=True)
+            self.head_repaired = record["repaired"]
+            self.head_source = record["source_key"]
 
         model.eval()
         return tokenizer, model

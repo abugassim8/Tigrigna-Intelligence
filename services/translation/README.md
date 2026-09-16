@@ -121,14 +121,74 @@ the run — the property the six-round-trip debugging session lacked, where a
 silent exit destroyed the evidence each time.
 
 ⚠️ **Stage 2 is the decisive one and costs seconds.** It opens the checkpoint
-with `safetensors.safe_open` and compares `shared.weight` against
-`encoder.embed_tokens.weight` and `decoder.embed_tokens.weight` — the tensors the
-loader warns about — **without materialising 11.8 GB**. The MADLAD paper says the
-vocabulary is *"shared on both the encoder and decoder side"*, so if they differ
-the checkpoint is wrong and no `transformers` version will fix it.
+with `safetensors.safe_open` and lists every `shared` / `embed_tokens` /
+`lm_head` tensor with its shape, **without materialising 11.8 GB**.
+
+⚠️ **Differing tensors are not the defect — that reading was backwards.** An
+earlier version of this section said that if `shared.weight` and
+`decoder.embed_tokens.weight` differ, the checkpoint is wrong. `config.json`
+sets `tie_word_embeddings: false`, so the second matrix **is** the untied output
+projection and differing is the *correct* state. The check would have fired on a
+healthy file and sent the owner after a second 11.8 GB download — and
+`jbochi/madlad400-3b-mt` is byte-identical to `google/` (all 13 files, same
+sizes, same `config.json`, ✅ verified 2026-09-16), so that download never had
+anything to offer.
+
+What stage 2 is really counting is **how many** of the four matrices are there.
+The Hub reports **2940.4M** parameters; the non-embedding parameters are
+2,416,086,016 and one 256000×1024 matrix is 262,144,000, so 2940.4M fits exactly
+**two** and no other count. HF's T5 wants four, so at least one is invented at
+load time — see the next section.
 
 It does not care which `transformers` is installed, so the report is useful even
 when the environment is broken.
+
+## ⚠️ The output projection may not be loaded at all
+
+**This is why the decoder emitted one junk token repeated to `max_new_tokens`,
+with the junk differing per input.** The encoder was reading the text; the
+output projection was random.
+
+`T5ForConditionalGeneration` declares `lm_head.weight` tied to `shared.weight`
+in **every** `transformers` from 4.35 to 5.17 — as a **class attribute**, fixed
+before any config is read, so it holds even when the config says untied:
+
+```python
+_tied_weights_keys = {"lm_head.weight": "shared.weight", ...}   # 5.x
+```
+
+MADLAD sets `tie_word_embeddings: false`, and the same module gates
+initialisation on exactly that flag, giving `lm_head` a fresh
+`normal_(0, 1)`. Because the key sits in the tied mapping, a **missing**
+`lm_head.weight` is suppressed from the missing-weights report. It loads
+silently, and the result has the right segment count and a perfectly scoreable
+chrF.
+
+`MadladTranslator` now checks this at load, in `head.py`, beside the
+`DtypeIgnoredError` check and for the same reason: **verify the loaded outcome,
+never the version or the keyword.**
+
+- it decides *from the weights*, using the row-norm spread — random rows all
+  have nearly the same norm, trained embeddings have rare and unused rows near
+  zero. The bound is **derived from the matrix shape**, not hard-coded: a fixed
+  number is silently calibrated to one `d_model` and misfires on any other;
+- it repairs **only** when the weights say so. An unconditional overwrite would
+  corrupt a correctly-loaded model invisibly;
+- it **refuses** (`RandomHeadError`) when the head is random and the checkpoint
+  holds nothing to recover it from, rather than scoring noise;
+- it records `head_state`, `head_repaired` and `head_source` in the artefact,
+  because a score from a repaired model is **not the same measurement** as one
+  from an intact model.
+
+```bash
+python3 scripts/repair_lm_head.py --dry-run      # verdict only, changes nothing
+python3 scripts/repair_lm_head.py                # repair, then translate with controls
+python3 scripts/repair_lm_head.py --self-test    # no model, no network
+```
+
+⚠️ **Read the controls first.** Fluent Spanish and German mean the repair took.
+Tigrinya being poor after that is a *finding* about coverage, not a bug — and it
+is the finding this service exists to produce.
 
 ## Running the measurement
 

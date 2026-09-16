@@ -32,6 +32,13 @@ being run.
 
 from __future__ import annotations
 
+from .head import (
+    AmbiguousProjectionError,
+    RandomHeadError,
+    RepairFailedError,
+    inspect_head,
+    repair_head,
+)
 from .translate import (
     LANGUAGE_TOKEN,
     DtypeIgnoredError,
@@ -43,11 +50,16 @@ from .translate import (
 )
 
 __all__ = [
+    "AmbiguousProjectionError",
     "DtypeIgnoredError",
     "LANGUAGE_TOKEN",
     "MODEL",
+    "RandomHeadError",
+    "RepairFailedError",
     "SegmentCountError",
     "Translator",
     "UnknownLanguageTokenError",
+    "inspect_head",
+    "repair_head",
     "translate_all",
 ]

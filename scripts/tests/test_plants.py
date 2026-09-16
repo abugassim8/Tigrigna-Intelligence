@@ -817,6 +817,306 @@ def run_translate_plants() -> list[str]:
                     f"translate_tico19 plant misbehaved: {label} — {detail[0]}")
     return problems
 
+
+# --------------------------------------------------------------------------
+# repair_lm_head.py — the one that must NOT fire on a healthy model
+#
+# `T5ForConditionalGeneration` declares `lm_head.weight` tied in every
+# transformers from 4.35 to 5.17, unconditionally, while MADLAD's config says
+# `tie_word_embeddings: false`. A key in that mapping is suppressed from the
+# missing-weights warning, so a randomly-initialised output projection loads
+# silently and the decoder emits one token repeated to `max_new_tokens`.
+#
+# ⚠️ The dangerous plant here is `a_trained_head_is_left_alone`. Everything
+# else guards against failing to repair; that one guards against repairing a
+# model that was fine, which no output would reveal — the failure mode this
+# repository has already hit four times.
+#
+# These need torch and safetensors. They build a 50x8 model and a 3 KB
+# checkpoint, so they exercise the real code path without the 11.8 GB
+# download — and SKIP rather than pass when the libraries are absent, the
+# convention DEC-028 set for HornMorpho.
+# --------------------------------------------------------------------------
+
+REPAIR_PLANT = r"""
+import pathlib, sys, tempfile
+import torch
+from safetensors.torch import save_file
+sys.path.insert(0, "scripts")
+import repair_lm_head as r
+
+VOCAB, DIM = 50, 8
+torch.manual_seed(20260916)
+
+
+def noise():
+    # Rows of near-equal norm: what `init.normal_` leaves behind.
+    return torch.randn(VOCAB, DIM)
+
+
+def trained():
+    # Rows of wildly differing norm, including near-dead rare tokens.
+    w = torch.randn(VOCAB, DIM)
+    scale = torch.cat([torch.full((VOCAB - 5,), 1.0), torch.full((5,), 1e-4)])
+    return w * scale.unsqueeze(1)
+
+
+class Cfg:
+    def __init__(self, tie):
+        self.tie_word_embeddings = tie
+
+
+class Stub(torch.nn.Module):
+    # The smallest thing `repair()` can work on: same attribute surface as a
+    # real T5ForConditionalGeneration, 50x8 instead of 256000x1024.
+
+    def __init__(self, shared_w, head_w, tie=False, alias=False):
+        super().__init__()
+        self.shared = torch.nn.Embedding(VOCAB, DIM)
+        with torch.no_grad():
+            self.shared.weight.copy_(shared_w)
+        self.lm_head = torch.nn.Linear(DIM, VOCAB, bias=False)
+        if alias:
+            self.lm_head.weight = self.shared.weight      # one Parameter, tied
+        else:
+            with torch.no_grad():
+                self.lm_head.weight.copy_(head_w)
+        self.config = Cfg(tie)
+
+    def get_input_embeddings(self):
+        return self.shared
+
+
+CASE = sys.argv[1]
+
+with tempfile.TemporaryDirectory() as tmp:
+    ckpt = str(pathlib.Path(tmp) / "model.safetensors")
+    shared_w, projection = trained(), trained()
+
+    if CASE == "a_random_head_is_detected_and_repaired":
+        save_file({"shared.weight": shared_w,
+                   "decoder.embed_tokens.weight": projection}, ckpt)
+        m = Stub(shared_w, noise())
+        rec = r.repair(m, ckpt, quiet=True)
+        ok = (rec["verdict"] == "RANDOM" and rec["repaired"]
+              and rec["source_key"] == "decoder.embed_tokens.weight"
+              and torch.equal(m.lm_head.weight.detach(), projection))
+
+    elif CASE == "a_trained_head_is_left_alone":
+        # ⚠️ The one that matters. An unconditional repair would overwrite a
+        # correctly-loaded model and nothing downstream would ever show it.
+        save_file({"shared.weight": shared_w,
+                   "decoder.embed_tokens.weight": projection}, ckpt)
+        head = trained()
+        m = Stub(shared_w, head)
+        rec = r.repair(m, ckpt, quiet=True)
+        ok = (rec["verdict"] == "TRAINED" and not rec["repaired"]
+              and rec["source_key"] is None
+              and torch.equal(m.lm_head.weight.detach(), head))
+
+    elif CASE == "a_wrongly_tied_head_is_caught_and_untied":
+        save_file({"shared.weight": shared_w,
+                   "decoder.embed_tokens.weight": projection}, ckpt)
+        m = Stub(shared_w, None, tie=False, alias=True)
+        rec = r.repair(m, ckpt, quiet=True)
+        ok = (rec["verdict"] == "TIED_WRONGLY" and rec["repaired"]
+              and torch.equal(m.lm_head.weight.detach(), projection)
+              # and the input embedding survived being written through
+              and torch.equal(m.shared.weight.detach(), shared_w))
+
+    elif CASE == "a_genuinely_tied_model_is_not_touched":
+        # tie_word_embeddings=True means sharing is correct, not a defect.
+        save_file({"shared.weight": shared_w,
+                   "decoder.embed_tokens.weight": projection}, ckpt)
+        m = Stub(shared_w, None, tie=True, alias=True)
+        rec = r.repair(m, ckpt, quiet=True)
+        ok = (rec["verdict"] == "TRAINED" and not rec["repaired"]
+              and torch.equal(m.lm_head.weight.detach(), shared_w))
+
+    elif CASE == "a_checkpoint_with_no_projection_is_refused":
+        # Every stored matrix is the input embedding: nothing to recover.
+        save_file({"shared.weight": shared_w,
+                   "encoder.embed_tokens.weight": shared_w.clone()}, ckpt)
+        m = Stub(shared_w, noise())
+        try:
+            r.repair(m, ckpt, quiet=True)
+            ok = False
+        except r.RandomHeadError:
+            ok = True
+
+    elif CASE == "an_ambiguous_checkpoint_is_refused":
+        # Two candidates, neither named lm_head: picking one would be a guess.
+        save_file({"shared.weight": shared_w,
+                   "encoder.embed_tokens.weight": trained(),
+                   "decoder.embed_tokens.weight": projection}, ckpt)
+        m = Stub(shared_w, noise())
+        try:
+            r.repair(m, ckpt, quiet=True)
+            ok = False
+        except r.AmbiguousProjectionError:
+            ok = True
+
+    elif CASE == "a_repair_that_changes_nothing_raises":
+        # The projection already equals the head, so the write is a no-op.
+        head = noise()
+        save_file({"shared.weight": shared_w,
+                   "decoder.embed_tokens.weight": head.clone()}, ckpt)
+        m = Stub(shared_w, head)
+        try:
+            r.repair(m, ckpt, quiet=True)
+            ok = False
+        except r.RepairFailedError:
+            ok = True
+
+    elif CASE == "an_explicit_lm_head_key_wins":
+        # When the checkpoint names it outright, no inference is needed.
+        save_file({"shared.weight": shared_w,
+                   "decoder.embed_tokens.weight": trained(),
+                   "lm_head.weight": projection}, ckpt)
+        m = Stub(shared_w, noise())
+        rec = r.repair(m, ckpt, quiet=True)
+        ok = (rec["source_key"] == "lm_head.weight"
+              and torch.equal(m.lm_head.weight.detach(), projection))
+
+    elif CASE == "a_bfloat16_model_resolves_a_float32_checkpoint":
+        # ⚠️ The real run's shape: checkpoint float32, model bfloat16.
+        # Comparing in float32 makes EVERY candidate differ by rounding and
+        # raises AmbiguousProjectionError on a healthy checkpoint -- a check
+        # firing on correct input, which is how checks get switched off.
+        save_file({"shared.weight": shared_w,
+                   "decoder.embed_tokens.weight": projection}, ckpt)
+        m = Stub(shared_w, noise()).to(torch.bfloat16)
+        rec = r.repair(m, ckpt, quiet=True)
+        ok = (rec["repaired"]
+              and rec["source_key"] == "decoder.embed_tokens.weight")
+
+    elif CASE == "the_translator_repairs_at_load":
+        # ⚠️ Wiring, not logic. `_loaded` could hold a perfect check that is
+        # never called -- this repository has shipped that exact bug twice.
+        import types
+        import tigrinya_translate.head as head
+        import tigrinya_translate.translate as tt
+
+        save_file({"shared.weight": shared_w,
+                   "decoder.embed_tokens.weight": projection}, ckpt)
+        head.locate_checkpoint = lambda name: ckpt
+
+        class Tok:
+            name_or_path = "stub"
+            def get_vocab(self):
+                return {"<2ti>": 0}
+
+        stub = Stub(shared_w, noise()).to(torch.bfloat16)
+        fake = types.ModuleType("transformers")
+        fake.AutoTokenizer = type("A", (), {
+            "from_pretrained": staticmethod(lambda *a, **k: Tok())})
+        fake.AutoModelForSeq2SeqLM = type("B", (), {
+            "from_pretrained": staticmethod(lambda *a, **k: stub)})
+        fake.__version__ = "0"
+        sys.modules["transformers"] = fake
+
+        tr = tt.MadladTranslator()
+        tr._loaded
+        ok = (tr.head_state == "RANDOM" and tr.head_repaired
+              and tr.head_source == "decoder.embed_tokens.weight"
+              and torch.equal(stub.lm_head.weight.detach(),
+                              projection.to(torch.bfloat16)))
+
+    elif CASE == "the_translator_refuses_when_it_cannot_repair":
+        # No checkpoint to recover from: refuse, never score noise.
+        import types
+        import tigrinya_translate.head as head
+        import tigrinya_translate.translate as tt
+
+        def missing(name):
+            raise FileNotFoundError("no cached checkpoint")
+        head.locate_checkpoint = missing
+
+        class Tok:
+            name_or_path = "stub"
+            def get_vocab(self):
+                return {"<2ti>": 0}
+
+        stub = Stub(shared_w, noise()).to(torch.bfloat16)
+        fake = types.ModuleType("transformers")
+        fake.AutoTokenizer = type("A", (), {
+            "from_pretrained": staticmethod(lambda *a, **k: Tok())})
+        fake.AutoModelForSeq2SeqLM = type("B", (), {
+            "from_pretrained": staticmethod(lambda *a, **k: stub)})
+        fake.__version__ = "0"
+        sys.modules["transformers"] = fake
+
+        try:
+            tt.MadladTranslator()._loaded
+            ok = False
+        except head.RandomHeadError:
+            ok = True
+
+    else:
+        raise SystemExit("unknown case")
+
+sys.exit(0 if ok else 1)
+"""
+
+REPAIR_PLANTS = [
+    ("a random head is detected and repaired",
+     "a_random_head_is_detected_and_repaired", 0),
+    ("a TRAINED head is left alone",
+     "a_trained_head_is_left_alone", 0),
+    ("a wrongly-tied head is untied without destroying the input embedding",
+     "a_wrongly_tied_head_is_caught_and_untied", 0),
+    ("a genuinely tied model is not touched",
+     "a_genuinely_tied_model_is_not_touched", 0),
+    ("a checkpoint with no output projection is refused",
+     "a_checkpoint_with_no_projection_is_refused", 0),
+    ("an ambiguous checkpoint is refused rather than guessed",
+     "an_ambiguous_checkpoint_is_refused", 0),
+    ("a repair that changes nothing raises",
+     "a_repair_that_changes_nothing_raises", 0),
+    ("an explicit lm_head.weight key wins",
+     "an_explicit_lm_head_key_wins", 0),
+    ("a bfloat16 model resolves a float32 checkpoint",
+     "a_bfloat16_model_resolves_a_float32_checkpoint", 0),
+    ("MadladTranslator actually repairs at load",
+     "the_translator_repairs_at_load", 0),
+    ("MadladTranslator refuses when it cannot repair",
+     "the_translator_refuses_when_it_cannot_repair", 0),
+]
+
+
+def run_repair_plants() -> list[str]:
+    try:
+        import torch                                       # noqa: F401
+        import safetensors                                 # noqa: F401
+    except ImportError as exc:
+        # ⚠️ SKIP, never pass. DEC-028's rule: a check that cannot run must say
+        # so out loud, because a silent pass is indistinguishable from a real
+        # one and that is how a check stops being able to fail.
+        # `exc.name` is None when the import failed for a reason other than
+        # absence, and "None not installed" tells a reader nothing.
+        skipped.append(f"repair_lm_head ({exc.name or exc} — torch and "
+                       f"safetensors needed)")
+        for label, _case, _expect in REPAIR_PLANTS:
+            print(f"  [SKIP] repair_lm_head: {label}")
+        return []
+
+    problems = []
+    with tempfile.TemporaryDirectory() as tmp:
+        script = pathlib.Path(tmp) / "repair_plant.py"
+        script.write_text(REPAIR_PLANT, encoding="utf-8")
+        for label, case, expect in REPAIR_PLANTS:
+            r = subprocess.run([sys.executable, str(script), case],
+                               cwd=REPO, capture_output=True, **CHILD_IO)
+            status = "PASS" if r.returncode == expect else "FAIL"
+            print(f"  [{status}] repair_lm_head: {label} "
+                  f"(exit {r.returncode}, expected {expect})")
+            if r.returncode != expect:
+                detail = (r.stderr or r.stdout).strip().splitlines()[-1:] or [""]
+                problems.append(
+                    f"repair_lm_head plant misbehaved: {label} — {detail[0]}")
+    return problems
+
+
 # --------------------------------------------------------------------------
 # check_commands.py — the instructions a human follows by hand
 #
@@ -988,8 +1288,8 @@ def run_encoding_plants() -> list[str]:
 def main() -> int:
     problems = (run_screen_plants() + run_figure_plants()
                 + run_morphology_plants() + run_harness_plants()
-                + run_translate_plants() + run_command_plants()
-                + run_encoding_plants())
+                + run_translate_plants() + run_repair_plants()
+                + run_command_plants() + run_encoding_plants())
     print()
     for p in problems:
         print(f"::error::{p}")

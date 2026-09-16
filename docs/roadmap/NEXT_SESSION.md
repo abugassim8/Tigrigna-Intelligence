@@ -326,7 +326,7 @@ says which command needs what. An assistant asked to "run the diagnostic" should
 say it cannot and hand over the command, not improvise a substitute — the
 measurement is worthless if its provenance is unclear.
 
-**Fifteen open actions.** All but **A-14** need a person, and A-14 is blocked
+**Sixteen open actions.** All but **A-14** need a person, and A-14 is blocked
 on A-09 anyway. Full detail and ready-to-send drafts are in
 [`../../ACTIONS.md`](../../ACTIONS.md). In leverage order:
 

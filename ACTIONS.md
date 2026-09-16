@@ -65,6 +65,7 @@ itself a research finding.
 | **A-19** | Report HornMorpho's crash on a bare `#` upstream | 🟡 Medium | Nothing for us — the harness records and reports it. But it is a **crash on valid input**, and the same unparsed comment lines put three bogus entries in the Tigrinya lexicon | TODO |
 | **A-20** | Report HornMorpho's abbreviation asymmetry upstream | 🟡 Medium | Nothing for us now — we pass the canonical `'t'`. But `hm.download()` **rejects an abbreviation `hm.analyze()` accepts**, so the natural code fails on every fresh install and the message blames the user's spelling | TODO |
 | **A-21** | Wire `check_commands.py` into CI | 🟢 Low — one paste | **The checker enforces nothing until this is done.** It cannot be committed from this environment: the GitHub App has no `workflows` permission, so a push touching `.github/workflows/` is rejected outright | TODO |
+| **A-22** | Report the `lm_head` tying conflict to `huggingface/transformers` | 🟡 Medium | `T5ForConditionalGeneration` declares `lm_head.weight` tied as a **class attribute**, so a checkpoint with `tie_word_embeddings: false` gets a **randomly initialised output projection that loads without a warning**. We work around it; the next person will not know to | TODO |
 
 ---
 
@@ -1068,6 +1069,50 @@ moment the step exists — it reads them from the workflow file:
 
 ✅ Confirm with `python scripts/check_figures.py`, which must print `nothing
 stale`, and `python scripts/check_commands.py`, which must exit 0.
+
+
+---
+
+## 🟡 A-22 — Report the `lm_head` tying conflict to `huggingface/transformers`
+
+**Who:** the owner, as a GitHub issue. 📧 **No agent sends this.**
+
+**What happens.** `T5ForConditionalGeneration` declares, as a **class
+attribute**:
+
+```python
+_tied_weights_keys = {"lm_head.weight": "shared.weight",
+                      "encoder.embed_tokens.weight": "shared.weight",
+                      "decoder.embed_tokens.weight": "shared.weight"}
+```
+
+That is fixed before any config is read, so it holds even for a checkpoint whose
+config sets `tie_word_embeddings: false` — while `_init_weights` in the same file
+gives `lm_head` a fresh `normal_(0, 1)` *precisely* when that flag is false.
+Because the key is in the tied mapping, a **missing** `lm_head.weight` is
+suppressed from the missing-weights report.
+
+**Why it matters more than an ordinary bug.** The model loads, generates,
+returns the right number of segments, and scores. The output is noise. There is
+no warning, no exception, and no missing-key list — the failure is invisible to
+every check a caller is likely to have. `google/madlad400-3b-mt` has 4.6M
+downloads.
+
+**Verified** 2026-09-16 against `modeling_t5.py` at tags v4.35.0, v4.44.0,
+v4.56.0, v4.57.1, v5.0.0, v5.17.0 — a list in the 4.x tags, a dict in 5.x, and
+`lm_head.weight` present and ungated in all six.
+
+**Suggested fix to propose:** gate the `lm_head.weight` entry on
+`config.tie_word_embeddings`, so an untied checkpoint reports the key as missing
+instead of silently randomising it.
+
+⚠️ **Do not include an `HF_TOKEN` value, a local path, or anything from
+`validation/`.** The report needs the version list, the config flag and the two
+code excerpts above — nothing from this repository.
+
+**Blocks:** nothing here. `MadladTranslator` detects and repairs this at load
+(`services/translation/src/tigrinya_translate/head.py`), and records on every
+artefact whether a repair was applied.
 
 ---
 
