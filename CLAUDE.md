@@ -6,6 +6,7 @@ real people use, so a number nobody can read is not a result.
 ## Before any commit — all of these, all green
 
 ```bash
+python scripts/check_environment.py          # am I set up? one verdict
 python -m pytest services -q                 # 187 pass, 4 skip
 python scripts/tests/test_plants.py          # every planted case behaves
 python scripts/check_figures.py              # derived counts match the tree
@@ -66,6 +67,9 @@ the scale is not the one intuition suggests.
   every one of them.
 - **Never push to another branch** without being asked.
 
+New machine, or a fresh editor? **`docs/guides/LOCAL_SETUP.md`** has the
+Cursor + Windows sequence.
+
 ## The model
 
 `google/madlad400-3b-mt` (Apache-2.0). The checkpoint is **float32, 11.76 GB**,
@@ -93,9 +97,24 @@ not a bug.
 ⚠️ The model commands do not run in CI and must not be added to it — an 11.8 GB
 download per run is a job that gets switched off within a week (DEC-008).
 
-## Still open
+## Still open — read `ACTIONS.md`, do not restate it here
 
-- **`.github/workflows/` cannot be pushed by the GitHub App**, so CI enforces
-  nothing until the YAML in `ACTIONS.md` is pasted by hand (A-15, A-21).
-- **Gap #1: one named Tigrinya speaker.** The judgement sheet is the finding and
-  it needs a reader. Nothing else substitutes for it.
+⚠️ **This section used to list the open work and was wrong within a day.** It
+claimed CI enforced nothing (A-15 was completed 2026-09-04 and
+`.github/workflows/verify.yml` runs the plants, `check_figures`,
+`check_definitions` and `check_dates`), and it claimed no Tigrinya speaker had
+been found (one had, and the validation sheets were sent to the owner on
+2026-09-04 to forward). Both came from writing this file from memory instead of
+reading the register — the same mistake as quoting a docstring from memory.
+
+So this file does not hold that list:
+
+- **`ACTIONS.md`** is the register of everything needing a person, with
+  ready-to-send drafts and current status.
+- **`docs/roadmap/READINESS_PLAN.md`** is the order to do them in and what each
+  unblocks.
+- **`PROJECT_CONTEXT.md`** holds the standing constraints.
+
+The one genuinely repository-side item: **`check_commands.py` is not in
+`.github/workflows/verify.yml`** (A-21), so it is the only checker not enforced
+on a push.

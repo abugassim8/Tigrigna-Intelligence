@@ -267,8 +267,23 @@ def locate_checkpoint(model_name: str) -> str:
     # ⚠️ A path-looking argument must not fall through to the cache search.
     # `--model models/typo-here` would otherwise resolve to whatever MADLAD
     # copy the glob found first, and report success against a different model.
-    looks_local = (os.sep in model_name or (os.altsep or "") in model_name
-                   or candidate.is_absolute())
+    #
+    # ⚠️ **But a Hub id contains a slash too.** The first version of this tested
+    # for `os.sep` or `os.altsep` anywhere in the string, which rejected
+    # `google/madlad400-3b-mt` -- the default model -- on every platform, since
+    # `/` is `os.sep` on POSIX and `os.altsep` on Windows. `check_environment.py`
+    # caught it on its first real run.
+    #
+    # A Hub id is `namespace/name`: one slash, no OS separators, no leading dot.
+    # Everything else that looks like a path is treated as one.
+    looks_local = (
+        candidate.is_absolute()
+        or "\\" in model_name
+        or model_name.startswith((".", "~"))
+        or model_name.count("/") > 1
+        # `models/converted` when `models` exists here, but not `google/...`
+        or (str(candidate.parent) not in (".", "") and candidate.parent.is_dir())
+    )
     if looks_local and not candidate.exists():
         raise FileNotFoundError(
             f"{model_name} looks like a path and does not exist. Nothing here "

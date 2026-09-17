@@ -22,6 +22,56 @@ first service is deployed.
 
 ## [Unreleased]
 
+### Moving the work to a local editor, and two stale claims corrected — 2026-09-17
+
+⚠️ **`CLAUDE.md`, written yesterday, was wrong in two places** — both from
+writing it from memory instead of reading `ACTIONS.md`, the same mistake as
+quoting a docstring from memory earlier in this project:
+
+- it claimed **CI enforces nothing**. **A-15 was completed 2026-09-04**:
+  `.github/workflows/verify.yml` exists and runs the plants, `check_figures`,
+  `check_definitions` and `check_dates`. Only `check_commands.py` is missing
+  from it (**A-21**);
+- it claimed **no Tigrinya speaker had been found**. One had, and the validation
+  sheets were sent to the owner on 2026-09-04 to forward (**A-13**). The open
+  item is the forward and the filled-in sheets coming back.
+
+**Fixed structurally, not just textually:** that section now *points at*
+`ACTIONS.md` and `READINESS_PLAN.md` rather than restating them, with a note
+saying it went stale within a day by doing exactly that.
+
+**Added `scripts/check_environment.py`** — one command, one verdict on whether a
+workstation is ready: interpreter, the editable installs, model packages,
+`HF_TOKEN` **presence only**, checkpoints by path and size, HornMorpho as SKIP
+(DEC-028), and the four checkers by exit code.
+
+⚠️ **It reports and never installs**, and ⚠️ **never loads the model** — that
+costs ~6 GB and a readiness check needing 6 GB stops being run (DEC-008). A
+missing model is still `READY`, deliberately: most work here needs none, and
+failing on it is how a check becomes noise.
+
+### ⚠️ It found a bug on its first real run
+
+`locate_checkpoint`'s new "looks like a path" guard tested for `os.sep` or
+`os.altsep` anywhere in the argument — and **a Hub id contains a slash**, so
+`google/madlad400-3b-mt` was rejected as a nonexistent path. On every platform:
+`/` is `os.sep` on POSIX and `os.altsep` on Windows. Shipped yesterday.
+
+**The plan named a plant for "a Hub id still resolves through the cache" and it
+was never written.** The plants that were written covered the new local-path
+cases and none of the old behaviour. A Hub id is now distinguished from a path
+by shape — one slash, no OS separator, no leading dot, and a parent that is not
+an existing directory — and the missing plant exists, verified by reverting to
+yesterday's test.
+
+**Added `docs/guides/LOCAL_SETUP.md`** — the Cursor + Windows sequence, and why
+the round trips existed at all: `huggingface.co` is blocked from the assistant's
+environment by org egress policy, so every model command had to run on the
+owner's machine.
+
+96 planted cases, up from 89. 187 tests pass, 4 skip. 37 documented commands
+checked.
+
 ### The converter worked; the command it printed did not — 2026-09-16
 
 The conversion ran clean on the owner's machine: 742 tensors,

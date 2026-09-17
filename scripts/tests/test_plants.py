@@ -1122,6 +1122,29 @@ with tempfile.TemporaryDirectory() as tmp:
         except FileNotFoundError as exc:
             ok = "looks like a path" in str(exc)
 
+    elif CASE == "a_hub_id_still_reaches_the_cache":
+        # ⚠️ **The plant the plan named and the first version did not have.**
+        # A Hub id is `namespace/name` and contains a slash, so a "looks like a
+        # path" test written as `os.sep in name` rejected the default model on
+        # every platform. This must reach the cache lookup and fail there --
+        # with the cache message, not the path message.
+        try:
+            r.locate_checkpoint("google/madlad400-3b-mt")
+            ok = True                       # a real cache is fine too
+        except FileNotFoundError as exc:
+            ok = "no cached model.safetensors" in str(exc)
+
+    elif CASE == "a_missing_path_under_a_real_directory_is_refused":
+        # `models/typo` where `models` exists: local, and must not fall through
+        # to the glob, which would resolve to some other MADLAD copy.
+        base = pathlib.Path(tmp) / "models"
+        base.mkdir()
+        try:
+            r.locate_checkpoint(str(base / "typo"))
+            ok = False
+        except FileNotFoundError as exc:
+            ok = "looks like a path" in str(exc)
+
     elif CASE == "a_directory_without_weights_names_itself":
         try:
             r.locate_checkpoint(str(tmp))
@@ -1199,6 +1222,10 @@ REPAIR_PLANTS = [
      "a_local_safetensors_file_resolves", 0),
     ("a mistyped local path is refused, never globbed to another model",
      "a_mistyped_local_path_is_refused_not_globbed", 0),
+    ("a Hub id still reaches the cache, not the path branch",
+     "a_hub_id_still_reaches_the_cache", 0),
+    ("a missing path under a real directory is refused",
+     "a_missing_path_under_a_real_directory_is_refused", 0),
     ("a directory without weights names itself in the error",
      "a_directory_without_weights_names_itself", 0),
     ("MadladTranslator accepts a local model directory",
@@ -1399,6 +1426,95 @@ def run_shrink_plants() -> list[str]:
                     f"shrink_checkpoint plant misbehaved: {label} — {detail[0]}")
     return problems
 
+
+# --------------------------------------------------------------------------
+# check_environment.py — the readiness report, and the value it must never print
+#
+# ⚠️ `the_token_value_never_reaches_the_report` is the one that matters. This
+# script's output is meant to be pasted into a chat window when setup goes
+# wrong, so a token appearing in it travels further than a token in a file.
+# It is checked against the REAL printed output, not against the probe.
+# --------------------------------------------------------------------------
+
+ENVIRONMENT_PLANT = r"""
+import os, subprocess, sys
+sys.path.insert(0, "scripts")
+sys.path.insert(0, "services/evaluation/src")
+sys.path.insert(0, "services/translation/src")
+import check_environment as ce
+
+CASE = sys.argv[1]
+SECRET = "hf_thisvaluemustnevertravel"
+
+if CASE == "the_token_value_never_reaches_the_report":
+    env = dict(os.environ, HF_TOKEN=SECRET)
+    r = subprocess.run([sys.executable, "scripts/check_environment.py",
+                        "--skip-checkers"], capture_output=True, text=True,
+                       encoding="utf-8", errors="replace", env=env)
+    blob = (r.stdout or "") + (r.stderr or "")
+    ok = (SECRET not in blob) and ("HF_TOKEN is set" in blob)
+
+elif CASE == "the_report_is_produced_when_everything_is_missing":
+    # ⚠️ The case it exists for. A readiness check that produces nothing on a
+    # broken machine is worthless.
+    code, lines = ce.collect(environ={}, skip_checkers=True)
+    text = "\n".join(lines)
+    ok = all(s in text for s in ("required packages", "credentials",
+                                 "checkpoints", "python"))
+
+elif CASE == "hornmorpho_absent_is_skip_not_fail":
+    # DEC-028: absent is a normal machine, not a failure.
+    code, lines = ce.collect(environ={}, skip_checkers=True)
+    line = [l for l in lines if " hm " in l][0]
+    ok = ("SKIP" in line or "OK" in line) and "FAIL" not in line
+
+elif CASE == "a_missing_model_is_still_ready":
+    # Most work here needs no model; failing on it teaches people to ignore
+    # the check (DEC-008).
+    code, sentence = ce.verdict(True, True, False)
+    ok = code == 0 and "except the model" in sentence
+
+elif CASE == "a_failing_checker_is_not_ready":
+    code, _ = ce.verdict(True, False, True)
+    ok = code == 1
+
+else:
+    raise SystemExit("unknown case")
+
+sys.exit(0 if ok else 1)
+"""
+
+ENVIRONMENT_PLANTS = [
+    ("the HF_TOKEN value never reaches the printed report",
+     "the_token_value_never_reaches_the_report", 0),
+    ("the report is produced when everything is missing",
+     "the_report_is_produced_when_everything_is_missing", 0),
+    ("HornMorpho absent is SKIP, not FAIL",
+     "hornmorpho_absent_is_skip_not_fail", 0),
+    ("a missing model is still READY",
+     "a_missing_model_is_still_ready", 0),
+    ("a failing checker is NOT READY",
+     "a_failing_checker_is_not_ready", 0),
+]
+
+
+def run_environment_plants() -> list[str]:
+    problems = []
+    with tempfile.TemporaryDirectory() as tmp:
+        script = pathlib.Path(tmp) / "environment_plant.py"
+        script.write_text(ENVIRONMENT_PLANT, encoding="utf-8")
+        for label, case, expect in ENVIRONMENT_PLANTS:
+            r = subprocess.run([sys.executable, str(script), case],
+                               cwd=REPO, capture_output=True, **CHILD_IO)
+            status = "PASS" if r.returncode == expect else "FAIL"
+            print(f"  [{status}] check_environment: {label} "
+                  f"(exit {r.returncode}, expected {expect})")
+            if r.returncode != expect:
+                detail = (r.stderr or r.stdout).strip().splitlines()[-1:] or [""]
+                problems.append(
+                    f"check_environment plant misbehaved: {label} — {detail[0]}")
+    return problems
+
 # --------------------------------------------------------------------------
 # check_commands.py — the instructions a human follows by hand
 #
@@ -1571,7 +1687,7 @@ def main() -> int:
     problems = (run_screen_plants() + run_figure_plants()
                 + run_morphology_plants() + run_harness_plants()
                 + run_translate_plants() + run_repair_plants()
-                + run_shrink_plants()
+                + run_shrink_plants() + run_environment_plants()
                 + run_command_plants() + run_encoding_plants())
     print()
     for p in problems:
