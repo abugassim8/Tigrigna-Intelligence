@@ -22,6 +22,64 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The repair ran out of memory — my regression — 2026-09-18 (evening)
+
+Every diagnostic line was **correct**: `TIED_WRONGLY`, input
+`decoder.embed_tokens.weight`, output `lm_head.weight`. Then the process exited
+**silently** — no traceback, no `REPAIR: APPLIED`. On Windows that is a native
+kill, not a Python error.
+
+⚠️ **I caused it.** Restoring *both* matrices meant holding two 0.49 GB tensors
+and memory-mapping the 5.88 GB checkpoint, on top of a 5.48 GB resident model:
+**13.62 GB peak on a 16 GB machine**. The version that survived read one tensor.
+I changed a memory-constrained path without checking its memory cost, in a
+repository that contains `shrink_checkpoint.py` precisely because 16 GB is tight.
+
+**Fixed with the technique one file away.** `read_tensor` reads a single tensor
+by plain file I/O at the offset the header already gives — no mapping — and
+`tensor_digest` streams a sha256 so the "tied after all" check never holds both
+matrices. One tensor is resident at a time: read, install, verify, drop, next.
+
+**A silent exit must never cost a round trip again.** The repair now prints a
+line naming each tensor and its size *before* allocating, so the last line
+printed localises any crash, and catches `MemoryError` with what it was
+attempting.
+
+### ⚠️ Two plants that could not fail, caught before they were relied on
+
+Writing the regression test took three attempts, and the first two were worthless:
+
+1. **`ru_maxrss` in-process.** It is a high-water mark that never decreases, so
+   the fixture's own peak masked the repair's entirely — the measurement read
+   zero whatever the repair did.
+2. **Peak RSS in a child process, differential.** Better, and still could not
+   fail: **RSS on Linux does not reflect a Windows commit limit.** The mapping is
+   lazy and the allocator reuses freed blocks, so the broken version measured
+   *cheaper* than the budget.
+
+Both caught in the verification pass before anything relied on them, so by the
+standing convention the count stays at **thirteen** — but a plant that cannot
+fail on the platform it runs on is worse than no plant, so the RSS one was
+deleted rather than kept as a green light.
+
+**Replaced with two structural invariants**, deterministic on every platform:
+`the_repair_never_maps_the_checkpoint` makes `safetensors.safe_open` raise and
+requires the repair to succeed anyway, and
+`the_repair_holds_one_checkpoint_tensor` holds weak references and fails if a
+previous tensor is still alive when the next is read. Both verified against
+tonight's exact code; the second also catches holding both without mapping.
+
+**`check_environment.py` now reports total and available memory**, with a
+warning when available is below the ~7.7 GB a model run needs. Offered earlier
+and declined; this is the second failure it would have pre-empted. ⚠️ It reports
+and never refuses — a readiness check that fails because a browser is open gets
+switched off.
+
+⚠️ **The identification was right all along**, and nothing about it changed.
+There is **still no Tigrinya measurement**.
+
+113 planted cases, up from 109. 187 tests pass, 4 skip.
+
 ### The two matrices are swapped, and my repair had made it worse — 2026-09-18
 
 The repair ran on the owner's machine, printed `REPAIR: APPLIED`, and the output

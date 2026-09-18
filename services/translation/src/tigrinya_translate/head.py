@@ -72,6 +72,10 @@ class RepairFailedError(RuntimeError):
     """
 
 
+class UnreadableCheckpointError(RuntimeError):
+    """A checkpoint tensor could not be read as this code expects."""
+
+
 class AmbiguousProjectionError(RuntimeError):
     """More than one checkpoint tensor could be the output projection.
 
@@ -275,6 +279,80 @@ def looks_degenerate(text: str) -> bool:
         return False
     return degenerate_ratio(text) < DEGENERATE_BELOW
 
+
+
+#: safetensors dtype names to torch dtype names, for reading raw bytes.
+READABLE_DTYPES = {"F32": "float32", "F16": "float16", "BF16": "bfloat16"}
+
+#: Chunk size for streaming a tensor's bytes through a hash.
+DIGEST_CHUNK = 8 * 1024 * 1024
+
+
+def _tensor_span(header: dict, key: str) -> tuple[int, int, str]:
+    spec = header[key]
+    if spec["dtype"] not in READABLE_DTYPES:
+        raise UnreadableCheckpointError(
+            f"{key} has dtype {spec['dtype']}, which this cannot read. "
+            f"Refusing: a mis-read tensor produces a model that loads cleanly "
+            f"and is wrong.")
+    begin, end = spec["data_offsets"]
+    return begin, end, READABLE_DTYPES[spec["dtype"]]
+
+
+def read_tensor(path: str, header: dict, key: str, dtype=None):
+    """One tensor, by plain file read at its offset. **No memory mapping.**
+
+    ⚠️ `safe_open` maps the entire file to hand back one tensor. Reading a
+    0.49 GB matrix out of a 5.88 GB checkpoint that way cost 5.88 GB of address
+    space on top of a 5.48 GB resident model, and the repair was killed by the
+    Windows commit limit with no traceback at all.
+
+    This is the technique `scripts/shrink_checkpoint.py` already uses and where
+    it measured **zero** peak-RSS growth across a whole conversion. Peak here is
+    one tensor, and only while the caller holds it.
+    """
+    import torch
+
+    begin, end, torch_name = _tensor_span(header, key)
+    start = _data_start(path)
+    raw = bytearray(end - begin)
+    with open(path, "rb") as fh:
+        fh.seek(start + begin)
+        if fh.readinto(raw) != len(raw):
+            raise UnreadableCheckpointError(f"short read for {key} in {path}")
+    tensor = torch.frombuffer(raw, dtype=getattr(torch, torch_name))
+    shape = tuple(header[key]["shape"])
+    tensor = tensor.reshape(shape)
+    return tensor if dtype is None else tensor.to(dtype)
+
+
+def tensor_digest(path: str, header: dict, key: str) -> str:
+    """sha256 of a tensor's raw bytes, streamed. Constant memory.
+
+    ⚠️ Comparing two 0.49 GB matrices with `torch.equal` means holding both.
+    That is 0.98 GB on a machine that had none to spare, for a check that only
+    asks "are these the same?".
+    """
+    import hashlib
+
+    begin, end, _ = _tensor_span(header, key)
+    start = _data_start(path)
+    digest = hashlib.sha256()
+    remaining = end - begin
+    with open(path, "rb") as fh:
+        fh.seek(start + begin)
+        while remaining > 0:
+            block = fh.read(min(DIGEST_CHUNK, remaining))
+            if not block:
+                raise UnreadableCheckpointError(f"short read for {key} in {path}")
+            digest.update(block)
+            remaining -= len(block)
+    return digest.hexdigest()
+
+
+def _data_start(path: str) -> int:
+    with open(path, "rb") as fh:
+        return 8 + int.from_bytes(fh.read(8), "little")
 
 
 def locate_checkpoint(model_name: str) -> str:
@@ -538,7 +616,6 @@ def repair_head(model, checkpoint: str, *, quiet: bool = False,
     the inspection says the head is trained.
     """
     import torch
-    from safetensors import safe_open
 
     if found is None:
         found = inspect_head(model, checkpoint, quiet=quiet)
@@ -563,56 +640,79 @@ def repair_head(model, checkpoint: str, *, quiet: bool = False,
     embeddings = model.get_input_embeddings()
     aliased = model.lm_head.weight is embeddings.weight
     target_dtype = model.lm_head.weight.dtype
+    megabytes = (shape[0] * shape[1] * 2) / 1024 ** 2
 
-    with safe_open(checkpoint, framework="pt") as f:
-        want_input = f.get_tensor(input_key).to(target_dtype)
-        want_output = f.get_tensor(output_key).to(target_dtype)
+    def step(message: str) -> None:
+        # ⚠️ Printed BEFORE the work, not after. This repair was killed by the
+        # Windows commit limit with no traceback, and nothing in the output said
+        # where. The last line printed must localise any future crash.
+        if not quiet:
+            print(f"    {message}", flush=True)
 
-    if torch.equal(want_input, want_output):
+    # ⚠️ Compared by streaming digest, never by holding both matrices.
+    # `torch.equal` on two of these needs ~1 GB, which is what killed it.
+    step(f"checking {input_key} and {output_key} differ (streamed, no load)")
+    if tensor_digest(checkpoint, header, input_key) == \
+            tensor_digest(checkpoint, header, output_key):
         raise RepairFailedError(
             f"{input_key!r} and {output_key!r} hold identical values, so this "
             f"checkpoint is tied after all and there is nothing to separate. "
             f"Refusing rather than reporting a repair that changed nothing.")
 
-    # ⚠️ **Untie first.** While `lm_head.weight` *is* the embedding Parameter,
-    # writing either one writes both, and the second write silently undoes the
-    # first. Replacing the Parameter is what `tie_word_embeddings: false` asked
-    # for and transformers overrode.
-    if aliased:
-        model.lm_head.weight = torch.nn.Parameter(want_output.clone(),
-                                                  requires_grad=False)
-    else:
+    # ⚠️ **One tensor resident at a time.** Read it, install it, verify it,
+    # drop it, then the next. Holding both cost 0.98 GB on top of a 5.48 GB
+    # model and a 5.88 GB memory map, and the process was killed outright.
+    try:
+        step(f"reading {output_key} ({megabytes:.0f} MB) for lm_head")
+        want_output = read_tensor(checkpoint, header, output_key, target_dtype)
+
+        if aliased:
+            # ⚠️ Untie first: while lm_head.weight *is* the embedding
+            # Parameter, writing either writes both and the second undoes the
+            # first. This is what `tie_word_embeddings: false` asked for.
+            model.lm_head.weight = torch.nn.Parameter(want_output,
+                                                      requires_grad=False)
+        else:
+            with torch.no_grad():
+                model.lm_head.weight.data.copy_(want_output)
+        if not torch.equal(model.lm_head.weight.detach(), want_output):
+            raise RepairFailedError(
+                f"lm_head does not hold {output_key!r} after the repair; the "
+                f"write did not land. Refusing to report success.")
+        del want_output
+
+        step(f"reading {input_key} ({megabytes:.0f} MB) for the input embedding")
+        want_input = read_tensor(checkpoint, header, input_key, target_dtype)
         with torch.no_grad():
-            model.lm_head.weight.data.copy_(want_output)
+            model.get_input_embeddings().weight.data.copy_(want_input)
+        if not torch.equal(model.get_input_embeddings().weight.detach(),
+                           want_input):
+            raise RepairFailedError(
+                f"the input embedding does not hold {input_key!r} after the "
+                f"repair. They are probably still the same Parameter, so the "
+                f"second write undid the first.")
+        del want_input
+    except MemoryError as exc:
+        # ⚠️ A Python-visible OOM must not look like a mystery. The native kill
+        # cannot be caught at all, which is why the step lines above exist.
+        raise RepairFailedError(
+            f"ran out of memory during the repair ({exc}). Each matrix is "
+            f"{megabytes:.0f} MB and one is held at a time, on top of the "
+            f"loaded model. Close other applications and try again."
+        ) from exc
 
-    with torch.no_grad():
-        embeddings.weight.data.copy_(want_input)
-
-    # ⚠️ Verify the outcome, the rule this whole file exists to enforce. Three
-    # things must now hold, and a previous version checked only that something
-    # changed -- which was true while it was making the model worse.
+    # ⚠️ Verify against what is resident, which costs nothing extra.
     head_now = model.lm_head.weight.detach()
     input_now = model.get_input_embeddings().weight.detach()
-    if not torch.equal(head_now, want_output):
-        raise RepairFailedError(
-            f"lm_head does not hold {output_key!r} after the repair; the write "
-            f"did not land. Refusing to report success.")
-    if not torch.equal(input_now, want_input):
-        raise RepairFailedError(
-            f"the input embedding does not hold {input_key!r} after the repair. "
-            f"They are probably still the same Parameter, so the second write "
-            f"undid the first.")
     if torch.equal(head_now, input_now):
         raise RepairFailedError(
             "the input embedding and lm_head are identical after the repair, so "
             "they are still tied. This checkpoint keeps them separate.")
 
-    # The encoder and decoder token embeddings must follow the input embedding,
-    # or the encoder is still reading the wrong matrix.
     for stack in ("encoder", "decoder"):
         block = getattr(model, stack, None)
         embed = getattr(block, "embed_tokens", None) if block is not None else None
-        if embed is not None and not torch.equal(embed.weight.detach(), want_input):
+        if embed is not None and not torch.equal(embed.weight.detach(), input_now):
             raise RepairFailedError(
                 f"model.{stack}.embed_tokens does not follow the input "
                 f"embedding after the repair, so that stack is still using the "

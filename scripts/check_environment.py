@@ -72,6 +72,48 @@ MODEL = "google/madlad400-3b-mt"
 CONVERTED = REPO / "models" / "madlad400-3b-mt-bf16"
 
 
+def probe_memory() -> tuple[int, int]:
+    """`(total bytes, available bytes)`, or `(0, 0)` if it cannot be read.
+
+    ⚠️ Offered once, declined, and then two failures in a row would have been
+    pre-empted by it: an 11.76 GB float32 load that exhausted the Windows commit
+    limit, and a repair that held two 0.49 GB matrices on top of a 5.48 GB
+    model. Both looked like mysteries; both were "not enough free memory".
+    """
+    try:
+        import ctypes
+
+        if hasattr(ctypes, "windll"):
+            class _MS(ctypes.Structure):
+                _fields_ = [("dwLength", ctypes.c_ulong),
+                            ("dwMemoryLoad", ctypes.c_ulong),
+                            ("ullTotalPhys", ctypes.c_ulonglong),
+                            ("ullAvailPhys", ctypes.c_ulonglong),
+                            ("ullTotalPageFile", ctypes.c_ulonglong),
+                            ("ullAvailPageFile", ctypes.c_ulonglong),
+                            ("ullTotalVirtual", ctypes.c_ulonglong),
+                            ("ullAvailVirtual", ctypes.c_ulonglong),
+                            ("ullExtendedVirtual", ctypes.c_ulonglong)]
+            status = _MS()
+            status.dwLength = ctypes.sizeof(_MS)
+            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status))
+            return int(status.ullTotalPhys), int(status.ullAvailPhys)
+    except Exception:                                     # noqa: BLE001
+        pass
+    try:
+        import os as _os
+        total = _os.sysconf("SC_PAGE_SIZE") * _os.sysconf("SC_PHYS_PAGES")
+        available = _os.sysconf("SC_PAGE_SIZE") * _os.sysconf("SC_AVPHYS_PAGES")
+        return int(total), int(available)
+    except Exception:                                     # noqa: BLE001
+        return 0, 0
+
+
+#: What a converted-model run needs resident: 5.48 GB of weights, ~1.2 GB of
+#: interpreter and torch, ~1 GB of decoder KV cache at batch 8.
+MODEL_RUN_BYTES = int(7.7 * 1024 ** 3)
+
+
 def probe_import(name: str) -> tuple[bool, str]:
     """Import a module and report its version, or why it could not be had."""
     try:
@@ -169,6 +211,18 @@ def collect(environ=None, *, skip_checkers: bool = False) -> tuple[int, list[str
     in_venv = sys.prefix != getattr(sys, "base_prefix", sys.prefix)
     out.append(f"  virtualenv  {'yes' if in_venv else 'NO — expected .venv'}")
     out.append(f"  repository  {REPO}")
+    total, available = probe_memory()
+    if total:
+        gb = 1024 ** 3
+        # ⚠️ Not named `verdict` — that is the module-level function, and
+        # shadowing it made `collect()` raise "'str' object is not callable".
+        headroom = ("enough for a model run" if available >= MODEL_RUN_BYTES
+                    else f"⚠️ below the ~{MODEL_RUN_BYTES/gb:.1f} GB a model "
+                         f"run needs — close other applications")
+        out.append(f"  memory      {total/gb:.1f} GB total, "
+                   f"{available/gb:.1f} GB available — {headroom}")
+    else:
+        out.append("  memory      unavailable on this platform")
 
     out.append("")
     out.append("  required packages")

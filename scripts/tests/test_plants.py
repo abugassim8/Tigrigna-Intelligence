@@ -1278,6 +1278,79 @@ with tempfile.TemporaryDirectory() as tmp:
               and torch.equal(m.lm_head.weight.detach(), shared_w)
               and torch.equal(m.shared.weight.detach(), projection))
 
+    elif CASE == "the_repair_never_maps_the_checkpoint":
+        # ⚠️ **The regression test for 2026-09-18.** The repair mapped the whole
+        # 5.88 GB checkpoint to fetch two 0.49 GB matrices, on top of a 5.48 GB
+        # resident model, and was killed by the Windows commit limit with no
+        # traceback at all.
+        #
+        # ⚠️ Asserted structurally, not by measuring memory. The first version
+        # of this plant measured peak RSS — and could not fail, because RSS on
+        # Linux does not reflect a Windows commit limit: the mapping is lazy and
+        # the allocator reuses freed blocks, so the broken version measured
+        # cheaper than the budget. A plant that cannot fail on the platform it
+        # runs on is worse than no plant.
+        import safetensors
+        import tigrinya_translate.head as head
+
+        save_file({"decoder.embed_tokens.weight": shared_w,
+                   "lm_head.weight": projection}, ckpt)
+        m = Stub(shared_w, None, tie=True, alias=True).to(torch.bfloat16)
+
+        def forbidden(*a, **k):
+            raise AssertionError("the repair memory-mapped the checkpoint")
+
+        real_open, safetensors.safe_open = safetensors.safe_open, forbidden
+        try:
+            rec = r.repair(m, ckpt, quiet=True)
+            ok = rec["repaired"] and rec["source_key"] == "lm_head.weight"
+        finally:
+            safetensors.safe_open = real_open
+
+    elif CASE == "the_repair_holds_one_checkpoint_tensor":
+        # ⚠️ The other half of the same invariant: even without mapping, holding
+        # both matrices doubled the resident cost on a machine with none spare.
+        # Each tensor must be released before the next is read.
+        import weakref
+        import tigrinya_translate.head as head
+
+        save_file({"decoder.embed_tokens.weight": shared_w,
+                   "lm_head.weight": projection}, ckpt)
+        m = Stub(shared_w, None, tie=True, alias=True).to(torch.bfloat16)
+
+        live = []
+        real_read = head.read_tensor
+        problem = []
+
+        def counting_read(*a, **k):
+            for ref in live:
+                if ref() is not None:
+                    problem.append("a previous checkpoint tensor was still live")
+            tensor = real_read(*a, **k)
+            live.append(weakref.ref(tensor))
+            return tensor
+
+        head.read_tensor = counting_read
+        try:
+            rec = r.repair(m, ckpt, quiet=True)
+            ok = rec["repaired"] and not problem and len(live) >= 2
+            if problem:
+                print(problem[0], file=sys.stderr)
+        finally:
+            head.read_tensor = real_read
+
+    elif CASE == "read_tensor_matches_safe_open":
+        # ⚠️ The cheap path must not be a different path.
+        from safetensors import safe_open
+        import tigrinya_translate.head as head
+
+        save_file({"decoder.embed_tokens.weight": shared_w,
+                   "lm_head.weight": projection}, ckpt)
+        hdr = head.read_safetensors_header(ckpt)
+        with safe_open(ckpt, framework="pt") as f:
+            ok = all(torch.equal(head.read_tensor(ckpt, hdr, k), f.get_tensor(k))
+                     for k in ("decoder.embed_tokens.weight", "lm_head.weight"))
+
     elif CASE == "a_local_directory_resolves":
         # ⚠️ shrink_checkpoint.py writes a directory and prints a command using
         # it. That command failed, because the lookup only searched the HF cache.
@@ -1396,6 +1469,12 @@ REPAIR_PLANTS = [
      "a_checkpoint_with_no_separate_head_stays_tied", 0),
     ("the explicit lm_head key wins even when the model disagrees",
      "the_explicit_key_wins_even_when_the_model_disagrees", 0),
+    ("the repair never maps the checkpoint",
+     "the_repair_never_maps_the_checkpoint", 0),
+    ("the repair holds one checkpoint tensor at a time",
+     "the_repair_holds_one_checkpoint_tensor", 0),
+    ("read_tensor matches safe_open byte for byte",
+     "read_tensor_matches_safe_open", 0),
     ("a local model directory resolves",
      "a_local_directory_resolves", 0),
     ("a local .safetensors file resolves",
@@ -1654,6 +1733,18 @@ elif CASE == "a_missing_model_is_still_ready":
     code, sentence = ce.verdict(True, True, False)
     ok = code == 0 and "except the model" in sentence
 
+elif CASE == "low_memory_is_reported_not_refused":
+    # ⚠️ Reported, never a refusal. A readiness check that fails because a
+    # browser is open is one people learn to ignore (DEC-008).
+    total, available = ce.probe_memory()
+    if not total:
+        ok = True                       # platform cannot answer; not a failure
+    else:
+        code, lines = ce.collect(environ={}, skip_checkers=True)
+        line = [l for l in lines if l.startswith("  memory")][0]
+        ok = ("GB total" in line and "available" in line
+              and ce.verdict(True, True, False)[0] == 0)
+
 elif CASE == "a_failing_checker_is_not_ready":
     code, _ = ce.verdict(True, False, True)
     ok = code == 1
@@ -1675,6 +1766,8 @@ ENVIRONMENT_PLANTS = [
      "a_missing_model_is_still_ready", 0),
     ("a failing checker is NOT READY",
      "a_failing_checker_is_not_ready", 0),
+    ("low memory is reported, never a refusal",
+     "low_memory_is_reported_not_refused", 0),
 ]
 
 
