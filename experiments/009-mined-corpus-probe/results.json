@@ -1,0 +1,89 @@
+{
+  "experiment": "009-mined-corpus-probe",
+  "source": "michsethowusu/english-tigrinya_sentence-pairs",
+  "total_rows": 1398177,
+  "observed": "2026-09-02 via HF Dataset Viewer (dataset_preview)",
+  "deterministic": true,
+  "sampling": "hand-recorded from the HF Dataset Viewer; not exhaustive",
+  "H1_english_column_missing": {
+    "boundary_row": 603250.0,
+    "bracket": [
+      594000,
+      612500
+    ],
+    "uncertainty_rows": 18500,
+    "share_without_english": 0.5685,
+    "rows_without_english": 794927,
+    "threshold": 0.25,
+    "confirmed": true
+  },
+  "H2_sorted_by_similarity": {
+    "offsets": [
+      0,
+      200000,
+      300000,
+      450000,
+      575000,
+      594000,
+      612500,
+      650000,
+      700000,
+      1398100
+    ],
+    "similarities": [
+      1.2471349239349365,
+      1.0766823291778564,
+      1.0712097883224487,
+      1.065713882446289,
+      1.0623772144317627,
+      1.0619362592697144,
+      1.0615180730819702,
+      1.0607025623321533,
+      1.0596853494644165,
+      1.0500006675720215
+    ],
+    "monotone_non_increasing": true,
+    "range": [
+      1.0500006675720215,
+      1.2471349239349365
+    ],
+    "confirmed": true
+  },
+  "H3_columns_desynced": {
+    "candidates": [
+      {
+        "tigrinya_row": 300000,
+        "english_row": 300026,
+        "lag": 26,
+        "anchors_same_row": [],
+        "anchors_lagged": [
+          "leading-number:2"
+        ],
+        "lagged_wins": false
+      },
+      {
+        "tigrinya_row": 300001,
+        "english_row": 300027,
+        "lag": 26,
+        "anchors_same_row": [],
+        "anchors_lagged": [
+          "proper-noun:Japan"
+        ],
+        "lagged_wins": false
+      }
+    ],
+    "min_anchors": 2,
+    "constant_lag": null,
+    "confirmed": false
+  },
+  "H4_duplicate_targets": {
+    "rows": [
+      300017,
+      300018
+    ],
+    "tigrinya_identical_after_whitespace_normalisation": true,
+    "tigrinya_identical_verbatim": false,
+    "english_distinct": true,
+    "confirmed": true
+  }
+}

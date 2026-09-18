@@ -1,0 +1,74 @@
+{
+  "corpus": [
+    "data/anchors/tico19/test.eng.txt"
+  ],
+  "corpus_files": 1,
+  "total_chars": 318841,
+  "gates": [
+    {
+      "gate": "script",
+      "pass": true,
+      "declared": "latin",
+      "ethiopic_pct": {
+        "data/anchors/tico19/test.eng.txt": 0.0
+      },
+      "mismatches": [],
+      "detail": "file contents match the declared latin script"
+    },
+    {
+      "gate": "licence",
+      "pass": true,
+      "declared": "cc0-1.0",
+      "detail": "usable for shipped artefacts"
+    },
+    {
+      "gate": "quality",
+      "pass": true,
+      "script": "latin",
+      "worst_foreign_pct": 0.0,
+      "threshold_pct": 0.1,
+      "mojibake": {},
+      "per_file": {
+        "data/anchors/tico19/test.eng.txt": {
+          "chars": 269518,
+          "ethiopic_pct": 0.0,
+          "foreign_pct": 0.0,
+          "foreign_sample": []
+        }
+      },
+      "review_flags": [],
+      "detail": "no encoding corruption detected"
+    },
+    {
+      "gate": "variety",
+      "pass": true,
+      "label": "n/a",
+      "signal": "NOT APPLICABLE — latin script carries no Ge'ez orthographic variety markers",
+      "et_marker_segment_pct": null,
+      "segments_with_et_marker": null,
+      "detail": "variety is a Ge'ez-side property (DEC-010)"
+    },
+    {
+      "gate": "contamination",
+      "pass": false,
+      "ngram_size": 8,
+      "overlaps": 3,
+      "exact_segment_matches": 0,
+      "eval_segments_below_ngram_size": 7,
+      "per_eval_set": {
+        "experiments/003-metric-validity/data/flores_en.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
+        },
+        "data/anchors/hornmt/eng.txt": {
+          "shared_ngrams": 3,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 7
+        }
+      },
+      "detail": "3 shared 8-grams and 0 EXACT segment matches — CONTAMINATED, do not train on this"
+    }
+  ],
+  "verdict": "BLOCKED — contamination"
+}

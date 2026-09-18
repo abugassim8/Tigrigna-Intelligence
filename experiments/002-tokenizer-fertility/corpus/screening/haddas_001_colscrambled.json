@@ -1,0 +1,80 @@
+{
+  "corpus": [
+    "experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt"
+  ],
+  "corpus_files": 1,
+  "total_chars": 2689,
+  "gates": [
+    {
+      "gate": "script",
+      "pass": true,
+      "declared": "geez",
+      "ethiopic_pct": {
+        "experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt": 99.67
+      },
+      "mismatches": [],
+      "detail": "file contents match the declared geez script"
+    },
+    {
+      "gate": "licence",
+      "pass": true,
+      "declared": "cc-by-sa-4.0",
+      "detail": "usable for shipped artefacts"
+    },
+    {
+      "gate": "quality",
+      "pass": true,
+      "script": "geez",
+      "worst_foreign_pct": 0.0,
+      "threshold_pct": 0.1,
+      "mojibake": {},
+      "per_file": {
+        "experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt": {
+          "chars": 2149,
+          "ethiopic_pct": 99.67,
+          "foreign_pct": 0.0,
+          "foreign_sample": []
+        }
+      },
+      "review_flags": [],
+      "detail": "no encoding corruption detected"
+    },
+    {
+      "gate": "variety",
+      "pass": true,
+      "label": "unknown",
+      "signal": "no Ethiopian-only form, but only 5 segments — too few to read",
+      "et_marker_segment_pct": 0.0,
+      "segments_with_et_marker": 0,
+      "segments": 5,
+      "raw_marker_counts_not_a_proportion": {
+        "eritrean": 95,
+        "ethiopian": 1
+      },
+      "lexeme_counts": {
+        "ሃገራዊ(ER) vs ብሄራዊ(ET)": [
+          1,
+          0
+        ]
+      },
+      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010). Read `et_marker_segment_pct`, not the raw counts (Experiment 010)."
+    },
+    {
+      "gate": "contamination",
+      "pass": true,
+      "ngram_size": 8,
+      "overlaps": 0,
+      "exact_segment_matches": 0,
+      "eval_segments_below_ngram_size": 0,
+      "per_eval_set": {
+        "experiments/003-metric-validity/data/flores_ti.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
+        }
+      },
+      "detail": "no shared n-grams or exact segments with the supplied evaluation sets"
+    }
+  ],
+  "verdict": "CLEARED for use"
+}

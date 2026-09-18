@@ -1,0 +1,23 @@
+# Commits that changed only how something is written, never what it says.
+#
+# `git blame` attributes a line to whatever commit last touched it, so a
+# repo-wide mechanical pass buries the real authorship of every line it edits.
+# Listing that commit here makes blame skip it and report the commit that
+# actually wrote the line.
+#
+# `scripts/check_dates.py` depends on this: it compares each date stamp against
+# the commit that wrote it, and without this file the commit that CORRECTED the
+# dates would look like the commit that drifted them.
+#
+# For your own `git blame`, either pass --ignore-revs-file=.git-blame-ignore-revs
+# or set it once:
+#
+#     git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Add a commit here only if it is a pure mechanical rewrite. A commit that
+# changes meaning must stay visible in blame.
+
+# Correct the record's dates to their commit dates (A-17) — 2026-08-24
+# 257 date corrections across 56 files; no claim changed except the intervals
+# recomputed from those dates, which are listed in the commit message.
+90a4856438db8ba1432a50e898bc87292f3c9de0

@@ -1,0 +1,75 @@
+{
+  "lines": 73,
+  "position_sensitive": true,
+  "position_sensitivity_example": {
+    "index": 72,
+    "word": "እዞም",
+    "with_original_first_word": "ʔɨzomɨ",
+    "with_substituted_first_word": "ʔɨzom",
+    "original_first_word": "ልኡላውነት",
+    "substituted_first_word": "ኩሉ"
+  },
+  "C1": {
+    "word_tokens": 2362,
+    "lines_token_count_disagreed": 0,
+    "containment_ok": 2353,
+    "containment_pct": 99.619,
+    "exact_ok": 2255,
+    "exact_pct": 95.47,
+    "confirmed_at_exact_equality": false,
+    "examples": [
+      {
+        "word": "እዞም",
+        "alone": "ʔɨzom",
+        "in_context": "ʔɨzomɨ"
+      },
+      {
+        "word": "ኣዕኑድ",
+        "alone": "ʔaʕɨnud",
+        "in_context": "ʔaʕɨnudɨ"
+      },
+      {
+        "word": "ኣብዘን",
+        "alone": "ʔabɨzən",
+        "in_context": "ʔabɨzənɨ"
+      },
+      {
+        "word": "ሰሙናት፡",
+        "alone": "səmunat፡",
+        "in_context": "səmunatɨ፡"
+      },
+      {
+        "word": "ላዕለዎት",
+        "alone": "laʕɨləwot",
+        "in_context": "laʕɨləwotɨ"
+      },
+      {
+        "word": "ኤርትራውን",
+        "alone": "ʔerɨtɨrawɨn",
+        "in_context": "ʔerɨtɨrawɨnɨ"
+      },
+      {
+        "word": "ናጽነት",
+        "alone": "nat͡sʼɨnət",
+        "in_context": "nat͡sʼɨnətɨ"
+      },
+      {
+        "word": "ውጽኢት",
+        "alone": "wɨt͡sʼɨʔit",
+        "in_context": "wɨt͡sʼɨʔitɨ"
+      }
+    ]
+  },
+  "mechanism": {
+    "in-context adds word-final 'ɨ'": 98,
+    "in-context longer, other": 9
+  },
+  "C2": {
+    "unique_words": 1565,
+    "changed": 0,
+    "confirmed": true
+  },
+  "C3": {
+    "confirmed": false
+  }
+}

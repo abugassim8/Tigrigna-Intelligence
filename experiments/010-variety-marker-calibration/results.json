@@ -1,0 +1,144 @@
+{
+  "thresholds": {
+    "H1_ratio_separates": 10.0,
+    "H2_precision": 0.99,
+    "H3_recall": 0.5
+  },
+  "labelled": {
+    "dev.ER": {
+      "segments": 971,
+      "marker_counts": {
+        "tsade_er": 1221,
+        "tsade_et": 0,
+        "alef_er": 2002,
+        "alef_et": 38,
+        "lex_er": 81,
+        "lex_et": 0
+      },
+      "pooled_er_share_pct": 98.9,
+      "segments_with_et_marker": 0,
+      "et_marker_rate_pct": 0.0
+    },
+    "dev.ET": {
+      "segments": 971,
+      "marker_counts": {
+        "tsade_er": 1054,
+        "tsade_et": 216,
+        "alef_er": 1902,
+        "alef_et": 49,
+        "lex_er": 44,
+        "lex_et": 17
+      },
+      "pooled_er_share_pct": 91.4,
+      "segments_with_et_marker": 119,
+      "et_marker_rate_pct": 12.3
+    },
+    "dev.ti": {
+      "segments": 971,
+      "marker_counts": {
+        "tsade_er": 951,
+        "tsade_et": 252,
+        "alef_er": 1836,
+        "alef_et": 54,
+        "lex_er": 42,
+        "lex_et": 18
+      },
+      "pooled_er_share_pct": 89.7,
+      "segments_with_et_marker": 130,
+      "et_marker_rate_pct": 13.4
+    },
+    "test.ER": {
+      "segments": 2100,
+      "marker_counts": {
+        "tsade_er": 2698,
+        "tsade_et": 0,
+        "alef_er": 4877,
+        "alef_et": 131,
+        "lex_er": 209,
+        "lex_et": 0
+      },
+      "pooled_er_share_pct": 98.3,
+      "segments_with_et_marker": 0,
+      "et_marker_rate_pct": 0.0
+    },
+    "test.ET": {
+      "segments": 2100,
+      "marker_counts": {
+        "tsade_er": 2306,
+        "tsade_et": 261,
+        "alef_er": 4546,
+        "alef_et": 66,
+        "lex_er": 107,
+        "lex_et": 43
+      },
+      "pooled_er_share_pct": 95.0,
+      "segments_with_et_marker": 184,
+      "et_marker_rate_pct": 8.8
+    },
+    "test.ti": {
+      "segments": 2100,
+      "marker_counts": {
+        "tsade_er": 2088,
+        "tsade_et": 290,
+        "alef_er": 4362,
+        "alef_et": 67,
+        "lex_er": 96,
+        "lex_et": 57
+      },
+      "pooled_er_share_pct": 94.1,
+      "segments_with_et_marker": 214,
+      "et_marker_rate_pct": 10.2
+    }
+  },
+  "unlabelled": {
+    "HornMT": {
+      "segments": 2030,
+      "segments_with_et_marker": 1127,
+      "et_marker_rate_pct": 55.5,
+      "pooled_er_share_pct": 74.3
+    },
+    "FLORES sample": {
+      "segments": 30,
+      "segments_with_et_marker": 7,
+      "et_marker_rate_pct": 23.3,
+      "pooled_er_share_pct": 82.6
+    },
+    "TLT clean": {
+      "segments": 8,
+      "segments_with_et_marker": 0,
+      "et_marker_rate_pct": 0.0,
+      "pooled_er_share_pct": 96.2
+    },
+    "Haddas": {
+      "segments": 5,
+      "segments_with_et_marker": 0,
+      "et_marker_rate_pct": 0.0,
+      "pooled_er_share_pct": 99.0
+    }
+  },
+  "findings": {
+    "H1_pooled_ratio_separates_varieties": {
+      "threshold_points": 10.0,
+      "separation_points": [
+        7.5,
+        3.3
+      ],
+      "worst": 3.3,
+      "verdict": "REFUTED"
+    },
+    "H2_et_markers_are_precise": {
+      "threshold": 0.99,
+      "false_positives": 0,
+      "labelled_eritrean_segments": 3071,
+      "precision": 1.0,
+      "verdict": "CONFIRMED"
+    },
+    "H3_et_markers_have_recall": {
+      "threshold": 0.5,
+      "true_positives": 303,
+      "labelled_ethiopian_segments": 3071,
+      "recall": 0.0987,
+      "verdict": "REFUTED"
+    }
+  }
+}

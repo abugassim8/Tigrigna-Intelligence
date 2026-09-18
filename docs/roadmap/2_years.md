@@ -1,5 +1,11 @@
 # Roadmap — 2 Years
 
+> ⚠️ **Superseded as a plan, kept as a record.** This was written **before any
+> research** — explicitly not for planning — the document says so itself. All 13 research domains are now complete, two packages are
+> built, and **[`READINESS_PLAN.md`](READINESS_PLAN.md) is the plan of record.**
+>
+> Unchanged in status: a statement of what the project could become, not a schedule. Nothing here should be treated as committed.
+
 ## Purpose of this document
 
 The long horizon: what this project could become, and what would make it matter.

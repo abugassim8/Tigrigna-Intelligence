@@ -1,9 +1,13 @@
 # Metrics
 
-> **Status: none selected.** No metrics have been chosen or validated for
-> Tigrinya. The table below is a scaffold, not a recommendation.
+> **Status: translation validated (DEC-009); all four Tier 0 primitives validated intrinsically (DEC-023).**
+> ✅ **Morphology joined them 2026-09-08**, and was **re-measured over the entire TICO-19 anchor on 2026-09-11** — 9,212 segments, 194,588 word tokens. Three PASS at 100%, two recorded as **MEAS** (no threshold; the first measurement *sets* a floor, it is not judged by one).
+> ⚠️ **Intrinsically, not for accuracy.** Nothing here says HornMorpho's Tigrinya is *correct* — that needs gold data and a speaker (**A-006**, **A-13**), exactly as experiment 004 found.
+> Remaining capabilities are still unresearched — those rows are a scaffold, not
+> a recommendation.
 >
-> **Gated on:** `../research/reports/08_evaluation/`
+> **Evidence:** `../research/reports/08_evaluation/001-metric-validity-and-harness.md`,
+> `../../experiments/003-metric-validity/`
 
 ## Purpose of this document
 
@@ -41,20 +45,67 @@ finding to record rather than a problem to route around.
 
 | Capability | Metric | Validated for Tigrinya | Baseline | Notes |
 | --- | --- | --- | --- | --- |
-| Translation | TBD | No | — | Not yet researched |
-| Embeddings / similarity | TBD | No | — | Not yet researched |
+| Translation | **chrF** (primary) + **BLEU** (comparability only) | **Yes — measured** | NLLB-3.3B COMET 0.82 ET / 0.80 ER `[reported]` | DEC-009. Never report BLEU alone. Harness must run **both** MADLAD-3B (shippable) and NLLB (comparison-only, NC-licensed) — DEC-011 |
+| Embeddings / similarity | TBD | No | — | **Tier 1 — untested.** Monolingual encoder, so FLORES+ bitext retrieval does not apply |
 | Semantic search | TBD | No | — | Not yet researched |
 | Cross-language retrieval | TBD | No | — | Not yet researched |
-| Tokenization | TBD | No | — | Not yet researched |
-| Morphological analysis | TBD | No | — | Not yet researched |
+| Tokenization | **Reversibility** + fertility + UNK rate | **Yes — intrinsic** | see DEC-023 | Property tests, no gold data (exp 004) |
+| Morphological analysis | Consistency + coverage *(accuracy needs gold data)* | **Yes — intrinsic** | **coverage ≥59.91%** over the full anchor | ✅ **Measured 2026-09-08 on a 900-segment sample; re-measured 2026-09-11 over the FULL anchor** — all 9,212 Tigrinya segments of TICO-19, **194,588 word tokens, 32,990 unique**. `surface` **9,212/9,212**, `alignment` **9,212/9,212**, `determinism` **32,990/32,990** — all 100%. **`coverage` 116,583/194,588 = 59.91%**, a **lower bound** (an analysis identical to the surface counts as uncovered, which also catches genuinely uninflected words). **`normalisation` 144/197 = 73.10%**: of 477 words changed by ጸ/ፀ · ኣ/አ normalisation, 280 are unanalysable either way and excluded; of the 197 informative pairs **144 unchanged, 22 rescued, 2 LOST, 29 differ**. ⚠️ **The 900-segment sample reported 0 lost and 62.27% coverage — both optimistic.** Normalisation *does* destroy analyses: ኣአንጋዲ → ኣኣንጋዲ leaves the lexicon. **A-13 must rule on it.** ⚠️ **CI cannot re-derive this** (GPL-3.0, 4.1 GB, hours): weaker guarantee than any `experiments/` entry — see `measurements/README.md`. ⚠️ **P-4 is cleared for *consistency*, not accuracy** — these checks catch **broken**, not **wrong**. *History: this row read "Yes — intrinsic" citing exp 004 until 2026-08-22; experiment 004 never tested morphology. It was ❌ from then until 2026-09-08.* | 
 | Lemmatization | TBD | No | — | Not yet researched |
 | Spell correction | TBD | No | — | Not yet researched |
 | Grammar checking | TBD | No | — | Not yet researched |
-| Transliteration | TBD | No | — | Not yet researched |
+| Transliteration | **Determinism** + coverage + word-level alignment | **Yes — intrinsic** | see DEC-023 | Property tests, no gold data (exp 004) |
 | NER | TBD | No | — | Not yet researched |
 | Entity linking | TBD | No | — | Not yet researched |
 | Summarization | TBD | No | — | Not yet researched |
 | Question answering | TBD | No | — | Not yet researched |
+
+## Validated metrics
+
+### chrF — translation and surface generation `[PRIMARY]`
+
+- **What it measures:** character n-gram F-score between hypothesis and reference.
+- **How it is computed:** `sacrebleu.corpus_chrf`, **sacrebleu 2.6.0**, default
+  parameters. **Pin these** — character n-gram order, word n-gram order, and β
+  all change the number.
+- **Range:** 0–100, higher better.
+- **Validity evidence for Tigrinya:** measured in
+  `experiments/003-metric-validity/` on FLORES+ parallel data (same 30 sentences,
+  English and Tigrinya). Under inflectional near-misses chrF retains **74.9%** of
+  a perfect score where BLEU retains **41.5%** — and **the advantage widens as
+  quality falls** (1.18× → 1.46× → 1.80× at 10/20/30% corruption).
+- **Known failure modes:** rewards surface overlap, so a fluent-but-wrong output
+  sharing character sequences can score respectably. Not a semantic metric.
+- **Morphology sensitivity:** **low** — this is the reason it was chosen. A right
+  stem with a wrong affix keeps most of its character n-grams.
+- **Tokenization dependence:** **none** — it never tokenizes into words, which
+  matters because Ge'ez tokenization is itself unsettled (Experiment 002).
+- **Reported alongside:** BLEU, always.
+
+### BLEU — translation `[COMPARABILITY ONLY]`
+
+- **What it measures:** modified n-gram precision on whitespace-delimited words,
+  with a brevity penalty.
+- **How it is computed:** `sacrebleu.corpus_bleu`, **sacrebleu 2.6.0**.
+- **Validity evidence for Tigrinya:** measured — BLEU is **~1.08× harsher** on
+  Tigrinya than English at an identical error rate. Real, consistent, and about
+  **half** the size the standard warning about morphologically rich languages
+  implies. The test was ~1.44× harsher on Tigrinya by construction (a Ge'ez
+  character is a consonant+vowel pair, a Latin letter is one phoneme), which
+  biased *toward* a larger penalty — so ~8% is an **upper** estimate.
+- **Known failure modes:** treats an inflectional near-miss as a total miss.
+  Loses information fastest exactly where low-resource systems operate.
+- **⛔ Prohibited use:** **never compare Tigrinya BLEU to another language's BLEU
+  without stating the ~8% penalty.** This is a documented error, not a
+  judgement call.
+- **Reported alongside:** chrF, always. Never reported alone.
+
+### COMET — ⚠️ NOT validated
+
+**Untested.** Learned metrics require model downloads from an egress-blocked
+domain. This matters because **NLLB's published Tigrinya numbers use COMET**, so
+we cannot compare against them until it is resolved (**A-09**). Recorded here so
+its absence is visible rather than silently assumed away.
 
 ## Required fields for each metric
 

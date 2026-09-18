@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tigrinya-primitives"
+version = "0.1.0"
+description = "Tigrinya language primitives: Ge'ez normalisation, tokenization, transliteration"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+keywords = ["tigrinya", "geez", "ethiopic", "nlp", "low-resource"]
+
+# Pinned, not floated. P-5 requires reproducibility, and the experiment suite
+# doubles as a regression test against these exact versions (DEC-016, DEC-018).
+dependencies = [
+    "epitran==1.35.2",
+    "tokenizers==0.23.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

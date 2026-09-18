@@ -1,0 +1,143 @@
+{
+  "seed": 20260819,
+  "corpora": {
+    "tlt": "experiments/002-tokenizer-fertility/corpus/tlt_000_clean.txt",
+    "haddas": "experiments/002-tokenizer-fertility/corpus/haddas_001_colscrambled.txt",
+    "flores": "experiments/003-metric-validity/data/flores_ti.txt"
+  },
+  "items": {
+    "A_vowel": 25,
+    "B_frequent": 35,
+    "C_normalisation": 14,
+    "D_passthrough": 0,
+    "E_random": 40,
+    "F_variety": 20
+  },
+  "total_items": 134,
+  "pronunciation_key": [
+    {
+      "unit": "ɨ",
+      "appears": 1419,
+      "example_geez": "ሕቶ",
+      "example_reading": "ħɨto"
+    },
+    {
+      "unit": "ə",
+      "appears": 860,
+      "example_geez": "ለ",
+      "example_reading": "lə"
+    },
+    {
+      "unit": "ʔ",
+      "appears": 231,
+      "example_geez": "አ",
+      "example_reading": "ʔə"
+    },
+    {
+      "unit": "ɡ",
+      "appears": 156,
+      "example_geez": "ገ",
+      "example_reading": "ɡə"
+    },
+    {
+      "unit": "ħ",
+      "appears": 133,
+      "example_geez": "ሐ",
+      "example_reading": "ħə"
+    },
+    {
+      "unit": "ʕ",
+      "appears": 94,
+      "example_geez": "ዐ",
+      "example_reading": "ʕə"
+    },
+    {
+      "unit": "t͡sʼ",
+      "appears": 88,
+      "example_geez": "ጸ",
+      "example_reading": "t͡sʼə"
+    },
+    {
+      "unit": "tʼ",
+      "appears": 43,
+      "example_geez": "ጠ",
+      "example_reading": "tʼə"
+    },
+    {
+      "unit": "qʰ",
+      "appears": 28,
+      "example_geez": "ቐ",
+      "example_reading": "qʰə"
+    },
+    {
+      "unit": "ʃ",
+      "appears": 26,
+      "example_geez": "ሸ",
+      "example_reading": "ʃə"
+    },
+    {
+      "unit": "d͡ʒ",
+      "appears": 18,
+      "example_geez": "ጀ",
+      "example_reading": "d͡ʒə"
+    },
+    {
+      "unit": "kʷ",
+      "appears": 6,
+      "example_geez": "ኲ",
+      "example_reading": "kʷi"
+    },
+    {
+      "unit": "t͡ʃʼ",
+      "appears": 5,
+      "example_geez": "ጨ",
+      "example_reading": "t͡ʃʼə"
+    },
+    {
+      "unit": "ɲ",
+      "appears": 5,
+      "example_geez": "ኛ",
+      "example_reading": "ɲa"
+    },
+    {
+      "unit": "t͡ʃ",
+      "appears": 4,
+      "example_geez": "ቸ",
+      "example_reading": "t͡ʃə"
+    },
+    {
+      "unit": "pʼ",
+      "appears": 3,
+      "example_geez": "ጳ",
+      "example_reading": "pʼa"
+    },
+    {
+      "unit": "xʷ",
+      "appears": 3,
+      "example_geez": "ዃ",
+      "example_reading": "xʷa"
+    },
+    {
+      "unit": "ɡʷ",
+      "appears": 3,
+      "example_geez": "ጓ",
+      "example_reading": "ɡʷa"
+    },
+    {
+      "unit": "qʷ",
+      "appears": 1,
+      "example_geez": "ቋ",
+      "example_reading": "qʷa"
+    },
+    {
+      "unit": "ʒ",
+      "appears": 1,
+      "example_geez": "ዥ",
+      "example_reading": "ʒ"
+    }
+  ],
+  "notes": {
+    "D_passthrough": "EMPTY BY MEASUREMENT, not by omission. Coverage over Ethiopic letters is 100% on this corpus, so there are no unmapped-letter words to review.",
+    "bias_control": "Sheet 1 randomises option order; key.json records which form is which and is never sent to the reviewer."
+  }
+}

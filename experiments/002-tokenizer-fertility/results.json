@@ -1,0 +1,156 @@
+{
+  "screening": {
+    "haddas_001_colscrambled.txt": {
+      "chars": 2149,
+      "ethiopic_pct": 99.67,
+      "digit_pct": 0.0,
+      "punct_pct": 3.44,
+      "foreign_pct": 0.0,
+      "foreign_chars": []
+    },
+    "tlt_000_clean.txt": {
+      "chars": 1674,
+      "ethiopic_pct": 100.0,
+      "digit_pct": 0.0,
+      "punct_pct": 2.99,
+      "foreign_pct": 0.0,
+      "foreign_chars": []
+    },
+    "tlt_001_CORRUPTED_sample.txt": {
+      "chars": 1382,
+      "ethiopic_pct": 98.77,
+      "digit_pct": 0.65,
+      "punct_pct": 2.46,
+      "foreign_pct": 0.29,
+      "foreign_chars": [
+        [
+          "t",
+          3
+        ],
+        [
+          "ñ",
+          1
+        ]
+      ]
+    }
+  },
+  "corpus": {
+    "chars": 4826,
+    "words": 991,
+    "unique_words": 616,
+    "type_token_ratio": 0.6216,
+    "train_words": 792,
+    "test_words": 199
+  },
+  "H1": {
+    "raw_chars": 3699,
+    "decomposed_chars": 7240,
+    "aggregate_ratio": 1.9573,
+    "per_word_median": 2.0,
+    "per_word_mean": 1.9792,
+    "failed_words": 0,
+    "confirmed": true
+  },
+  "H2": {
+    "raw_unique": 155,
+    "decomposed_unique": 35,
+    "pct_of_raw": 22.58,
+    "confirmed": true
+  },
+  "H3": {
+    "rows": [
+      {
+        "vocab_size": 500,
+        "byte_level": false,
+        "fertility_raw": 2.4925,
+        "fertility_decomposed": 2.8191,
+        "delta": 0.3266,
+        "winner": "raw"
+      },
+      {
+        "vocab_size": 1000,
+        "byte_level": false,
+        "fertility_raw": 2.2965,
+        "fertility_decomposed": 2.5075,
+        "delta": 0.2111,
+        "winner": "raw"
+      },
+      {
+        "vocab_size": 2000,
+        "byte_level": false,
+        "fertility_raw": 2.2613,
+        "fertility_decomposed": 2.4322,
+        "delta": 0.1709,
+        "winner": "raw"
+      },
+      {
+        "vocab_size": 4000,
+        "byte_level": false,
+        "fertility_raw": 2.2613,
+        "fertility_decomposed": 2.4322,
+        "delta": 0.1709,
+        "winner": "raw"
+      },
+      {
+        "vocab_size": 8000,
+        "byte_level": false,
+        "fertility_raw": 2.2613,
+        "fertility_decomposed": 2.4322,
+        "delta": 0.1709,
+        "winner": "raw"
+      },
+      {
+        "vocab_size": 500,
+        "byte_level": true,
+        "fertility_raw": 3.2513,
+        "fertility_decomposed": 3.5427,
+        "delta": 0.2915,
+        "winner": "raw"
+      },
+      {
+        "vocab_size": 1000,
+        "byte_level": true,
+        "fertility_raw": 3.1206,
+        "fertility_decomposed": 3.4422,
+        "delta": 0.3216,
+        "winner": "raw"
+      },
+      {
+        "vocab_size": 2000,
+        "byte_level": true,
+        "fertility_raw": 3.1055,
+        "fertility_decomposed": 3.4171,
+        "delta": 0.3116,
+        "winner": "raw"
+      },
+      {
+        "vocab_size": 4000,
+        "byte_level": true,
+        "fertility_raw": 3.1055,
+        "fertility_decomposed": 3.4171,
+        "delta": 0.3116,
+        "winner": "raw"
+      },
+      {
+        "vocab_size": 8000,
+        "byte_level": true,
+        "fertility_raw": 3.1055,
+        "fertility_decomposed": 3.4171,
+        "delta": 0.3116,
+        "winner": "raw"
+      }
+    ],
+    "decomposed_wins": 0,
+    "total": 10,
+    "confirmed": false,
+    "fold_deltas": [
+      0.2222,
+      0.1364,
+      0.2374,
+      0.1768,
+      0.1768
+    ],
+    "mean_fold_delta": 0.1899,
+    "folds_decomposition_worse": 5
+  }
+}

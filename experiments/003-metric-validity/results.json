@@ -1,0 +1,134 @@
+{
+  "sentences": 30,
+  "seed": 20260803,
+  "sacrebleu_version": "2.6.0",
+  "structure": {
+    "en": {
+      "language": "English",
+      "sentences": 30,
+      "words": 707,
+      "words_per_sentence": 23.57,
+      "unique_words": 453,
+      "type_token_ratio": 0.6407,
+      "chars_per_word": 5.31,
+      "distinct_4grams": 617,
+      "4grams_repeated": 0,
+      "4gram_repeat_pct": 0.0
+    },
+    "ti": {
+      "language": "Tigrinya",
+      "sentences": 30,
+      "words": 659,
+      "words_per_sentence": 21.97,
+      "unique_words": 496,
+      "type_token_ratio": 0.7527,
+      "chars_per_word": 3.69,
+      "distinct_4grams": 569,
+      "4grams_repeated": 0,
+      "4gram_repeat_pct": 0.0
+    }
+  },
+  "H1": {
+    "word_ratio": 0.9321,
+    "confirmed": false
+  },
+  "H2": {
+    "ttr_ratio": 1.1748,
+    "confirmed": false
+  },
+  "perturbation": {
+    "near_miss_0.1_English": {
+      "bleu": 78.656,
+      "chrf": 94.064,
+      "bleu_kept_pct": 78.66,
+      "chrf_kept_pct": 94.06
+    },
+    "near_miss_0.1_Tigrinya": {
+      "bleu": 77.823,
+      "chrf": 91.585,
+      "bleu_kept_pct": 77.82,
+      "chrf_kept_pct": 91.58
+    },
+    "near_miss_0.2_English": {
+      "bleu": 61.175,
+      "chrf": 87.895,
+      "bleu_kept_pct": 61.17,
+      "chrf_kept_pct": 87.89
+    },
+    "near_miss_0.2_Tigrinya": {
+      "bleu": 56.539,
+      "chrf": 82.489,
+      "bleu_kept_pct": 56.54,
+      "chrf_kept_pct": 82.49
+    },
+    "near_miss_0.3_English": {
+      "bleu": 42.495,
+      "chrf": 82.284,
+      "bleu_kept_pct": 42.49,
+      "chrf_kept_pct": 82.28
+    },
+    "near_miss_0.3_Tigrinya": {
+      "bleu": 41.537,
+      "chrf": 74.858,
+      "bleu_kept_pct": 41.54,
+      "chrf_kept_pct": 74.86
+    },
+    "lexical_0.1_English": {
+      "bleu": 78.571,
+      "chrf": 87.095,
+      "bleu_kept_pct": 78.57,
+      "chrf_kept_pct": 87.1
+    },
+    "lexical_0.1_Tigrinya": {
+      "bleu": 76.245,
+      "chrf": 85.811,
+      "bleu_kept_pct": 76.24,
+      "chrf_kept_pct": 85.81
+    },
+    "lexical_0.2_English": {
+      "bleu": 59.712,
+      "chrf": 76.218,
+      "bleu_kept_pct": 59.71,
+      "chrf_kept_pct": 76.22
+    },
+    "lexical_0.2_Tigrinya": {
+      "bleu": 55.724,
+      "chrf": 70.741,
+      "bleu_kept_pct": 55.72,
+      "chrf_kept_pct": 70.74
+    },
+    "lexical_0.3_English": {
+      "bleu": 44.765,
+      "chrf": 69.298,
+      "bleu_kept_pct": 44.77,
+      "chrf_kept_pct": 69.3
+    },
+    "lexical_0.3_Tigrinya": {
+      "bleu": 38.007,
+      "chrf": 59.713,
+      "bleu_kept_pct": 38.01,
+      "chrf_kept_pct": 59.71
+    }
+  },
+  "H3": {
+    "mean_loss_ratio": 1.0842,
+    "ratios": [
+      1.0394,
+      1.1192,
+      1.0165,
+      1.1087,
+      1.099,
+      1.1224
+    ],
+    "confirmed": false
+  },
+  "H4": {
+    "mean_retention_ratio": 1.4793,
+    "ratios": [
+      1.1768,
+      1.459,
+      1.8021
+    ],
+    "confirmed": false
+  }
+}

@@ -85,8 +85,103 @@ verify anything load-bearing.**
 
 ### `curl` to non-blocked hosts
 
-`api.github.com` responds (200). `raw.githubusercontent.com` responds. Note the
-repo-scope restriction below before using these.
+`raw.githubusercontent.com` responds (200) — this is how HornMT was obtained.
+Note the repo-scope restriction below before using these.
+
+> ⚠️ **Re-measured 2026-09-01, and two entries changed.** This page was written
+> on 2026-07-29 and not re-checked for a month, while five actions in the
+> register were justified by it.
+>
+> | Route | 2026-07-29 | 2026-09-01 |
+> | --- | --- | --- |
+> | `raw.githubusercontent.com` | ✅ | ✅ **200** |
+> | `api.github.com` | ✅ 200 | ❌ **403** — use `raw.` or the GitHub MCP |
+> | PyPI | ✅ | ✅ **`torch` and `sentence-transformers` install** |
+> | `huggingface.co` direct download | *(untested)* | ❌ **connection refused** — the MCP reads metadata and text files, but **weights cannot be fetched** |
+> | `opus.nlpl.eu` | *(untested)* | ❌ blocked |
+> | `tico-19.github.io` | *(untested)* | ❌ blocked |
+>
+> **The consequence for A-09.** "Egress is blocked" was one blocker covering two
+> different things. *Reading about* models — licences, cards, provenance,
+> parameter counts — is open through the MCP and was open the whole time.
+> *Running* them is not: PyPI gives us the runtime, and nothing gives us the
+> weights. **A-09 is now only the second half.**
+>
+> Separately, `openlanguagedata/flores_plus` returns **401** rather than a proxy
+> denial — it is a **gated repo**, not an egress block, and a token fixes it
+> (**A-08**).
+
+---
+
+> ⚠️ **Re-measured again 2026-09-03, and it changed the plan of record.**
+> `media.githubusercontent.com` — GitHub's **Git LFS media host** — had never
+> been tested. It is **open**, and that matters because large files in a GitHub
+> repo are usually LFS pointers, not bytes.
+>
+> | Route | Result 2026-09-03 |
+> | --- | --- |
+> | `raw.githubusercontent.com/.../t.tgz` | ✅ 200 — but **134 bytes, a Git LFS pointer** |
+> | **`media.githubusercontent.com/media/.../t.tgz`** | ✅ **200 — 158,902,071 bytes**, matching the pointer's declared size |
+> | `github.com/<owner>/<repo>` (HTML) | ❌ 403 |
+> | `github.com/.../raw/...` | ❌ 403 |
+> | `codeload.github.com/.../tar.gz` | ❌ 403 |
+>
+> **The consequence: HornMorpho's Tigrinya language data is reachable.** The
+> readiness plan recorded morphology measurement as blocked on "an actual
+> install" and §12 concluded there was nothing left to do without a human. That
+> was wrong for the fourth time in the same way — HornMorpho's *own*
+> `get_language_url()` builds a `github.com/.../raw/...` URL, which **is** 403
+> here, and nobody checked whether the same bytes were available elsewhere.
+>
+> **A 200 on `raw.` is not proof you have the file.** Check the size against the
+> LFS pointer's declared `size` before believing a download succeeded — a
+> 134-byte "corpus" is the signature.
+
+---
+
+> ✅ **Settled 2026-09-07 by doing it.** The route above was theory until
+> HornMorpho was actually installed and run. All of it held, and three further
+> things are now known that no probe could have told us.
+>
+> | Route | Result 2026-09-07 |
+> | --- | --- |
+> | `pip install git+https://github.com/hltdi/HornMorpho` | ✅ **works** — HornMorpho **5.3.6** installed |
+> | `media.githubusercontent.com/media/.../t.tgz` | ✅ 200 — **158,902,071 bytes**, byte-identical to the 2026-09-03 probe |
+> | `archive.ubuntu.com` (apt) | ✅ **open** — Ubuntu's own archive is reachable |
+> | `ppa.launchpadcontent.net` (deadsnakes PPA) | ❌ **403 at the proxy** — see the blocked table |
+>
+> **`git+https://` to a third-party GitHub repo works**, even though
+> `github.com` HTML, `github.com/.../raw/...` and `codeload.github.com` are all
+> 403. The plan flagged this as *"the one untested link and the most likely
+> failure point"*. It was neither. **The pattern holds: the assumed block was
+> assumed, not measured.** That is now the fifth instance.
+>
+> ⚠️ **`import hm` requires `tkinter`, and that is a fact about HornMorpho, not
+> about this sandbox.** `hm/__init__.py` → `hm.morpho` → `from .corpus import *`
+> → `corpus.py:32 from .gui import *` → `gui.py:26 from tkinter import *`. The
+> chain is unconditional. `gui.py` exists to draw a manual-disambiguation
+> window, and the *entire* package-wide dependency on it is **one call site**,
+> `corpus.py:483`, inside `Corpus.disambiguate()` — a method nothing in the
+> analysis path touches.
+>
+> So **HornMorpho 5.3.6 cannot be imported in a headless environment** — a slim
+> container, a CI runner, a server — without the platform Tk package installed.
+> Worth reporting upstream: a deferred import inside `disambiguate()` would
+> remove it entirely. Tracked as **A-18**.
+>
+> ⚠️ **Getting `tkinter` was itself a two-step problem**, and the first step
+> failed in the way this document exists to catch. The interpreter in use was
+> Python **3.11.15 from the deadsnakes PPA**, so the matching package is
+> `python3.11-tk` — and `ppa.launchpadcontent.net` is **403 at the proxy**,
+> which is an organisation egress denial: not retried, not routed around.
+>
+> **The way through was not a workaround — it was a different, permitted
+> source.** Ubuntu noble ships Python **3.12** and `python3-tk` for it comes
+> from `archive.ubuntu.com`, which is open. A 3.12 venv gets HornMorpho,
+> `tkinter`, and both project packages, and the measurement runs there while
+> the 3.11 venv stays the analyser-absent environment the test suite is
+> designed around. **Both are useful**: the suite is now run in both states and
+> gates on `morphology.is_available()` rather than assuming either.
 
 ---
 
@@ -106,6 +201,7 @@ These returned **403 at the proxy CONNECT level** on 2026-07-29. Per
 | `en.wikipedia.org` | No general reference |
 | `www.ethnologue.com` | No authoritative language demographics |
 | `*.github.io` (tested: `tigrinyanlp.github.io`) | Community documentation sites unreachable |
+| `ppa.launchpadcontent.net` (deadsnakes) | ⚠️ **Added 2026-09-07.** No `python3.11-*` system packages. `archive.ubuntu.com` **is** open, so prefer a stock Ubuntu interpreter over a PPA one whenever a system package is needed |
 
 **Practical effect on this project:** every claim sourced from a paper is
 `[reported]`, not `[verified]`, unless it also appears on a Hugging Face card or
@@ -133,6 +229,12 @@ scope, **direct GitHub inspection of external dependencies is unavailable.**
 **not published there at all** (itself a finding — GitHub-only distribution, no
 versioned releases through standard channels), and WebSearch supplied the version
 (5.3.5), language coverage, and the existence of a `fgaim` fork.
+
+> ⚠️ **Superseded 2026-09-01.** `raw.githubusercontent.com` responds, and
+> `LICENSE.txt` fetched directly settles it: **GPL-3.0**. The workaround above
+> was a good workaround for a restriction that had **stopped applying**. Worth
+> keeping as the method, and worth noting as the cost: a fallback route that
+> works becomes a reason never to re-test the direct one.
 
 ---
 
@@ -175,5 +277,6 @@ Sources that need re-checking from a session with unrestricted egress:
 - **CoDET** (2305.17267) — the COMET 0.82/0.80 dialect figures behind DEC-004.
 - **TiNC24** — the reported 200K-word NER corpus, never located.
 - **`tigrinyanlp.github.io`** — a Tigrinya NLP resource hub, blocked.
-- **HornMorpho on GitHub** — maintenance status, licence, and whether Tigrinya
-  support in v5.3 lags Amharic.
+- ~~**HornMorpho on GitHub**~~ ✅ **resolved 2026-09-01** — **GPL-3.0**, v5.3.6
+  (April 2026), Tigrinya and Tigre supported, not on PyPI, and `setup.py`
+  declares no licence metadata at all.

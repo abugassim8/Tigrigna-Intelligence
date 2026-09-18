@@ -1,0 +1,84 @@
+{
+  "corpus": [
+    "experiments/003-metric-validity/data/flores_ti.txt"
+  ],
+  "corpus_files": 1,
+  "total_chars": 3203,
+  "gates": [
+    {
+      "gate": "script",
+      "pass": true,
+      "declared": "geez",
+      "ethiopic_pct": {
+        "experiments/003-metric-validity/data/flores_ti.txt": 96.42
+      },
+      "mismatches": [],
+      "detail": "file contents match the declared geez script"
+    },
+    {
+      "gate": "licence",
+      "pass": true,
+      "declared": "cc-by-sa-4.0",
+      "detail": "usable for shipped artefacts"
+    },
+    {
+      "gate": "quality",
+      "pass": true,
+      "script": "geez",
+      "worst_foreign_pct": 0.0,
+      "threshold_pct": 0.1,
+      "mojibake": {},
+      "per_file": {
+        "experiments/003-metric-validity/data/flores_ti.txt": {
+          "chars": 2542,
+          "ethiopic_pct": 96.42,
+          "foreign_pct": 0.0,
+          "foreign_sample": []
+        }
+      },
+      "review_flags": [],
+      "detail": "no encoding corruption detected"
+    },
+    {
+      "gate": "variety",
+      "pass": true,
+      "label": "unknown",
+      "signal": "ethiopian-consistent — 23.3% of segments carry an Ethiopian-only form",
+      "et_marker_segment_pct": 23.3,
+      "segments_with_et_marker": 7,
+      "segments": 30,
+      "raw_marker_counts_not_a_proportion": {
+        "eritrean": 90,
+        "ethiopian": 16
+      },
+      "lexeme_counts": {
+        "ክሳብ(ER) vs እስካብ(ET)": [
+          0,
+          2
+        ],
+        "ሃገራዊ(ER) vs ብሄራዊ(ET)": [
+          0,
+          1
+        ]
+      },
+      "detail": "SIGNAL ONLY — variety attribution requires a native speaker (A-13). Label stays `unknown` until confirmed (DEC-010). Read `et_marker_segment_pct`, not the raw counts (Experiment 010)."
+    },
+    {
+      "gate": "contamination",
+      "pass": true,
+      "ngram_size": 8,
+      "overlaps": 0,
+      "exact_segment_matches": 0,
+      "eval_segments_below_ngram_size": 0,
+      "per_eval_set": {
+        "experiments/002-tokenizer-fertility/corpus/tlt_000_clean.txt": {
+          "shared_ngrams": 0,
+          "exact_segments": 0,
+          "segments_below_ngram_size": 0
+        }
+      },
+      "detail": "no shared n-grams or exact segments with the supplied evaluation sets"
+    }
+  ],
+  "verdict": "CLEARED for use"
+}

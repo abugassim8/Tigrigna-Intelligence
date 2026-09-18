@@ -1,0 +1,132 @@
+{
+  "experiment": "011-inter-translator-agreement",
+  "caveat": "chrF between two human translations is NOT a ceiling for a system-vs-reference score: they are different quantities and the first has no privileged correct side. This is a reference point for reading model scores, nothing more. The only independent pair is tir_er vs tir_et, which varies by translator AND by standard at once; this cannot separate them and A-13 is what would.",
+  "direction": "chrF(hypothesis=first, reference=second); chrF is not symmetric",
+  "already_seen_on_test": {
+    "er_vs_et": 24.58,
+    "ti_vs_et": 83.65,
+    "ti_vs_er": 23.95
+  },
+  "thresholds": {
+    "H1_dev_er_et_within_of_test": 3.0,
+    "H2_dev_ti_et_above": 75.0,
+    "H3_median_below_mean": true
+  },
+  "corpus": {
+    "dev.er_vs_et": {
+      "chrf": 23.84,
+      "ci_low": 23.16,
+      "ci_high": 24.52,
+      "chrf_normalised": 23.92,
+      "normalisation_delta": 0.08,
+      "segments": 971
+    },
+    "dev.ti_vs_et": {
+      "chrf": 85.59,
+      "ci_low": 83.9,
+      "ci_high": 87.28,
+      "chrf_normalised": 85.62,
+      "normalisation_delta": 0.03,
+      "segments": 971
+    },
+    "dev.ti_vs_er": {
+      "chrf": 23.07,
+      "ci_low": 22.42,
+      "ci_high": 23.72,
+      "chrf_normalised": 23.17,
+      "normalisation_delta": 0.09,
+      "segments": 971
+    },
+    "test.er_vs_et": {
+      "chrf": 24.58,
+      "ci_low": 24.17,
+      "ci_high": 24.99,
+      "chrf_normalised": 24.64,
+      "normalisation_delta": 0.06,
+      "segments": 2100
+    },
+    "test.ti_vs_et": {
+      "chrf": 83.65,
+      "ci_low": 82.66,
+      "ci_high": 84.64,
+      "chrf_normalised": 83.67,
+      "normalisation_delta": 0.02,
+      "segments": 2100
+    },
+    "test.ti_vs_er": {
+      "chrf": 23.95,
+      "ci_low": 23.56,
+      "ci_high": 24.34,
+      "chrf_normalised": 24.02,
+      "normalisation_delta": 0.07,
+      "segments": 2100
+    }
+  },
+  "per_segment": {
+    "dev.er_vs_et": {
+      "segments": 971,
+      "mean": 23.76,
+      "median": 21.78,
+      "p10": 13.48,
+      "p25": 17.39,
+      "p75": 28.26,
+      "p90": 36.09,
+      "below_10": 31,
+      "above_50": 22
+    },
+    "test.er_vs_et": {
+      "segments": 2100,
+      "mean": 24.42,
+      "median": 22.91,
+      "p10": 13.76,
+      "p25": 17.49,
+      "p75": 29.39,
+      "p90": 36.69,
+      "below_10": 48,
+      "above_50": 38
+    }
+  },
+  "findings": {
+    "H1_agreement_is_a_property_of_the_pair": {
+      "dev_chrf": 23.84,
+      "test_chrf_already_seen": 24.58,
+      "absolute_difference": 0.74,
+      "threshold": 3.0,
+      "verdict": "CONFIRMED"
+    },
+    "H2_ti_and_et_are_one_lineage_on_dev": {
+      "dev_chrf": 85.59,
+      "threshold": 75.0,
+      "verdict": "CONFIRMED"
+    },
+    "H3_per_segment_is_right_skewed": {
+      "dev": {
+        "segments": 971,
+        "mean": 23.76,
+        "median": 21.78,
+        "p10": 13.48,
+        "p25": 17.39,
+        "p75": 28.26,
+        "p90": 36.09,
+        "below_10": 31,
+        "above_50": 22
+      },
+      "test": {
+        "segments": 2100,
+        "mean": 24.42,
+        "median": 22.91,
+        "p10": 13.76,
+        "p25": 17.49,
+        "p75": 29.39,
+        "p90": 36.69,
+        "below_10": 48,
+        "above_50": 38
+      },
+      "median_below_mean": {
+        "dev": true,
+        "test": true
+      },
+      "verdict": "CONFIRMED"
+    }
+  }
+}

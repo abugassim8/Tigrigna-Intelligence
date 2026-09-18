@@ -1,0 +1,34 @@
+# Never rewrite line endings, on any platform, for any file.
+#
+# Git for Windows ships with `core.autocrlf=true`, which converts LF to CRLF on
+# checkout. This repository cannot survive that, and the damage is silent:
+#
+#   - **The anchors are checksum-verified.** `data/anchors/tico19/fetch.py` and
+#     `data/anchors/hornmt/fetch.py` compare SHA-256 against a recorded digest.
+#     A converted file fails that check, and the failure reads as *corrupted
+#     corpus* rather than *rewritten by the clone* — a day lost chasing a bug
+#     that does not exist.
+#   - **DEC-016 is byte-identity.** Every `experiments/*/results.json` must
+#     reproduce exactly; `run.py --check` compares text it wrote with text it
+#     reads back. Conversion breaks reproducibility on Windows only, which is
+#     the worst place for it to break.
+#   - **`validation/sheets/*.csv` have mixed endings by construction** —
+#     `csv.writer` emits CRLF — so conversion alters them in both directions.
+#
+# ⚠️ This file is deliberately blunt. A per-path allowlist would need updating
+# every time a corpus is added, and the failure mode of forgetting is a wrong
+# checksum, not a missing file. `-text` is the safe default here; the repository
+# holds no file that benefits from conversion.
+#
+# This removes the hazard for every clone, so nobody has to remember
+# `core.autocrlf=false` — see the migration guide's step 0, which now documents
+# a setting this file already enforces.
+* -text
+
+# Ge'ez and mixed-script files diff more usefully when Git knows they are text
+# it should not touch rather than binary it should not show.
+*.md   diff
+*.py   diff
+*.txt  diff
+*.json diff
+*.csv  diff
