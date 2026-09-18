@@ -1659,6 +1659,141 @@ def run_environment_plants() -> list[str]:
                     f"check_environment plant misbehaved: {label} — {detail[0]}")
     return problems
 
+
+# --------------------------------------------------------------------------
+# repo_files.py and .gitignore — the repository's own boundary
+#
+# `check_figures.py` and `check_dates.py` globbed `**/*.py` from the root with
+# no virtualenv exclusion. In CI and the sandbox that is invisible; on a machine
+# with `.venv/` in the tree it read all of torch and transformers, timed out at
+# 180s, and could have reported a retired figure quoted in a third-party
+# docstring as a stale claim here.
+#
+# ⚠️ `a_venv_inside_the_tree_is_not_scanned` is the regression test for that,
+# and it builds a real `.venv` rather than trusting the exclusion list.
+# --------------------------------------------------------------------------
+
+BOUNDARY_PLANT = r"""
+import pathlib, subprocess, sys, tempfile
+sys.path.insert(0, "scripts")
+import repo_files
+
+CASE = sys.argv[1]
+REPO = pathlib.Path(".").resolve()
+
+if CASE == "a_venv_inside_the_tree_is_not_scanned":
+    # A file planted inside a .venv must not be returned. Built for real, so
+    # this fails if the mechanism changes rather than only if a name changes.
+    venv = REPO / ".venv" / "Lib" / "site-packages" / "notmine"
+    created = not (REPO / ".venv").exists()
+    venv.mkdir(parents=True, exist_ok=True)
+    stray = venv / "stray_module.py"
+    stray.write_text("# not ours\n", encoding="utf-8")
+    try:
+        got = repo_files.tracked_files(REPO, ("**/*.py",))
+        ok = stray.resolve() not in {p.resolve() for p in got}
+    finally:
+        stray.unlink()
+        if created:
+            import shutil
+            shutil.rmtree(REPO / ".venv", ignore_errors=True)
+
+elif CASE == "the_fallback_also_excludes_a_venv":
+    # ⚠️ git answers today, but the fallback must not be a trapdoor.
+    with tempfile.TemporaryDirectory() as tmp:
+        root = pathlib.Path(tmp)
+        (root / "src").mkdir()
+        (root / "src" / "mine.py").write_text("x = 1\n", encoding="utf-8")
+        (root / ".venv" / "lib").mkdir(parents=True)
+        (root / ".venv" / "lib" / "theirs.py").write_text("y = 2\n",
+                                                          encoding="utf-8")
+        got = repo_files._from_walk(root, ("**/*.py",))
+        names = {p.name for p in got}
+        ok = "mine.py" in names and "theirs.py" not in names
+
+elif CASE == "the_repository_still_sees_its_own_files":
+    # ⚠️ The control. Excluding everything would pass the two plants above and
+    # silently stop the checkers from checking anything.
+    got = repo_files.tracked_files(REPO, ("**/*.md", "**/*.py"))
+    names = {p.name for p in got}
+    ok = ("CLAUDE.md" in names and "check_figures.py" in names
+          and len(got) > 100)
+
+elif CASE == "a_converted_checkpoint_is_not_committable":
+    # ⚠️ Only model.safetensors was ever ignored. tokenizer.json is 16.6 MB and
+    # is a .json, and `*.model` never matched because the pattern carried an
+    # inline comment that git does not strip.
+    target = REPO / "models" / "madlad400-3b-mt-bf16"
+    created = not target.exists()
+    target.mkdir(parents=True, exist_ok=True)
+    checked = ("tokenizer.json", "spiece.model", "config.json",
+               "model.safetensors")
+    try:
+        for name in checked:
+            (target / name).touch()
+        results = [subprocess.run(
+            ["git", "check-ignore", "-q", f"models/madlad400-3b-mt-bf16/{name}"],
+            cwd=REPO).returncode for name in checked]
+        ok = all(code == 0 for code in results)
+    finally:
+        if created:
+            import shutil
+            shutil.rmtree(target, ignore_errors=True)
+
+elif CASE == "the_converter_writes_its_own_gitignore":
+    # `--out` can point anywhere, so the directory ignores itself.
+    import torch
+    from safetensors.torch import save_file
+    sys.path.insert(0, "services/translation/src")
+    import shrink_checkpoint as sc
+    import tigrinya_translate.head as head
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = pathlib.Path(tmp)
+        src = tmp / "model.safetensors"
+        save_file({"w": torch.randn(8, 4)}, str(src))
+        real = head.locate_checkpoint
+        sc.locate_checkpoint = lambda n: str(src) if n == "stub" else real(n)
+        sc.main(["--model", "stub", "--out", str(tmp / "out")])
+        ignore = tmp / "out" / ".gitignore"
+        ok = ignore.is_file() and ignore.read_text(encoding="utf-8").strip().endswith("*")
+
+else:
+    raise SystemExit("unknown case")
+
+sys.exit(0 if ok else 1)
+"""
+
+BOUNDARY_PLANTS = [
+    ("a .venv inside the tree is not scanned",
+     "a_venv_inside_the_tree_is_not_scanned", 0),
+    ("the fallback walk also excludes a .venv",
+     "the_fallback_also_excludes_a_venv", 0),
+    ("the repository still sees its own files",
+     "the_repository_still_sees_its_own_files", 0),
+    ("a converted checkpoint is not committable",
+     "a_converted_checkpoint_is_not_committable", 0),
+    ("the converter writes its own .gitignore",
+     "the_converter_writes_its_own_gitignore", 0),
+]
+
+
+def run_boundary_plants() -> list[str]:
+    problems = []
+    with tempfile.TemporaryDirectory() as tmp:
+        script = pathlib.Path(tmp) / "boundary_plant.py"
+        script.write_text(BOUNDARY_PLANT, encoding="utf-8")
+        for label, case, expect in BOUNDARY_PLANTS:
+            r = subprocess.run([sys.executable, str(script), case],
+                               cwd=REPO, capture_output=True, **CHILD_IO)
+            status = "PASS" if r.returncode == expect else "FAIL"
+            print(f"  [{status}] repo boundary: {label} "
+                  f"(exit {r.returncode}, expected {expect})")
+            if r.returncode != expect:
+                detail = (r.stderr or r.stdout).strip().splitlines()[-1:] or [""]
+                problems.append(
+                    f"repo boundary plant misbehaved: {label} — {detail[0]}")
+    return problems
+
 # --------------------------------------------------------------------------
 # check_commands.py — the instructions a human follows by hand
 #
@@ -1832,6 +1967,7 @@ def main() -> int:
                 + run_morphology_plants() + run_harness_plants()
                 + run_translate_plants() + run_repair_plants()
                 + run_shrink_plants() + run_environment_plants()
+                + run_boundary_plants()
                 + run_command_plants() + run_encoding_plants())
     print()
     for p in problems:

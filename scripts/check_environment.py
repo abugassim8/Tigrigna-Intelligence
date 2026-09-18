@@ -109,7 +109,7 @@ def probe_checkpoint(target: str) -> tuple[bool, str]:
     return True, f"{path} ({os.path.getsize(path):,} bytes)"
 
 
-def run_checker(name: str, timeout: int = 180) -> tuple[int, str]:
+def run_checker(name: str, timeout: int = 900) -> tuple[int, str]:
     """Run one checker and return its exit code and last meaningful line."""
     script = REPO / "scripts" / name
     if not script.is_file():
@@ -119,7 +119,12 @@ def run_checker(name: str, timeout: int = 180) -> tuple[int, str]:
                            capture_output=True, text=True, encoding="utf-8",
                            errors="replace", timeout=timeout)
     except subprocess.TimeoutExpired:
-        return -9, f"timed out after {timeout}s"
+        # ⚠️ A timeout used to read as an ordinary failure. It is not: the
+        # checkers were scanning the whole filesystem including `.venv/`, and
+        # `check_figures.py` timed out at 180s on a healthy repository. Say
+        # what it means, and give the limit room now that they ask git instead.
+        return -9, (f"TIMED OUT after {timeout}s — that is a finding about the "
+                    f"checker, not about this repository")
     except Exception as exc:                              # noqa: BLE001
         return -1, f"could not start: {type(exc).__name__}: {exc}"
     lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]

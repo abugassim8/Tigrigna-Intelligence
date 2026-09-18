@@ -120,13 +120,21 @@ EXCLUDE_PARTS = (
 
 
 def _files() -> list[pathlib.Path]:
+    # ⚠️ **Ask git, do not walk the filesystem.** This globbed `**/*.py` from
+    # the repository root with no virtualenv exclusion, so on a machine with
+    # `.venv/` inside the tree it read every file in torch and transformers.
+    # It timed out after 180 seconds — and worse, a retired figure quoted in a
+    # third-party docstring would have been reported as a stale claim here.
+    # `repo_files.tracked_files` answers "is it ours?" instead of maintaining a
+    # list of things that are not.
+    from repo_files import tracked_files
+
     seen: set[pathlib.Path] = set()
-    for pattern in INCLUDE_GLOBS:
-        for f in REPO.glob(pattern):
-            rel = f.relative_to(REPO).as_posix()
-            if any(part in rel for part in EXCLUDE_PARTS):
-                continue
-            seen.add(f)
+    for f in tracked_files(REPO, INCLUDE_GLOBS):
+        rel = f.relative_to(REPO).as_posix()
+        if any(part in rel for part in EXCLUDE_PARTS):
+            continue
+        seen.add(f)
     return sorted(seen)
 
 

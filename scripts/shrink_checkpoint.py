@@ -322,6 +322,15 @@ def main(argv: list[str] | None = None) -> int:
     for note in verify(src, str(dst)):
         print(f"    ✓ {note}")
 
+    # ⚠️ Make the output invisible to git wherever it was written. The repo's
+    # `.gitignore` covers `models/*-bf16/`, but `--out` can point anywhere, and
+    # the sidecars are ordinary .json files — `tokenizer.json` alone is 16.6 MB
+    # and no existing rule would have stopped it being committed.
+    (out_dir / ".gitignore").write_text(
+        "# Written by scripts/shrink_checkpoint.py. A converted checkpoint is\n"
+        "# reproducible from the cache in minutes; it is not source.\n"
+        "*\n", encoding="utf-8")
+
     copied = copy_sidecars(src, out_dir)
     print(f"  copied      {len(copied)} config/tokenizer file(s): "
           f"{', '.join(copied)}")

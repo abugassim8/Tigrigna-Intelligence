@@ -22,6 +22,48 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The checkers were reading the virtualenv — 2026-09-18
+
+The first real local run surfaced three bugs that CI structurally cannot see,
+because CI has no virtualenv inside the tree.
+
+⚠️ **`check_figures.py` and `check_dates.py` globbed `**/*.py` from the
+repository root with no exclusion**, so on a machine with `.venv/` in the tree
+they read every file in torch and transformers. `check_figures.py` **timed out
+after 180 seconds** on a healthy repository, and `check_environment.py` reported
+`NOT READY` because of it. Slowness was the smaller half: a retired figure
+quoted in a third-party docstring would have been reported as a stale claim
+here — a check firing on correct input, which is how checks get switched off
+(DEC-008). `check_commands.py` excluded `.venv/`; the other two never did.
+
+**Fixed by asking git, not by lengthening a list.** New `scripts/repo_files.py`
+returns what `git ls-files` tracks, falling back to a filesystem walk with
+exclusions only when git cannot answer. A denylist answers *"is it `.venv`?"*
+when the question is *"is it ours?"*, and the next directory to appear beside
+the source would need its own entry and would not get one until it broke
+something.
+
+⚠️ **`.gitignore` line 241 was `*.model          # SentencePiece`.** Git has no
+inline comments, so that was a literal pattern matching nothing and
+`spiece.model` was never ignored. Fixed, with the comment on its own line.
+
+⚠️ **A converted checkpoint was committable.** Only `model.safetensors` was
+caught, by `*.safetensors`. The tokenizer that travels beside it is **16.6 MB**
+and is a `.json`, so nothing stopped `git add -A` from staging it. Now covered
+by `models/*-bf16/` — and `shrink_checkpoint.py` writes a `.gitignore`
+containing `*` into whatever directory it writes, so an unconventional `--out`
+is covered too.
+
+`check_environment.py`'s checker timeout is raised to 900s and a timeout now
+reports as *"a finding about the checker, not about this repository"* rather
+than as an ordinary failure.
+
+107 planted cases, up from 102. The `.venv` plant builds a real virtualenv
+directory rather than trusting the exclusion list, and
+`the_repository_still_sees_its_own_files` is its control — excluding everything
+would pass the other two and silently stop the checkers checking anything. Each
+verified by reverting it. 187 tests pass, 4 skip.
+
 ### The measurement can finally use the converted model — 2026-09-18
 
 A question — *does shrinking the checkpoint hurt accuracy?* — found a gap that

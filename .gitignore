@@ -210,6 +210,15 @@ datasets/terminology/**
 models/checkpoints/**
 models/experiments/**
 
+# Locally converted checkpoints from scripts/shrink_checkpoint.py.
+# ⚠️ Not only the weights: the tokenizer that travels beside them is
+# 16.6 MB and is a .json, so nothing else here would have caught it.
+# The converter also drops a `.gitignore` inside whatever directory it
+# writes, so an unconventional --out is covered too.
+models/*-bf16/
+models/*-fp16/
+models/*-int8/
+
 !models/**/.gitkeep
 !models/**/README.md
 !models/**/*.md
@@ -238,7 +247,10 @@ models/experiments/**
 *.pickle
 
 # Tokenizer / embedding artefacts
-*.model          # SentencePiece
+# SentencePiece. ⚠️ The comment is on its own line on purpose: git has no
+# inline comments, so `*.model  # SentencePiece` was a literal pattern that
+# matched nothing, and spiece.model was never actually ignored.
+*.model
 *.vocab
 *.bpe
 *.vec
