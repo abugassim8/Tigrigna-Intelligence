@@ -69,7 +69,7 @@ degrading silently.
 GPL-3.0 analyser is absent — DEC-028).
 
 **Also built:** the native-speaker validation instrument (`validation/`, 134
-items), seven enforcement scripts, a **planted-failure suite** (107 cases, CI),
+items), seven enforcement scripts, a **planted-failure suite** (109 cases, CI),
 28 CI checks, and **two evaluation anchors** — **HornMT** (2,030 pairs,
 CC-BY-4.0, news) and **TICO-19** (3,071 segments × 3 references, CC0-1.0,
 COVID/medical, **variety-declared at source**), both screened on every side.
@@ -482,7 +482,7 @@ matters more:
    unblock, the temptation is to build the API surface before **A-02** says who
    it is for, or Tier 1 before **A-09** lets it be measured. That would produce
    more unmeasured artefacts, and this project's own record says what happens
-   next: **twelve** checks have been found that could not fail, every one
+   next: **thirteen** checks have been found that could not fail, every one
    written in good faith, none caught by review.
 
    ⚠️ **That sentence used to end "Building blind is how the tenth gets
@@ -552,9 +552,9 @@ variety gate worked. It did not, for a month, on every corpus, in the wrong
 direction.
 
 **The engineering discipline is real and it is not self-congratulation:**
-**twelve** checks have been found that *could not fail*, every one caught by
+**thirteen** checks have been found that *could not fail*, every one caught by
 deliberately planting a failure rather than by reading the code — or, for the
-twelfth, by the output still being wrong after the check said it was fine. **Seven were in
+last two, by the output still being wrong after the check said it was fine. **Seven were in
 the audit tooling itself.** The seventh: the derived-counts check matched no
 phrasing used in *this document*, so the plan of record was the one file whose
 headline numbers nothing verified — and it was wrong when checked. The eighth:
@@ -632,8 +632,41 @@ it cannot prove the check is reading a trustworthy input. Nothing here would
 have caught this except running the real thing — which is the argument for the
 controls in `--diagnose` and for reading them before the result.
 
+⚠️ **The thirteenth (2026-09-18) reported success while making the model
+worse**, which is the most expensive shape any of these has taken.
+
+The repair for the twelfth had to decide which stored matrix was the output
+projection. It inferred that by asking **which one differed from the model's
+loaded input embedding** — reasoning that the names could not be trusted,
+because the whole defect was a tensor reached under the wrong name.
+
+**The inference is only valid if the input embedding loaded correctly, and on
+this checkpoint it does not.** Measured: the file stores
+`decoder.embed_tokens.weight` and `lm_head.weight` and no `shared.weight`, and
+transformers loads **`lm_head.weight` into `shared.weight`** — so the encoder
+embeds its input with the output projection. The inference therefore identified
+the *input embedding* as the projection, bound it to `lm_head`, and printed
+`REPAIR: APPLIED`. Both matrices were then wrong.
+
+⚠️ **`RepairFailedError` did not fire, and could not have.** It asked whether
+the weights had changed. They had. Nothing asked whether they had changed *to
+the right thing*.
+
+**Two fixes, and the second matters more than the first.** The repair now reads
+the roles from the **names in the file** — `lm_head.weight` is the output
+projection because that is what it is called — and restores **both** matrices,
+because the loader crossed them. And `looks_degenerate` now refuses any run
+whose output is a repeated token rather than a translation: every failure this
+project has had took that shape, scoring 0.03–0.08 distinct characters per
+character against 0.5–0.8 for real text, and **nothing noticed**, because
+degenerate output has the right segment count and a perfectly real chrF.
+
+⚠️ **The script gate would not have caught it either.** Repeated *Ethiopic*
+passes a check that only asks whether the output is Ethiopic. The plant for the
+new guard uses exactly that case.
+
 **Planting is now a committed test rather than a habit** (`scripts/tests/
-test_plants.py`, 107 cases, in CI). That is the response to a discipline that
+test_plants.py`, 109 cases, in CI). That is the response to a discipline that
 depended on remembering to do it.
 
 ⚠️ **One failure in phase E could not have been caught by planting, and it is

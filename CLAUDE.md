@@ -23,9 +23,11 @@ working; fix the document, never the check.
 
 ⚠️ **Every behavioural change is verified by reverting it** and confirming the
 matching plant fails — and fails for the right reason. A green run on a check
-you just wrote is not evidence. **Twelve** checks here have been found that
+you just wrote is not evidence. **Thirteen** checks here have been found that
 could not fail; every one was written in good faith and none was caught by
-review.
+review. The thirteenth reported `REPAIR: APPLIED` while making the model worse,
+because it asked whether the weights had *changed* and not whether they had
+changed to the right thing.
 
 ⚠️ **A declared flag is not an outcome.** Verify what actually loaded, never a
 config field, a keyword name or a version number. Three instances:
@@ -76,12 +78,23 @@ Cursor + Windows sequence.
 and stores `decoder.embed_tokens.weight` plus a separate trained
 `lm_head.weight` — no `shared.weight`. It is **untied**.
 
-⚠️ transformers 5.x ties `lm_head` anyway and discards the trained projection,
-so the decoder projects through the input embedding and output degenerates to
-one phrase repeated. `tigrinya_translate.head` detects this **from the
-checkpoint** — two or more embedding-shaped matrices means untied — and repairs
-it in memory, refusing rather than scoring noise when it cannot. Reported
-upstream as **A-22**.
+⚠️ **transformers 5.x loads `lm_head.weight` into `shared.weight`** and ties
+`lm_head` to it — so the **encoder embeds its input with the output
+projection**, and the decoder projects through it too. Output degenerates to one
+token repeated. `tigrinya_translate.head` detects this **from the checkpoint**
+(two or more embedding-shaped matrices means untied) and restores **both**
+matrices **by name**: `lm_head.weight` is the output projection because that is
+what the file calls it. Repairing only the head leaves the encoder reading the
+wrong matrix — that mistake is the thirteenth entry above. Reported upstream as
+**A-22**.
+
+⚠️ **Never infer a tensor's role from the loaded model.** The loaded model is
+the thing that is wrong. Read the names in the checkpoint.
+
+⚠️ `looks_degenerate` refuses output that is a repeated token rather than a
+translation. Every failure here took that shape, and nothing caught it: the
+segment count is right and chrF is real. Repeated *Ethiopic* passes a script
+check, so the script gate is not a substitute.
 
 On 16 GB, convert first; the float32 file exhausts the Windows commit limit:
 

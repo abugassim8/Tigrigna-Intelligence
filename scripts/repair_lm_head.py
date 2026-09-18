@@ -84,7 +84,8 @@ from tigrinya_translate.head import (          # noqa: E402
     AmbiguousProjectionError,
     RandomHeadError,
     RepairFailedError,
-    choose_output_projection,
+    identify_matrices,
+    looks_degenerate,
     classify_head,
     noise_spread_bound,
     locate_checkpoint,
@@ -326,33 +327,41 @@ def _self_test() -> int:
     assert classify_head(trained_spread, True, False, real_bound)[0] == "TRAINED", \
         "a genuinely tied checkpoint must not be 'repaired'"
 
-    # ⚠️ The explicit key must not win when it matches the input embedding:
-    # choosing it would no-op and then fail with a message about aliasing.
-    assert choose_output_projection(
-        {"lm_head.weight": False,
-         "decoder.embed_tokens.weight": True}) == "decoder.embed_tokens.weight"
-
-    # Choosing the projection.
-    assert choose_output_projection(
-        {"shared.weight": False, "lm_head.weight": True}) == "lm_head.weight"
-    assert choose_output_projection(
-        {"shared.weight": False,
-         "decoder.embed_tokens.weight": True}) == "decoder.embed_tokens.weight"
+    # Identifying the two matrices, by name, from the checkpoint.
+    #
+    # ⚠️ The previous version of this asked which stored tensor *differed from
+    # the loaded input embedding*. That is only valid when the input embedding
+    # loaded correctly, and on this checkpoint it does not: transformers puts
+    # `lm_head.weight` into `shared.weight`. The inference then picked the
+    # input embedding as the projection and reported a successful repair on a
+    # model it had just made worse.
+    assert identify_matrices(["decoder.embed_tokens.weight", "lm_head.weight"]) \
+        == ("decoder.embed_tokens.weight", "lm_head.weight")
+    assert identify_matrices(["shared.weight", "lm_head.weight"]) \
+        == ("shared.weight", "lm_head.weight")
     try:
-        choose_output_projection({"shared.weight": False,
-                                  "encoder.embed_tokens.weight": False})
+        identify_matrices(["shared.weight"])
     except RandomHeadError:
         pass
     else:                                                 # pragma: no cover
-        raise AssertionError("a checkpoint with no projection must be refused")
+        raise AssertionError("a checkpoint with no lm_head must be refused")
     try:
-        choose_output_projection({"shared.weight": False,
-                                  "encoder.embed_tokens.weight": True,
-                                  "decoder.embed_tokens.weight": True})
+        identify_matrices(["shared.weight", "decoder.embed_tokens.weight",
+                           "lm_head.weight"])
     except AmbiguousProjectionError:
         pass
     else:                                                 # pragma: no cover
-        raise AssertionError("two candidates must be refused, never guessed")
+        raise AssertionError("two input candidates must be refused")
+
+    # ⚠️ Degenerate output — the shape every failure here has taken, and the
+    # one thing no check noticed. Real text must NOT trip it.
+    assert looks_degenerate("Sally Hansen " * 9)
+    assert looks_degenerate("\u16c9" * 32)
+    assert not looks_degenerate("Lavese las manos con frecuencia.")
+    assert not looks_degenerate(
+        "\u12a2\u12f5\u12ab \u1265\u1270\u12f0\u130b\u130b\u121a "
+        "\u1270\u1213\u133b\u1265\u1362")
+    assert not looks_degenerate("\u1230\u120b\u121d"), "too short to judge"
 
     print(f"self-test passed: noise spreads {noise_spread:.3f}x at 1024 dims "
           f"(bound {real_bound:.3f}) and {tiny_spread:.2f}x at 8 "

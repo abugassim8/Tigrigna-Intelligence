@@ -76,6 +76,7 @@ for _pkg in ("evaluation", "primitives", "translation"):
 
 from tigrinya_eval.harness import EvalSet, Harness                # noqa: E402
 from tigrinya_eval.primitives import force_utf8_stdio, is_ethiopic  # noqa: E402
+from tigrinya_translate.head import looks_degenerate            # noqa: E402
 from tigrinya_translate import (LANGUAGE_TOKEN, MODEL,            # noqa: E402
                                 SegmentCountError, translate_all)
 
@@ -122,6 +123,13 @@ CHECKPOINT_EVERY = 10
 #: Not 1.0: a handful of TICO-19 segments are bare numerals or URLs, and a
 #: correct translation of those contains no Ethiopic at all.
 ETHIOPIC_ABORT_FRACTION = 0.5
+
+#: Fraction of degenerate segments at which the run is refused.
+#:
+#: ⚠️ Lower than the script floor on purpose. Wrong script can mean "this model
+#: is poor at Tigrinya", which is a finding. Repeated-token output can only
+#: mean the model is broken, so a quarter of them is already conclusive.
+DEGENERATE_ABORT_FRACTION = 0.25
 
 
 class AlreadyRejectedError(RuntimeError):
@@ -505,6 +513,25 @@ def measure(translator, *, out_json: pathlib.Path | None,
             f"recorded as poor translation rather than as no translation. "
             f"Writing no measurement."
         )
+    # ⚠️ **Degenerate output: one token repeated to the limit.** Every failure
+    # this project has had took that shape — `Sally Hansen` nine times, a
+    # single Ge'ez-adjacent glyph thirty-two times, Syriac to the token limit —
+    # and nothing noticed, because degenerate output has the right segment
+    # count and a real chrF. The script check below would not catch it either:
+    # repeated *Ethiopic* would sail straight through.
+    degenerate = sum(1 for h in hypotheses if looks_degenerate(h))
+    if degenerate and degenerate / non_empty >= DEGENERATE_ABORT_FRACTION:
+        worst = next(h for h in hypotheses if looks_degenerate(h))
+        reject(
+            f"{degenerate} of {non_empty} non-empty output segment(s) are a "
+            f"repeated token rather than a translation, at or above the "
+            f"{DEGENERATE_ABORT_FRACTION:.0%} floor. The model is broken, not "
+            f"bad at Tigrinya. Run `--diagnose` and read the CONTROL languages "
+            f"first.\n"
+            f"  example: {ascii(worst[:80])}\n"
+            f"  Writing no measurement."
+        )
+
     if ethiopic / non_empty < ETHIOPIC_ABORT_FRACTION:
         reject(
             f"only {ethiopic} of {non_empty} non-empty output segment(s) "

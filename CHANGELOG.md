@@ -22,6 +22,60 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The two matrices are swapped, and my repair had made it worse — 2026-09-18
+
+The repair ran on the owner's machine, printed `REPAIR: APPLIED`, and the output
+got worse. The decisive line was `output projection is
+'decoder.embed_tokens.weight'` — a fallback that only fires when the
+checkpoint's `lm_head.weight` **equals the loaded input embedding**.
+
+⚠️ **So transformers loads `lm_head.weight` into `shared.weight`.** The encoder
+embeds English with the **output projection**; the input is corrupted before
+decoding begins. Amendment 3 had the direction backwards, and no amount of
+fixing `lm_head` could have helped.
+
+| tensor | transformers loads | should be |
+| --- | --- | --- |
+| `model.shared.weight` | the **output projection** ✗ | `decoder.embed_tokens.weight` |
+| `model.lm_head.weight` | tied to shared ✗ | `lm_head.weight` |
+
+### ⚠️ A thirteenth check that could not fail
+
+The repair identified the output projection by asking **which stored tensor
+differed from the model's loaded input embedding** — valid only if that
+embedding is correct, and here it is not. It chose the *input* embedding, bound
+it to `lm_head`, and reported success. `RepairFailedError` asked whether the
+weights had **changed**; they had. Nothing asked whether they had changed to the
+right thing.
+
+**Fixed by reading the names in the file.** `lm_head.weight` is the output
+projection because that is what it is called; the loaded model is the thing that
+is wrong, so it cannot be the authority. Both matrices are restored, and the
+repair now verifies that the input embedding, the encoder and decoder token
+embeddings and `lm_head` each hold what the checkpoint says — and that the first
+and last are no longer identical.
+
+⚠️ **Added `looks_degenerate`, which should have existed from the start.** Every
+failure in this line of work was one token repeated to the limit — `Sally
+Hansen` nine times, one glyph thirty-two times, Syriac to the token limit — at
+**0.03–0.08** distinct characters per character against **0.5–0.8** for real
+text. Nothing caught it: degenerate output has the right segment count and a
+real chrF. `translate_tico19.py` now refuses a run where a quarter or more of
+the segments are degenerate. ⚠️ The script gate is not a substitute — repeated
+Ethiopic passes it, and the plant for the new guard uses exactly that case.
+
+⚠️ **Six plant fixtures encoded the old, wrong rule and passed.** One asserted
+that an `lm_head.weight` matching the loaded input embedding must be *rejected*
+in favour of the tensor that differed — which is precisely the bug. Rewritten to
+the real checkpoint's layout.
+
+⚠️ **Still no Tigrinya measurement exists.** All of this is pipeline. The
+pre-committed threshold is untouched. **DEC-011 Amendment 5** records the
+mechanism; **A-22** is sharpened — the matrices are swapped, not merely tied.
+
+109 planted cases, up from 107, each new guard verified by reverting it. 187
+tests pass, 4 skip.
+
 ### The checkers were reading the virtualenv — 2026-09-18
 
 The first real local run surfaced three bugs that CI structurally cannot see,

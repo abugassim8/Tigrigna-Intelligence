@@ -191,41 +191,90 @@ def classify_head(head_spread: float, head_equals_input: bool,
             f"{bound:.3f} bound, and differ from the input embedding.")
 
 
-def choose_output_projection(differs_from_input: Mapping[str, bool]) -> str:
-    """Pick the checkpoint tensor that is the untied output projection.
+#: Names a checkpoint may store the input embedding under. Exactly one of them
+#: should be present alongside `lm_head.weight`.
+INPUT_EMBEDDING_KEYS = ("shared.weight", "decoder.embed_tokens.weight",
+                        "encoder.embed_tokens.weight")
 
-    `differs_from_input` maps each embedding-shaped checkpoint key to whether
-    its values differ from the model's loaded input embedding.
+OUTPUT_PROJECTION_KEY = "lm_head.weight"
 
-    ⚠️ Name-independent on purpose. The whole defect is that this tensor is
-    reached under the wrong name, so trusting the name would reproduce the bug.
-    MADLAD is untied, therefore exactly one stored matrix is the input
-    embedding and exactly one is the output projection.
+
+def identify_matrices(names: Sequence[str]) -> tuple[str, str]:
+    """`(input embedding key, output projection key)`, read from the names.
+
+    ⚠️ **The names in the file are authoritative. The loaded model is not.**
+    An earlier version inferred the roles by asking which stored tensor
+    *differed from the model's input embedding* — valid only if the input
+    embedding loaded correctly, and on this checkpoint it does not.
+
+    Measured 2026-09-18 on `google/madlad400-3b-mt`: the file stores
+    `decoder.embed_tokens.weight` and `lm_head.weight` and **no
+    `shared.weight`**, and transformers loads **`lm_head.weight` into
+    `shared.weight`** — so the encoder embeds its input with the output
+    projection. The old inference therefore concluded that the *input
+    embedding* was the output projection, bound it to `lm_head`, and reported
+    `REPAIR: APPLIED` on a model it had just made wrong in a second place.
+
+    So the file says which is which, and this trusts it: `lm_head.weight` is
+    the output projection because that is what it is called.
     """
-    # ⚠️ The explicit name wins only when that tensor actually differs from the
-    # loaded input embedding. Taking it unconditionally would, on a loader that
-    # mapped the two the other way round, select a tensor identical to the
-    # current head -- a repair that no-ops and then fails with a message about
-    # aliasing that would send the reader somewhere else entirely.
-    if differs_from_input.get("lm_head.weight"):
-        return "lm_head.weight"
-
-    candidates = sorted(k for k, differs in differs_from_input.items() if differs)
-    if not candidates:
+    present = set(names)
+    if OUTPUT_PROJECTION_KEY not in present:
         raise RandomHeadError(
-            "every embedding-shaped tensor in the checkpoint holds the same "
-            "values as the input embedding, so the output projection is not in "
-            "this file and cannot be recovered from it. Refusing to translate "
-            "with a random head: the output would have the right segment count "
-            "and a scoreable chrF, and would be noise.\n"
-            f"  keys examined: {sorted(differs_from_input)}")
-    if len(candidates) > 1:
+            f"the checkpoint stores no {OUTPUT_PROJECTION_KEY!r}, so the output "
+            f"projection is not in this file and cannot be recovered from it. "
+            f"Refusing to translate with a head that was never loaded: the "
+            f"output would have the right segment count and a scoreable chrF, "
+            f"and would be noise.\n"
+            f"  embedding-shaped keys present: {sorted(present)}")
+
+    inputs = [k for k in INPUT_EMBEDDING_KEYS if k in present]
+    if not inputs:
         raise AmbiguousProjectionError(
-            f"{len(candidates)} tensors differ from the input embedding and any "
-            f"of them could be the output projection: {candidates}. Refusing to "
-            f"guess — a wrong pick produces fluent output from the wrong matrix, "
-            f"which no other check here would catch.")
-    return candidates[0]
+            f"the checkpoint stores {OUTPUT_PROJECTION_KEY!r} but nothing "
+            f"recognisable as an input embedding "
+            f"({', '.join(INPUT_EMBEDDING_KEYS)}). Refusing to guess which of "
+            f"{sorted(present)} the encoder should use.")
+    if len(inputs) > 1:
+        raise AmbiguousProjectionError(
+            f"{len(inputs)} tensors could be the input embedding: {inputs}. "
+            f"Refusing to guess — picking wrong produces fluent output from the "
+            f"wrong matrix, which no other check here would catch.")
+    return inputs[0], OUTPUT_PROJECTION_KEY
+
+
+def degenerate_ratio(text: str) -> float:
+    """Distinct characters over total, ignoring whitespace. Lower is worse.
+
+    ⚠️ **The check that would have caught every failure this project has had.**
+    A broken projection does not produce bad translation, it produces one token
+    repeated: `Sally Hansen` nine times, `ᛉ` thirty-two times, Syriac `ܠܹܗ` to
+    the token limit. Every one of those scores 0.03–0.08 here; real Spanish and
+    real Tigrinya score 0.5–0.8. Nothing else in this repository noticed,
+    because degenerate output has the right segment count and a real chrF.
+    """
+    packed = "".join(text.split())
+    if not packed:
+        return 0.0
+    return len(set(packed)) / len(packed)
+
+
+#: Below this, output is a repeated token rather than a translation. Measured
+#: against every real failure seen here (0.031–0.085) and real text
+#: (0.536–0.786), so it sits in an empty gap two octaves wide.
+DEGENERATE_BELOW = 0.15
+
+#: Shorter than this, the ratio is meaningless — "ሰላም" is 4 distinct of 4.
+DEGENERATE_MIN_CHARS = 20
+
+
+def looks_degenerate(text: str) -> bool:
+    """Is this a repeated token rather than a translation?"""
+    packed = "".join(text.split())
+    if len(packed) < DEGENERATE_MIN_CHARS:
+        return False
+    return degenerate_ratio(text) < DEGENERATE_BELOW
+
 
 
 def locate_checkpoint(model_name: str) -> str:
@@ -477,13 +526,16 @@ def inspect_head(model, checkpoint: str, *, quiet: bool = False) -> dict:
 
 def repair_head(model, checkpoint: str, *, quiet: bool = False,
                 found: dict | None = None) -> dict:
-    """Bind the checkpoint's output projection to `lm_head`, if it is broken.
+    """Restore the input embedding **and** the output projection, by name.
 
-    Returns a record of what was found and what was done. ⚠️ Repairs nothing
-    when the inspection says the head is trained — see the module docstring.
+    ⚠️ **Both, not just the head.** transformers loads this checkpoint's
+    `lm_head.weight` into `shared.weight`, so the encoder embeds its input with
+    the output projection and the decoder projects through it as well. Repairing
+    only `lm_head` leaves the encoder reading rubbish; an earlier version did
+    exactly that and reported success.
 
-    `found` may be a previous `inspect_head` result, so a caller that already
-    printed the inspection does not print the whole block a second time.
+    Returns a record of what was found and what was done. Repairs nothing when
+    the inspection says the head is trained.
     """
     import torch
     from safetensors import safe_open
@@ -493,81 +545,82 @@ def repair_head(model, checkpoint: str, *, quiet: bool = False,
     if found["verdict"] == "TRAINED":
         if not quiet:
             print("  REPAIR                     : SKIPPED — nothing is wrong here")
-        return {**found, "repaired": False, "source_key": None}
+        return {**found, "repaired": False, "source_key": None,
+                "input_key": None}
 
     shape = tuple(model.lm_head.weight.shape)
-    shared = model.get_input_embeddings().weight.detach()
+    header = read_safetensors_header(checkpoint)
+    embedding_keys = [k for k, spec in header.items()
+                      if tuple(spec["shape"]) == shape]
+    if not quiet:
+        print(f"  checkpoint holds           : {sorted(embedding_keys)}")
+
+    input_key, output_key = identify_matrices(embedding_keys)
+    if not quiet:
+        print(f"  input embedding is         : {input_key!r}")
+        print(f"  output projection is       : {output_key!r}")
+
+    embeddings = model.get_input_embeddings()
+    aliased = model.lm_head.weight is embeddings.weight
+    target_dtype = model.lm_head.weight.dtype
 
     with safe_open(checkpoint, framework="pt") as f:
-        keys = set(f.keys())
-        present = [k for k in EMBEDDING_KEYS if k in keys]
-        if not quiet:
-            print(f"  checkpoint holds           : {present}")
+        want_input = f.get_tensor(input_key).to(target_dtype)
+        want_output = f.get_tensor(output_key).to(target_dtype)
 
-        differs = {}
-        for key in present:
-            tensor = f.get_tensor(key)
-            if tuple(tensor.shape) != shape:
-                continue
-            # ⚠️ **Compare in the model's dtype, not in float32.** The
-            # checkpoint is float32 and the model loads as bfloat16, so
-            # widening the stored tensor back to float32 compares it against a
-            # value that has been through a lossy round-trip — and *every*
-            # candidate then "differs", which raises AmbiguousProjectionError
-            # on a perfectly healthy checkpoint. Rounding the stored tensor the
-            # same way the loader did makes the comparison exact.
-            differs[key] = not bool(
-                torch.equal(tensor.to(shared.dtype).cpu(), shared.cpu()))
+    if torch.equal(want_input, want_output):
+        raise RepairFailedError(
+            f"{input_key!r} and {output_key!r} hold identical values, so this "
+            f"checkpoint is tied after all and there is nothing to separate. "
+            f"Refusing rather than reporting a repair that changed nothing.")
 
-        source_key = choose_output_projection(differs)
-        if not quiet:
-            print(f"  output projection is       : {source_key!r}")
-        projection = f.get_tensor(source_key)
-
-    before = model.lm_head.weight.detach().clone()
-    # ⚠️ A fingerprint, not a clone. Cloning the input embedding cost
-    # ~0.5 GB at bfloat16 on a machine already at its commit limit; its
-    # row norms are 256,000 floats, about 1 MB, and any write through to
-    # this matrix moves them.
-    input_before = row_norms(shared)
-    aliased = model.lm_head.weight is model.get_input_embeddings().weight
-
+    # ⚠️ **Untie first.** While `lm_head.weight` *is* the embedding Parameter,
+    # writing either one writes both, and the second write silently undoes the
+    # first. Replacing the Parameter is what `tie_word_embeddings: false` asked
+    # for and transformers overrode.
     if aliased:
-        # ⚠️ **Rebind, never copy, when the head is aliased to the input
-        # embedding.** In the TIED_WRONGLY case they are the *same Parameter*,
-        # so `copy_` writes through and destroys the input embedding as well --
-        # turning a broken decoder into a broken encoder *and* decoder, and
-        # reporting success while doing it. Replacing the Parameter separates
-        # them, which is what `tie_word_embeddings: false` asked for.
-        model.lm_head.weight = torch.nn.Parameter(
-            projection.to(before.dtype), requires_grad=False)
+        model.lm_head.weight = torch.nn.Parameter(want_output.clone(),
+                                                  requires_grad=False)
     else:
         with torch.no_grad():
-            model.lm_head.weight.data.copy_(
-                projection.to(model.lm_head.weight.dtype))
+            model.lm_head.weight.data.copy_(want_output)
 
-    # ⚠️ Prove the write landed. A repair that silently no-ops leaves a broken
-    # model behind a reassuring log line, which is worse than not trying.
-    if torch.equal(model.lm_head.weight.detach(), before):
-        raise RepairFailedError(
-            f"copied {source_key!r} into lm_head and the weights are unchanged. "
-            f"The head is probably still aliased to the input embedding, so the "
-            f"repair did not take. Refusing to report success.")
-    del before
+    with torch.no_grad():
+        embeddings.weight.data.copy_(want_input)
 
-    # ⚠️ And prove it landed *only* there. Costs one clone of the embedding
-    # (~0.5 GB at bfloat16) and is worth it: a repair that quietly rewrote the
-    # input embedding would present as a model that got worse for no reason.
-    if row_norms(model.get_input_embeddings().weight.detach()) != input_before:
+    # ⚠️ Verify the outcome, the rule this whole file exists to enforce. Three
+    # things must now hold, and a previous version checked only that something
+    # changed -- which was true while it was making the model worse.
+    head_now = model.lm_head.weight.detach()
+    input_now = model.get_input_embeddings().weight.detach()
+    if not torch.equal(head_now, want_output):
         raise RepairFailedError(
-            "the repair altered the INPUT embedding as well as lm_head. They "
-            "share storage, so the write went through both. Refusing to report "
-            "success on a model that is now wrong in a second place.")
-    del input_before
+            f"lm_head does not hold {output_key!r} after the repair; the write "
+            f"did not land. Refusing to report success.")
+    if not torch.equal(input_now, want_input):
+        raise RepairFailedError(
+            f"the input embedding does not hold {input_key!r} after the repair. "
+            f"They are probably still the same Parameter, so the second write "
+            f"undid the first.")
+    if torch.equal(head_now, input_now):
+        raise RepairFailedError(
+            "the input embedding and lm_head are identical after the repair, so "
+            "they are still tied. This checkpoint keeps them separate.")
+
+    # The encoder and decoder token embeddings must follow the input embedding,
+    # or the encoder is still reading the wrong matrix.
+    for stack in ("encoder", "decoder"):
+        block = getattr(model, stack, None)
+        embed = getattr(block, "embed_tokens", None) if block is not None else None
+        if embed is not None and not torch.equal(embed.weight.detach(), want_input):
+            raise RepairFailedError(
+                f"model.{stack}.embed_tokens does not follow the input "
+                f"embedding after the repair, so that stack is still using the "
+                f"wrong matrix.")
 
     if not quiet:
-        after = spread(row_norms(model.lm_head.weight))
-        print(f"  REPAIR                     : APPLIED — "
-              f"row spread {found['head_spread']:.3f}x -> {after:.1f}x")
+        print(f"  REPAIR                     : APPLIED — input embedding and "
+              f"lm_head restored separately")
 
-    return {**found, "repaired": True, "source_key": source_key}
+    return {**found, "repaired": True, "source_key": output_key,
+            "input_key": input_key}

@@ -436,6 +436,10 @@ def english(batch):
     return ["Wash your hands often." for _ in batch]
 def empties(batch):
     return ["" for _ in batch]
+def degenerate_geez(batch):
+    # ⚠️ Ethiopic AND degenerate: sails through the script gate. Every failure
+    # this project had took this shape in some script or other.
+    return ["\u1230" * 40 for _ in batch]
 
 class _Probe:
     """A translator that records how often it loaded and which tokens it used."""
@@ -872,6 +876,22 @@ with tempfile.TemporaryDirectory() as tmp:
                                         "google/madlad400-3b-mt")
         ok = ident == original == "google/madlad400-3b-mt"
 
+    elif CASE == "degenerate_output_aborts_even_when_it_is_ethiopic":
+        try:
+            t.measure(degenerate_geez, out_json=js, out_sheet=sheet, limit=6,
+                      quiet=True)
+            ok = False
+        except t.WrongLanguageError as exc:
+            ok = ("repeated token" in str(exc)
+                  and not js.exists() and not sheet.exists())
+
+    elif CASE == "real_translations_do_not_trip_the_degeneracy_guard":
+        # ⚠️ The control. A guard that fired on real text would be switched off
+        # within a week, which is the whole of DEC-008.
+        out = t.measure(steady, out_json=js, out_sheet=sheet, limit=6,
+                        quiet=True)
+        ok = bool(out["scores"]) and js.exists()
+
     elif CASE == "the_threshold_is_recorded_before_judging":
         out = t.measure(steady, out_json=js, out_sheet=sheet, limit=6, quiet=True)
         saved = json.loads(js.read_text(encoding="utf-8"))
@@ -899,6 +919,10 @@ TRANSLATE_PLANTS = [
      "the_sheet_never_leaks_the_reference", 0),
     ("the threshold is recorded before judging",
      "the_threshold_is_recorded_before_judging", 0),
+    ("degenerate output aborts even when it is Ethiopic",
+     "degenerate_output_aborts_even_when_it_is_ethiopic", 0),
+    ("real translations do not trip the degeneracy guard",
+     "real_translations_do_not_trip_the_degeneracy_guard", 0),
     ("--model reaches the translator and the artefact",
      "the_model_flag_reaches_the_translator", 0),
     ("a pre-repair rejection does not block a repaired run",
@@ -1039,18 +1063,19 @@ with tempfile.TemporaryDirectory() as tmp:
 
     if CASE == "a_random_head_is_detected_and_repaired":
         save_file({"shared.weight": shared_w,
-                   "decoder.embed_tokens.weight": projection}, ckpt)
+                   "lm_head.weight": projection}, ckpt)
         m = Stub(shared_w, noise())
         rec = r.repair(m, ckpt, quiet=True)
         ok = (rec["verdict"] == "RANDOM" and rec["repaired"]
-              and rec["source_key"] == "decoder.embed_tokens.weight"
+              and rec["source_key"] == "lm_head.weight"
+              and rec["input_key"] == "shared.weight"
               and torch.equal(m.lm_head.weight.detach(), projection))
 
     elif CASE == "a_trained_head_is_left_alone":
         # ⚠️ The one that matters. An unconditional repair would overwrite a
         # correctly-loaded model and nothing downstream would ever show it.
         save_file({"shared.weight": shared_w,
-                   "decoder.embed_tokens.weight": projection}, ckpt)
+                   "lm_head.weight": projection}, ckpt)
         head = trained()
         m = Stub(shared_w, head)
         rec = r.repair(m, ckpt, quiet=True)
@@ -1060,12 +1085,14 @@ with tempfile.TemporaryDirectory() as tmp:
 
     elif CASE == "a_wrongly_tied_head_is_caught_and_untied":
         save_file({"shared.weight": shared_w,
-                   "decoder.embed_tokens.weight": projection}, ckpt)
+                   "lm_head.weight": projection}, ckpt)
         m = Stub(shared_w, None, tie=False, alias=True)
         rec = r.repair(m, ckpt, quiet=True)
         ok = (rec["verdict"] == "TIED_WRONGLY" and rec["repaired"]
               and torch.equal(m.lm_head.weight.detach(), projection)
-              # and the input embedding survived being written through
+              # ⚠️ and the input embedding is restored from the checkpoint,
+              # not merely left alone: the loader may have put the projection
+              # there, which is exactly what it does with the real model.
               and torch.equal(m.shared.weight.detach(), shared_w))
 
     elif CASE == "a_genuinely_tied_model_is_not_touched":
@@ -1097,9 +1124,11 @@ with tempfile.TemporaryDirectory() as tmp:
 
     elif CASE == "an_ambiguous_checkpoint_is_refused":
         # Two candidates, neither named lm_head: picking one would be a guess.
+        # ⚠️ Ambiguity is now on the input side: lm_head.weight names itself,
+        # but two tensors could be the embedding the encoder should use.
         save_file({"shared.weight": shared_w,
-                   "encoder.embed_tokens.weight": trained(),
-                   "decoder.embed_tokens.weight": projection}, ckpt)
+                   "decoder.embed_tokens.weight": trained(),
+                   "lm_head.weight": projection}, ckpt)
         m = Stub(shared_w, noise())
         try:
             r.repair(m, ckpt, quiet=True)
@@ -1111,7 +1140,7 @@ with tempfile.TemporaryDirectory() as tmp:
         # The projection already equals the head, so the write is a no-op.
         head = noise()
         save_file({"shared.weight": shared_w,
-                   "decoder.embed_tokens.weight": head.clone()}, ckpt)
+                   "lm_head.weight": shared_w.clone()}, ckpt)
         m = Stub(shared_w, head)
         try:
             r.repair(m, ckpt, quiet=True)
@@ -1121,8 +1150,7 @@ with tempfile.TemporaryDirectory() as tmp:
 
     elif CASE == "an_explicit_lm_head_key_wins":
         # When the checkpoint names it outright, no inference is needed.
-        save_file({"shared.weight": shared_w,
-                   "decoder.embed_tokens.weight": trained(),
+        save_file({"decoder.embed_tokens.weight": shared_w,
                    "lm_head.weight": projection}, ckpt)
         m = Stub(shared_w, noise())
         rec = r.repair(m, ckpt, quiet=True)
@@ -1134,12 +1162,11 @@ with tempfile.TemporaryDirectory() as tmp:
         # Comparing in float32 makes EVERY candidate differ by rounding and
         # raises AmbiguousProjectionError on a healthy checkpoint -- a check
         # firing on correct input, which is how checks get switched off.
-        save_file({"shared.weight": shared_w,
-                   "decoder.embed_tokens.weight": projection}, ckpt)
+        save_file({"decoder.embed_tokens.weight": shared_w,
+                   "lm_head.weight": projection}, ckpt)
         m = Stub(shared_w, noise()).to(torch.bfloat16)
         rec = r.repair(m, ckpt, quiet=True)
-        ok = (rec["repaired"]
-              and rec["source_key"] == "decoder.embed_tokens.weight")
+        ok = rec["repaired"] and rec["source_key"] == "lm_head.weight"
 
     elif CASE == "the_translator_repairs_at_load":
         # ⚠️ Wiring, not logic. `_loaded` could hold a perfect check that is
@@ -1148,8 +1175,8 @@ with tempfile.TemporaryDirectory() as tmp:
         import tigrinya_translate.head as head
         import tigrinya_translate.translate as tt
 
-        save_file({"shared.weight": shared_w,
-                   "decoder.embed_tokens.weight": projection}, ckpt)
+        save_file({"decoder.embed_tokens.weight": shared_w,
+                   "lm_head.weight": projection}, ckpt)
         head.locate_checkpoint = lambda name: ckpt
 
         class Tok:
@@ -1169,9 +1196,13 @@ with tempfile.TemporaryDirectory() as tmp:
         tr = tt.MadladTranslator()
         tr._loaded
         ok = (tr.head_state == "RANDOM" and tr.head_repaired
-              and tr.head_source == "decoder.embed_tokens.weight"
+              and tr.head_source == "lm_head.weight"
               and torch.equal(stub.lm_head.weight.detach(),
-                              projection.to(torch.bfloat16)))
+                              projection.to(torch.bfloat16))
+              # ⚠️ and the input embedding is restored too — repairing only
+              # the head leaves the encoder reading the wrong matrix.
+              and torch.equal(stub.shared.weight.detach(),
+                              shared_w.to(torch.bfloat16)))
 
     elif CASE == "the_translator_refuses_when_it_cannot_repair":
         # No checkpoint to recover from: refuse, never score noise.
@@ -1231,16 +1262,21 @@ with tempfile.TemporaryDirectory() as tmp:
         ok = (rec["verdict"] == "TRAINED" and not rec["repaired"]
               and torch.equal(m.lm_head.weight.detach(), shared_w))
 
-    elif CASE == "an_explicit_head_equal_to_the_input_does_not_win":
-        # lm_head.weight is present but identical to the input embedding, so
-        # selecting it would no-op; the differing tensor must be chosen.
-        save_file({"shared.weight": shared_w,
-                   "lm_head.weight": shared_w.clone(),
-                   "decoder.embed_tokens.weight": projection}, ckpt)
-        m = Stub(shared_w, noise())
+    elif CASE == "the_explicit_key_wins_even_when_the_model_disagrees":
+        # ⚠️ **This plant asserted the opposite rule and passed, and the rule
+        # was wrong.** It required that an `lm_head.weight` matching the loaded
+        # input embedding be rejected in favour of the tensor that differed.
+        # But on the real model the loader puts `lm_head.weight` INTO the input
+        # embedding, so "matches the input" is the signature of the bug rather
+        # than evidence against the name. The file's names decide.
+        save_file({"decoder.embed_tokens.weight": projection,
+                   "lm_head.weight": shared_w.clone()}, ckpt)
+        m = Stub(shared_w, None, tie=True, alias=True)
         rec = r.repair(m, ckpt, quiet=True)
-        ok = (rec["source_key"] == "decoder.embed_tokens.weight"
-              and torch.equal(m.lm_head.weight.detach(), projection))
+        ok = (rec["source_key"] == "lm_head.weight"
+              and rec["input_key"] == "decoder.embed_tokens.weight"
+              and torch.equal(m.lm_head.weight.detach(), shared_w)
+              and torch.equal(m.shared.weight.detach(), projection))
 
     elif CASE == "a_local_directory_resolves":
         # ⚠️ shrink_checkpoint.py writes a directory and prints a command using
@@ -1358,8 +1394,8 @@ REPAIR_PLANTS = [
      "the_real_shape_a_forced_tie_with_config_saying_tied", 0),
     ("a checkpoint with no separate head stays tied",
      "a_checkpoint_with_no_separate_head_stays_tied", 0),
-    ("an explicit lm_head equal to the input does not win",
-     "an_explicit_head_equal_to_the_input_does_not_win", 0),
+    ("the explicit lm_head key wins even when the model disagrees",
+     "the_explicit_key_wins_even_when_the_model_disagrees", 0),
     ("a local model directory resolves",
      "a_local_directory_resolves", 0),
     ("a local .safetensors file resolves",

@@ -73,7 +73,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
 | DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted — **caveat added by Amendment 1** |
 | DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted — **evidence corrected by Amendment 1** |
-| DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted — **sizes corrected by Amendment 1; load defect recorded by Amendment 2, mechanism corrected by Amendment 3; precision clarified by Amendment 4** |
+| DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted — **sizes corrected by Amendment 1; load defect recorded by Amendment 2, mechanism corrected by Amendment 3; precision clarified by Amendment 4; matrix swap measured by Amendment 5** |
 | DEC-012 | 2026-08-10 | Library-first; services are thin wrappers over libraries | Accepted |
 | DEC-013 | 2026-08-10 | Tier by resource profile; never co-locate tiers in one process | Accepted |
 | DEC-014 | 2026-08-10 | CTranslate2 is the single model runtime | Accepted |
@@ -1224,6 +1224,50 @@ output projection had to be repaired**. Without the last of those, the
 wrong-language rejections of 2026-09-15 and 2026-09-16 — produced by a model
 whose trained `lm_head` the loader had discarded — would have blocked the first
 *correct* measurement as a known failure.
+
+### Amendment 5 — 2026-09-18: the loader swaps the two matrices, not just ties them
+
+**Amendment 3 was right about the tie and wrong about its consequence.** It said
+the decoder projects through the input embedding. Measured on the owner's
+machine, it is the other way round and worse.
+
+`google/madlad400-3b-mt` stores `decoder.embed_tokens.weight` and
+`lm_head.weight` and **no `shared.weight`**. transformers 5.x loads
+**`lm_head.weight` into `shared.weight`**, then ties `lm_head` to it. So:
+
+| tensor | what transformers loads | what it should be |
+| --- | --- | --- |
+| `model.shared.weight` (encoder input) | the checkpoint's **output projection** ✗ | `decoder.embed_tokens.weight` |
+| `model.lm_head.weight` | tied to shared, so the same ✗ | `lm_head.weight` |
+
+**The encoder embeds English with the output projection.** The input is
+corrupted before decoding begins, which is why no amount of fixing `lm_head`
+helped.
+
+⚠️ **The repair recorded in Amendment 3 made it worse.** It identified the
+output projection by asking which stored tensor *differed from the model's
+loaded input embedding* — an inference that is only valid when that embedding is
+correct, and here it is not. It therefore chose the **input** embedding, bound
+it to `lm_head`, and reported `REPAIR: APPLIED`. Recorded as the **thirteenth**
+check that could not fail; `RepairFailedError` asked whether the weights had
+changed, not whether they had changed to the right thing.
+
+**The repair now reads the roles from the names in the file** — `lm_head.weight`
+is the output projection because that is what it is called — and restores
+**both** matrices, verifying afterwards that the input embedding, the encoder
+and decoder token embeddings, and `lm_head` each hold what the checkpoint says,
+and that the first and last are no longer identical.
+
+⚠️ **New, and it should have existed from the start:** `looks_degenerate`
+refuses output that is a repeated token rather than a translation. Every failure
+in this line of work took that shape — `Sally Hansen` nine times, one glyph
+thirty-two times, Syriac to the token limit — at 0.03–0.08 distinct characters
+per character against 0.5–0.8 for real text. **Nothing caught it**, because
+degenerate output has the right segment count and a real chrF. The script gate
+does not substitute: repeated Ethiopic passes it.
+
+⚠️ **Still no Tigrinya measurement exists.** Nothing here is a result about this
+model's quality; it is all pipeline. The pre-committed threshold is untouched.
 
 ## DEC-012 — Library-first: services are thin wrappers over libraries
 

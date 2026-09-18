@@ -1095,6 +1095,12 @@ self.tie_word_embeddings = True
 The flag is **repurposed** as a decoder-output-scaling hint and tying is forced
 on, assuming every T5-family checkpoint ties its embeddings.
 
+⚠️ **Worse than first reported: the two matrices are swapped, not merely tied.**
+Measured 2026-09-18 — transformers loads the checkpoint's **`lm_head.weight`
+into `shared.weight`**, so the **encoder embeds its input with the output
+projection**. The corruption is upstream of decoding, and a caller who repairs
+only `lm_head` still gets noise.
+
 **Reproduction — `google/madlad400-3b-mt`, 4.6M downloads.** Its checkpoint
 stores two distinct embedding-shaped tensors and no `shared.weight`:
 
