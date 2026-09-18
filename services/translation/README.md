@@ -254,6 +254,53 @@ only makes it small enough to load.
 `read_safetensors_header` uses two `read()` calls; `safe_open` would map the
 whole file, which on a machine this close to its ceiling is not free.
 
+## ⚠️ bfloat16 is a storage change, not quantisation
+
+Asked directly, so it belongs here: **does converting the checkpoint cost
+accuracy?**
+
+**Nothing is removed.** The converted file holds the same 2,940,374,016 numbers
+in the same 742 tensors with the same shapes — the conversion verifies exactly
+that. What changes is bytes per number: **4 → 2**.
+
+`bfloat16` is the top 16 bits of a `float32`:
+
+```
+float32   01000000010010010000111111011011   3.14159274
+bfloat16  0100000001001001                   3.14062500
+```
+
+| | exponent | mantissa | |
+| --- | --- | --- | --- |
+| float32 | **8** | 23 | ~7 significant digits |
+| bfloat16 | **8** | 7 | ~3 significant digits |
+
+Same exponent width, so the **range** is identical — nothing overflows and
+nothing underflows to zero. Only precision within that range drops.
+
+⚠️ **And the model already ran in bfloat16.** `MadladTranslator` loads with
+`dtype=torch.bfloat16`, so the float32 file was rounded at load time anyway.
+The conversion moves that rounding from every load to one disk write.
+✅ **Verified:** convert-then-load and load-then-convert give bit-identical
+tensors, max difference exactly `0.0`. **The shrink costs nothing that was not
+already being paid**, and the original file is untouched in the cache.
+
+⚠️ **The Q4 GGUF is a different thing entirely.** That is real quantisation —
+4 bits, a genuine quality trade — and DEC-011 records that using it is **a
+different measurement**. Storage precision matching what the model already runs
+at is not that, and the two must not be filed together.
+
+⚠️ **What is unmeasured:** whether float32 would give better Tigrinya than
+bfloat16 on this model. It stays unmeasured because float32 needs ~12 GB
+resident and does not fit in 16 GB — so it is not a choice being made, it is a
+constraint. Recorded rather than glossed (P-13).
+
+**Because the two are the same measurement, they share a run fingerprint.** The
+converted file carries `converted_from` in its safetensors `__metadata__`, and
+`source_model_id` resolves both to the same id — so a run rejected from the
+cache stays blocked when re-run from the converted directory. Keying on the
+file path would have silently unblocked a known failure.
+
 ## Running the measurement
 
 In this order. Each one costs more than the last, and each rules out a class of
@@ -265,6 +312,16 @@ python3 scripts/translate_tico19.py --diagnose     # Tigrinya + controls
 python3 scripts/translate_tico19.py --smoke        # 3 segments, printed
 python3 scripts/translate_tico19.py --json PATH --sheet PATH
 ```
+
+⚠️ On 16 GB, pass `--model` so the measurement reads the converted checkpoint
+rather than the 11.76 GB float32 original, which will not load:
+
+```bash
+python3 scripts/translate_tico19.py --model models/madlad400-3b-mt-bf16 --smoke
+```
+
+Every artefact records `model_name`, `source_model`, the resolved `checkpoint`
+path and its size, so a result always names the file it came from.
 
 ⚠️ **`--diagnose` is the one to reach for when output looks wrong.** It
 translates the same segments into Tigrinya **and control languages** — `<2am>`

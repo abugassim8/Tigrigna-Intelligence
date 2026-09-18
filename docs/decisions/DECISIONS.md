@@ -73,7 +73,7 @@ Expanded records may add **Status**, **Evidence**, **Revisit when**, and
 | DEC-008 | 2026-07-29 | Mandatory contamination screening; unlicensed data quarantined | Accepted |
 | DEC-009 | 2026-08-03 | chrF primary translation metric; BLEU for comparability only | Accepted — **caveat added by Amendment 1** |
 | DEC-010 | 2026-08-03 | Evaluation results are variety-scoped; no cross-variety aggregate | Accepted — **evidence corrected by Amendment 1** |
-| DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted — **sizes corrected by Amendment 1; load defect recorded by Amendment 2, mechanism corrected by Amendment 3** |
+| DEC-011 | 2026-08-10 | MADLAD-400-3B is the translation baseline; NC-licensed models are research-only | Accepted — **sizes corrected by Amendment 1; load defect recorded by Amendment 2, mechanism corrected by Amendment 3; precision clarified by Amendment 4** |
 | DEC-012 | 2026-08-10 | Library-first; services are thin wrappers over libraries | Accepted |
 | DEC-013 | 2026-08-10 | Tier by resource profile; never co-locate tiers in one process | Accepted |
 | DEC-014 | 2026-08-10 | CTranslate2 is the single model runtime | Accepted |
@@ -1182,6 +1182,48 @@ repaired model is **not the same measurement** as one from an intact model, and
 **A-22** is rewritten around this mechanism, which is broader than the one it
 described: it affects **every** T5-architecture checkpoint with an untied output
 projection, not only this one.
+
+### Amendment 4 — 2026-09-18: bfloat16 storage is not quantisation
+
+**The question that prompted this: does shrinking the checkpoint cost accuracy?**
+It does not, and the reasoning has to be written down because this decision
+already says quantisation *does* — so without it a reader sees "converted the
+model" beside that rule and reasonably concludes the numbers are incomparable.
+
+`scripts/shrink_checkpoint.py` rewrites the float32 checkpoint as bfloat16,
+**11.76 GB → 5.88 GB**. Nothing is removed: the same 2,940,374,016 parameters,
+the same 742 tensors, the same shapes. bfloat16 is the top 16 bits of a float32
+and carries the **same 8 exponent bits**, so the range is unchanged and only
+precision within it drops — ~7 significant digits to ~3.
+
+⚠️ **The model already ran at that precision.** `MadladTranslator` loads with
+`dtype=torch.bfloat16`, so the float32 file was rounded at load time in any
+case. ✅ **Verified 2026-09-18:** convert-then-load and load-then-convert give
+bit-identical tensors, maximum difference exactly `0.0`.
+
+**Therefore a result from the converted checkpoint and a result from the cache
+are the same measurement**, and are treated as one: the converted file records
+`converted_from` in its safetensors `__metadata__`, `source_model_id` resolves
+both to the same id, and the run fingerprint is built on that id rather than on
+the file path. ⚠️ Keying on the path would have silently unblocked a
+configuration already rejected, and spent another ninety minutes reproducing a
+known failure.
+
+⚠️ **The Q4 GGUF remains a different measurement**, exactly as this decision
+already states. 4-bit quantisation is a quality trade; matching the precision
+the model runs at is not. The two must not be filed together.
+
+⚠️ **Unmeasured, and recorded as such (P-13):** whether float32 would give
+better Tigrinya than bfloat16 on this model. It stays unmeasured because
+float32 needs ~12 GB resident and does not fit the 16 GB machine — a constraint,
+not a choice.
+
+**Also corrected here:** the run fingerprint previously covered only the sample
+and the model name. It now covers **dtype, target language token and whether the
+output projection had to be repaired**. Without the last of those, the
+wrong-language rejections of 2026-09-15 and 2026-09-16 — produced by a model
+whose trained `lm_head` the loader had discarded — would have blocked the first
+*correct* measurement as a known failure.
 
 ## DEC-012 — Library-first: services are thin wrappers over libraries
 

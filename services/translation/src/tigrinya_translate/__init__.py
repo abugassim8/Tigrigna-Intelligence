@@ -37,7 +37,9 @@ from .head import (
     RandomHeadError,
     RepairFailedError,
     inspect_head,
+    read_safetensors_metadata,
     repair_head,
+    source_model_id,
 )
 from .translate import (
     LANGUAGE_TOKEN,
@@ -60,6 +62,8 @@ __all__ = [
     "Translator",
     "UnknownLanguageTokenError",
     "inspect_head",
+    "read_safetensors_metadata",
     "repair_head",
+    "source_model_id",
     "translate_all",
 ]

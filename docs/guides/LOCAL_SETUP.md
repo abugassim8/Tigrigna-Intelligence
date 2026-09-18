@@ -76,7 +76,11 @@ complete. (os error 1455)`. Convert it once:
 ```
 python scripts/shrink_checkpoint.py
 python scripts/repair_lm_head.py --model models/madlad400-3b-mt-bf16
+python scripts/translate_tico19.py --model models/madlad400-3b-mt-bf16 --smoke
 ```
+
+⚠️ **`--model` on every one of them.** The measurement defaults to the Hub id,
+which resolves to the 11.76 GB float32 file — the one that will not load.
 
 **11.76 GB → 5.88 GB.** No download, no restart. ⚠️ Read the **control
 languages** before the Tigrinya: fluent Spanish and German mean the pipeline

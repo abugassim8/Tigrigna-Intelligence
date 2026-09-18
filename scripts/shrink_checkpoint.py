@@ -120,13 +120,23 @@ def plan_output(header: dict) -> tuple[list[str], dict, int]:
     return names, new, offset
 
 
-def encode_header(new_header: dict) -> bytes:
+def encode_header(new_header: dict, metadata: dict | None = None) -> bytes:
     """The 8-byte length plus padded JSON that opens a safetensors file.
 
     Padded to an 8-byte boundary with spaces. JSON tolerates trailing
     whitespace, and aligning the data start is what every reader expects.
+
+    ⚠️ `metadata` goes in the reserved `__metadata__` key, and carries which
+    model this file was converted from. Without it a converted checkpoint is
+    anonymous: `tigrinya_translate.head.source_model_id` could only fall back
+    to the directory name, and a run fingerprint built on that would treat the
+    converted model as a different model — silently unblocking a configuration
+    that was already rejected. safetensors requires the values to be strings.
     """
-    blob = json.dumps(new_header, separators=(",", ":")).encode("utf-8")
+    payload = dict(new_header)
+    if metadata:
+        payload["__metadata__"] = {k: str(v) for k, v in metadata.items()}
+    blob = json.dumps(payload, separators=(",", ":")).encode("utf-8")
     blob += b" " * (-len(blob) % 8)
     return len(blob).to_bytes(8, "little") + blob
 
@@ -137,7 +147,8 @@ def source_data_start(path: str) -> int:
         return 8 + int.from_bytes(fh.read(8), "little")
 
 
-def convert(src: str, dst: str, *, progress=None) -> dict:
+def convert(src: str, dst: str, *, progress=None,
+            metadata: dict | None = None) -> dict:
     """Stream `src` into `dst` as bfloat16. Peak memory is one tensor."""
     import ctypes
 
@@ -146,7 +157,7 @@ def convert(src: str, dst: str, *, progress=None) -> dict:
     header = read_safetensors_header(src)
     names, new_header, total = plan_output(header)
     data_start = source_data_start(src)
-    prologue = encode_header(new_header)
+    prologue = encode_header(new_header, metadata)
 
     written = 0
     with open(src, "rb") as fin, open(dst, "wb") as fout:
@@ -290,7 +301,19 @@ def main(argv: list[str] | None = None) -> int:
         if done % 50 == 0 or done == total:
             print(f"    {done:4}/{total}  {name}", flush=True)
 
-    stats = convert(src, str(dst), progress=show)
+    # ⚠️ Provenance travels inside the file. A converted checkpoint that does
+    # not say what it came from cannot be fingerprinted as the same
+    # measurement as its source, and the two ARE the same measurement — the
+    # weights are bit-identical to what the loader produces from the original.
+    stats = convert(src, str(dst), progress=show, metadata={
+        "converted_from": args.model,
+        "converted_from_file": os.path.basename(src),
+        "source_bytes": src_bytes,
+        "source_dtype": "F32",
+        "target_dtype": OUT_DTYPE,
+        "converted_by": "scripts/shrink_checkpoint.py",
+        "converted_on": __import__("datetime").date.today().isoformat(),
+    })
     print(f"  wrote       {stats['file_bytes']:,} bytes "
           f"({stats['tensors']} tensors)")
     print(f"  saved       {src_bytes - stats['file_bytes']:,} bytes")

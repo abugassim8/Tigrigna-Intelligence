@@ -88,7 +88,16 @@ On 16 GB, convert first; the float32 file exhausts the Windows commit limit:
 ```bash
 python scripts/shrink_checkpoint.py                              # 11.76 -> 5.88 GB
 python scripts/repair_lm_head.py --model models/madlad400-3b-mt-bf16
+python scripts/translate_tico19.py --model models/madlad400-3b-mt-bf16 --smoke
 ```
+
+⚠️ **Pass `--model` to the measurement too.** Without it `translate_tico19.py`
+loads the 11.76 GB float32 original, which is the file that will not fit.
+
+⚠️ bfloat16 here is **storage precision, not quantisation** — the model already
+loaded at that precision, and convert-then-load is bit-identical to
+load-then-convert. The Q4 GGUF *is* quantisation and would be a different
+measurement (DEC-011). `services/translation/README.md` has the detail.
 
 ⚠️ Read the **control languages** before the Tigrinya. Fluent Spanish and German
 mean the pipeline works; poor Tigrinya after that is a finding about coverage,

@@ -22,6 +22,58 @@ first service is deployed.
 
 ## [Unreleased]
 
+### The measurement can finally use the converted model — 2026-09-18
+
+A question — *does shrinking the checkpoint hurt accuracy?* — found a gap that
+would have cost another failed run.
+
+**The answer first.** Nothing was removed: the same 2,940,374,016 parameters,
+742 tensors, same shapes. bfloat16 is the top 16 bits of a float32 with the
+**same 8 exponent bits**, so the range is unchanged and only precision within it
+drops. ⚠️ And the model already loaded at `dtype=torch.bfloat16`, so the float32
+file was being rounded at load time anyway. ✅ Verified bit-identical,
+max difference `0.0`. **DEC-011 Amendment 4** records it, and why the Q4 GGUF
+is still a different measurement while this is not.
+
+### ⛔ The gap: `translate_tico19.py` had no `--model`
+
+The script that produces the actual result could only load the module-level
+`MODEL` — the Hub id, resolving to the **11.76 GB float32 file that crashes this
+machine**. Convert, verify with `repair_lm_head.py`, then run the measurement
+and hit `os error 1455` again. The path was built to the last step and stopped
+one command short.
+
+⚠️ **Eight places hardcoded `MODEL`**, not one — the fingerprint, the rejected
+file, the Harness `system`, the artefact, the smoke print, and `--diagnose`'s
+slow tokenizer. A `--model` flag threaded only into the constructor would have
+loaded one model and recorded another: a provenance lie in a file whose whole
+purpose is provenance. All eight now derive from the translator.
+
+### ⚠️ And the fingerprint would have blocked the first correct run
+
+It covered the sample and the model name only. It now also covers **dtype,
+language token, and whether the output projection was repaired** — without the
+last, the wrong-language rejections of 2026-09-15 and -16, produced by a model
+whose trained `lm_head` the loader had discarded, would have refused the first
+*correct* measurement as a known failure.
+
+⚠️ The paired plant `an_identical_configuration_is_still_blocked` exists because
+loosening a fingerprint until nothing is ever blocked passes the other plant and
+destroys the guard.
+
+**Provenance now travels inside the file.** `shrink_checkpoint.py` writes
+`converted_from` into the safetensors `__metadata__`, and `source_model_id`
+resolves a converted copy and its original to the same id — so they share a
+fingerprint, as they must, being bit-identical. Keying on the path would have
+silently unblocked a known failure.
+
+Artefacts record `model_name`, `source_model`, `checkpoint`, `checkpoint_bytes`
+and `converted_from`; a cache run and a converted run were previously
+indistinguishable.
+
+102 planted cases, up from 96, each new guard verified by reverting it. 187
+tests pass, 4 skip. 38 documented commands checked.
+
 ### Moving the work to a local editor, and two stale claims corrected — 2026-09-17
 
 ⚠️ **`CLAUDE.md`, written yesterday, was wrong in two places** — both from

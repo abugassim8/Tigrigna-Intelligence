@@ -356,6 +356,48 @@ def read_safetensors_header(path: str) -> dict:
     return header
 
 
+def read_safetensors_metadata(path: str) -> dict:
+    """The file's `__metadata__` block, or `{}`. No mapping, no tensor data.
+
+    safetensors reserves a `__metadata__` key in the header for free-form
+    string pairs. `scripts/shrink_checkpoint.py` writes provenance there —
+    which model a converted file came from — so a converted checkpoint carries
+    its own origin rather than relying on a directory name.
+    """
+    import json
+
+    with open(path, "rb") as fh:
+        length = int.from_bytes(fh.read(8), "little")
+        if not 0 < length <= 100_000_000:
+            return {}
+        blob = fh.read(length)
+    try:
+        meta = json.loads(blob.decode("utf-8")).get("__metadata__") or {}
+    except Exception:                                     # noqa: BLE001
+        return {}
+    return meta if isinstance(meta, dict) else {}
+
+
+def source_model_id(checkpoint: str, fallback: str) -> str:
+    """What model a checkpoint *is*, regardless of where it sits on disk.
+
+    ⚠️ **This is what a run fingerprint must be built on, not the path.**
+    `shrink_checkpoint.py` produces a bfloat16 copy whose weights are
+    bit-identical to what the loader would have produced from the float32
+    original — the conversion only moves the rounding from every load to one
+    disk write. So a result from the cache and a result from the converted
+    directory are the *same measurement*, and a run rejected under one must
+    stay blocked under the other.
+
+    Keying on the path would silently unblock a known-failing configuration and
+    spend another ninety minutes reproducing it.
+    """
+    try:
+        return read_safetensors_metadata(checkpoint).get("converted_from") or fallback
+    except Exception:                                     # noqa: BLE001
+        return fallback
+
+
 def checkpoint_stores_separate_projection(checkpoint: str,
                                           shape: tuple[int, int]) -> bool:
     """Does the file store more than one embedding-shaped matrix?

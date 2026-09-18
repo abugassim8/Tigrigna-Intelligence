@@ -740,6 +740,138 @@ with tempfile.TemporaryDirectory() as tmp:
         res = t.diagnose(probe, 2)
         ok = res["<2am>"] is None and res["<2ti>"] == 2
 
+    elif CASE == "the_model_flag_reaches_the_translator":
+        # ⚠️ Wiring. A flag can exist, be declared, pass check_commands.py and
+        # be ignored — which is the `out_json` positional bug in another suit.
+        import tigrinya_translate.translate as tt
+        seen = {}
+
+        def factory(*a, **k):
+            seen.update(k)
+            return type("Stub", (), {
+                "_loaded": (None, None),
+                "model_name": k.get("model_name"),
+                "dtype": k.get("dtype"),
+                "__call__": staticmethod(lambda b: steady(b))})()
+
+        tt.MadladTranslator = factory
+        code = t.main(["--model", "some/where", "--json", str(js),
+                       "--sheet", str(sheet), "--limit", "4"])
+        saved = json.loads(js.read_text(encoding="utf-8"))
+        ok = (code == 0 and seen.get("model_name") == "some/where"
+              and saved["model"] == "some/where"
+              and saved["environment"]["model_name"] == "some/where")
+
+    elif CASE == "a_pre_repair_rejection_does_not_block_a_repaired_run":
+        # ⚠️ The one that decides whether the first correct measurement can run
+        # at all. The wrong-language rejections of 2026-09-15 and -16 came from
+        # a model whose trained lm_head had been discarded by the loader. A
+        # repaired model is a different configuration and must not be refused
+        # as a known failure.
+        class Broken:
+            dtype, language_token, head_state = "bfloat16", "<2ti>", "TIED_WRONGLY"
+            def __call__(self, batch):
+                return english(batch)
+
+        class Repaired:
+            dtype, language_token, head_state = "bfloat16", "<2ti>", "TRAINED"
+            def __call__(self, batch):
+                return steady(batch)
+
+        try:
+            t.measure(Broken(), out_json=js, out_sheet=sheet, limit=6, quiet=True)
+            ok = False
+        except t.WrongLanguageError:
+            out = t.measure(Repaired(), out_json=js, out_sheet=sheet, limit=6,
+                            quiet=True)
+            ok = bool(out["scores"])
+
+    elif CASE == "an_identical_configuration_is_still_blocked":
+        # ⚠️ The control for the case above. Loosening the fingerprint until
+        # nothing is ever blocked would pass that plant and destroy the guard.
+        class Broken:
+            dtype, language_token, head_state = "bfloat16", "<2ti>", "TIED_WRONGLY"
+            def __call__(self, batch):
+                return english(batch)
+
+        try:
+            t.measure(Broken(), out_json=js, out_sheet=sheet, limit=6, quiet=True)
+            ok = False
+        except t.WrongLanguageError:
+            try:
+                t.measure(Broken(), out_json=js, out_sheet=sheet, limit=6,
+                          quiet=True)
+                ok = False
+            except t.AlreadyRejectedError:
+                ok = True
+
+    elif CASE == "a_different_dtype_is_not_blocked":
+        class Broken:
+            dtype, language_token, head_state = "bfloat16", "<2ti>", "TRAINED"
+            def __call__(self, batch):
+                return english(batch)
+
+        class Float32:
+            dtype, language_token, head_state = "float32", "<2ti>", "TRAINED"
+            def __call__(self, batch):
+                return steady(batch)
+
+        try:
+            t.measure(Broken(), out_json=js, out_sheet=sheet, limit=6, quiet=True)
+            ok = False
+        except t.WrongLanguageError:
+            out = t.measure(Float32(), out_json=js, out_sheet=sheet, limit=6,
+                            quiet=True)
+            ok = bool(out["scores"])
+
+    elif CASE == "the_artefact_records_the_checkpoint_it_opened":
+        # A run from the cache and a run from the converted directory were
+        # previously indistinguishable in the recorded result.
+        import tigrinya_translate.head as head
+        from safetensors.torch import save_file
+        import torch as _torch
+
+        d = pathlib.Path(tmp) / "conv"
+        d.mkdir()
+        save_file({"w": _torch.randn(4, 4)}, str(d / "model.safetensors"))
+
+        class Local:
+            dtype, language_token, head_state = "bfloat16", "<2ti>", "TRAINED"
+            model_name = str(d)
+            def __call__(self, batch):
+                return steady(batch)
+
+        t.measure(Local(), out_json=js, out_sheet=sheet, limit=4, quiet=True)
+        env = json.loads(js.read_text(encoding="utf-8"))["environment"]
+        ok = (env["checkpoint"] == str(d / "model.safetensors")
+              and env["checkpoint_bytes"] > 0
+              and env["model_name"] == str(d))
+
+    elif CASE == "a_converted_checkpoint_keeps_its_source_identity":
+        # ⚠️ Converted and original hold bit-identical weights, so they are the
+        # same measurement and must share a fingerprint. Keying on the path
+        # would unblock a configuration already known to fail.
+        import sys as _sys
+        _sys.path.insert(0, "scripts")
+        import shrink_checkpoint as sc
+        import tigrinya_translate.head as head
+        from safetensors.torch import save_file
+        import torch as _torch
+
+        base = pathlib.Path(tmp) / "orig"
+        base.mkdir()
+        save_file({"decoder.embed_tokens.weight": _torch.randn(40, 8),
+                   "lm_head.weight": _torch.randn(40, 8)},
+                  str(base / "model.safetensors"))
+        sc.convert(str(base / "model.safetensors"),
+                   str(pathlib.Path(tmp) / "c.safetensors"),
+                   metadata={"converted_from": "google/madlad400-3b-mt"})
+        ident = head.source_model_id(str(pathlib.Path(tmp) / "c.safetensors"),
+                                     "some/local/path")
+        original = head.source_model_id(str(base / "model.safetensors"),
+                                        "google/madlad400-3b-mt")
+        ok = ident == original == "google/madlad400-3b-mt"
+
     elif CASE == "the_threshold_is_recorded_before_judging":
         out = t.measure(steady, out_json=js, out_sheet=sheet, limit=6, quiet=True)
         saved = json.loads(js.read_text(encoding="utf-8"))
@@ -767,6 +899,18 @@ TRANSLATE_PLANTS = [
      "the_sheet_never_leaks_the_reference", 0),
     ("the threshold is recorded before judging",
      "the_threshold_is_recorded_before_judging", 0),
+    ("--model reaches the translator and the artefact",
+     "the_model_flag_reaches_the_translator", 0),
+    ("a pre-repair rejection does not block a repaired run",
+     "a_pre_repair_rejection_does_not_block_a_repaired_run", 0),
+    ("an identical configuration is still blocked",
+     "an_identical_configuration_is_still_blocked", 0),
+    ("a different dtype is not blocked",
+     "a_different_dtype_is_not_blocked", 0),
+    ("the artefact records the checkpoint it opened",
+     "the_artefact_records_the_checkpoint_it_opened", 0),
+    ("a converted checkpoint keeps its source identity",
+     "a_converted_checkpoint_keeps_its_source_identity", 0),
     ("a rejected run preserves its output for diagnosis",
      "a_rejected_run_preserves_its_output", 0),
     ("a resumed run matches an uninterrupted one, and says it resumed",

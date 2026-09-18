@@ -64,6 +64,7 @@ import csv
 import datetime
 import hashlib
 import json
+import os
 import pathlib
 import random
 import sys
@@ -159,6 +160,33 @@ def write_sheet(path: pathlib.Path, ids: list[int], english: list[str],
             w.writerow([i, en, ti, "", ""])
 
 
+def _model_of(translator) -> str:
+    """The model this translator was actually built for.
+
+    ⚠️ Read from the translator, never from the module constant. Eight places
+    here used `MODEL` directly, so pointing `--model` at the converted
+    checkpoint would have loaded one model and recorded another — a provenance
+    lie in a file whose whole purpose is provenance.
+    """
+    return getattr(translator, "model_name", None) or MODEL
+
+
+def _source_model(translator) -> str:
+    """What the loaded checkpoint *is*, independent of where it sits on disk.
+
+    ⚠️ A bfloat16 copy made by `scripts/shrink_checkpoint.py` holds weights
+    bit-identical to what the loader produces from the float32 original, so the
+    two are the **same measurement**. Both resolve to the same id here, which
+    is what keeps a rejected run blocked no matter which file it is re-run from.
+    """
+    name = _model_of(translator)
+    try:
+        from tigrinya_translate.head import locate_checkpoint, source_model_id
+        return source_model_id(locate_checkpoint(name), name)
+    except Exception:                                     # noqa: BLE001
+        return name
+
+
 def _environment(translator=None) -> dict:
     """What actually ran, read from the imported modules.
 
@@ -188,6 +216,23 @@ def _environment(translator=None) -> dict:
         env["head_state"] = getattr(translator, "head_state", None)
         env["head_repaired"] = getattr(translator, "head_repaired", None)
         env["head_source"] = getattr(translator, "head_source", None)
+        # ⚠️ Which file was opened, not which name was typed. A run from the
+        # Hugging Face cache and a run from models/madlad400-3b-mt-bf16 were
+        # previously indistinguishable in the artefact.
+        env["model_name"] = _model_of(translator)
+        env["source_model"] = _source_model(translator)
+        try:
+            from tigrinya_translate.head import (locate_checkpoint,
+                                                 read_safetensors_metadata)
+            path = locate_checkpoint(env["model_name"])
+            env["checkpoint"] = path
+            env["checkpoint_bytes"] = os.path.getsize(path)
+            env["converted_from"] = read_safetensors_metadata(path).get(
+                "converted_from")
+        except Exception as exc:                          # noqa: BLE001
+            env["checkpoint"] = f"unresolved: {type(exc).__name__}"
+            env["checkpoint_bytes"] = None
+            env["converted_from"] = None
     return env
 
 
@@ -215,15 +260,31 @@ def _previously_rejected(out_json: pathlib.Path | None,
     return data if data.get("fingerprint") == fingerprint else None
 
 
-def _fingerprint(source: list[str], model: str) -> str:
+def _fingerprint(source: list[str], model: str, *, dtype: str = "",
+                 language_token: str = "", head: str = "") -> str:
     """Identify *this* run, so a resume cannot stitch two different ones.
 
     ⚠️ Without it, changing SEED, SAMPLE_SIZE or the model and re-running would
     silently graft old hypotheses onto a new sample. The result would be
     perfectly well-formed and completely wrong — the same failure shape as the
     language gate, one layer up.
+
+    ⚠️ **Everything that changes the output belongs here**, and three things
+    were missing. `dtype` changes the arithmetic, so a float32 run is not the
+    run a bfloat16 run was rejected for. `language_token` picks the target
+    language. And `head` records whether the output projection had to be
+    repaired — the wrong-language rejections of 2026-09-15 and 2026-09-16 were
+    produced by a model whose trained `lm_head` had been discarded by the
+    loader, so they must not block a run on a repaired model. Without that the
+    first correct measurement would have been refused as a known failure.
+
+    ⚠️ `model` must be the **source** id (`_source_model`), not a path: a
+    converted bfloat16 copy holds bit-identical weights and is the same run.
     """
     h = hashlib.sha256(model.encode("utf-8"))
+    for extra in (dtype, language_token, head):
+        h.update(b"\x1f")
+        h.update(extra.encode("utf-8"))
     for line in source:
         h.update(b"\x00")
         h.update(line.encode("utf-8"))
@@ -291,7 +352,7 @@ def _write_rejected(out_json: pathlib.Path | None, reason: str,
         # Re-running this exact sample is blocked on the strength of this field.
         "fingerprint": fingerprint,
         "environment": _environment(translator),
-        "model": MODEL,
+        "model": _model_of(translator),
         "language_token": LANGUAGE_TOKEN,
         "segment_ids": ids,
         "pairs": [{"id": i, "english": e, "output": h}
@@ -324,7 +385,13 @@ def measure(translator, *, out_json: pathlib.Path | None,
         ids = ids[:limit]
     source = [english[i] for i in ids]
 
-    fingerprint = _fingerprint(source, MODEL)
+    model_name = _model_of(translator)
+    fingerprint = _fingerprint(
+        source, _source_model(translator), dtype=str(
+            getattr(translator, "dtype", "")),
+        language_token=str(getattr(translator, "language_token",
+                                   LANGUAGE_TOKEN)),
+        head=str(getattr(translator, "head_state", "")))
 
     # ------------------------------------------- already rejected once?
     #
@@ -350,7 +417,7 @@ def measure(translator, *, out_json: pathlib.Path | None,
     if not quiet:
         print(f"  {len(ids)} segment(s) sampled from {SPLIT} "
               f"(seed {SEED}, of {len(english)})")
-        print(f"  model: {MODEL}")
+        print(f"  model: {model_name}")
         env = _environment(translator)
         print(f"  transformers {env.get('transformers')}, torch "
               f"{env.get('torch')}, dtype {env.get('dtype')}")
@@ -457,7 +524,7 @@ def measure(translator, *, out_json: pathlib.Path | None,
     harness = Harness()
     for name, variety in REFERENCES.items():
         harness.evaluate(
-            system=MODEL,
+            system=model_name,
             hypotheses=hypotheses,
             eval_set=EvalSet(name=f"tico19.{SPLIT}.{name}", variety=variety,
                              references=[refs[name][i] for i in ids],
@@ -470,7 +537,7 @@ def measure(translator, *, out_json: pathlib.Path | None,
 
     out = {
         "measurement": "translation-en-ti",
-        "model": MODEL,
+        "model": model_name,
         "licence": "Apache-2.0",
         "direction": "English -> Tigrinya",
         "split": SPLIT,
@@ -560,7 +627,7 @@ def smoke(translator, n: int = 3, quiet: bool = False) -> list[str]:
 
     if not quiet:
         token = getattr(translator, "language_token", LANGUAGE_TOKEN)
-        print(f"  {MODEL}  {token}\n")
+        print(f"  {_model_of(translator)}  {token}\n")
         for i, en, ti in zip(ids, source, out):
             geez = sum(1 for c in ti if is_ethiopic(c))
             print(f"  [{i}] en: {en}")
@@ -617,7 +684,7 @@ def diagnose(translator, n: int = 3, languages=CONTROL_LANGUAGES) -> dict:
             # ⚠️ The model card uses the SLOW T5Tokenizer. If the two disagree
             # about `<2ti>`, that difference is the whole bug.
             from transformers import T5Tokenizer
-            slow = T5Tokenizer.from_pretrained(MODEL)
+            slow = T5Tokenizer.from_pretrained(_model_of(translator))
             print(f"  slow tokenizer: {slow.tokenize(probe)}")
         except Exception as exc:                          # noqa: BLE001
             print(f"  tokenizer comparison unavailable: "
@@ -693,6 +760,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--diagnose", action="store_true",
                     help="translate a few segments into Tigrinya AND control "
                          "languages, with one model load; writes nothing")
+    ap.add_argument("--model", default=MODEL, metavar="NAME_OR_PATH",
+                    help="Hub id, or a local directory such as "
+                         "models/madlad400-3b-mt-bf16 written by "
+                         "scripts/shrink_checkpoint.py")
     ap.add_argument("--dtype", default="bfloat16", metavar="NAME",
                     help="torch dtype for the model (default bfloat16; "
                          "float32 is ~12 GB resident and will thrash 16 GB)")
@@ -714,7 +785,8 @@ def main(argv: list[str] | None = None) -> int:
     print("=" * 72)
 
     try:
-        translator = MadladTranslator(dtype=args.dtype)
+        translator = MadladTranslator(model_name=args.model,
+                                      dtype=args.dtype)
         # Force the load now, so the language-token check fires before any
         # decoding rather than after the first batch.
         translator._loaded                                # noqa: B018
